@@ -1,0 +1,147 @@
+.container {
+    position: relative;
+    min-height: 100vh;
+    background: #0a0a0a;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    --primary-blue: #2C7FB8;
+    --primary-red: #E11B22;
+}
+
+.bgWrapper {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.blobBlue,
+.blobRed {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    filter: blur(100px);
+    opacity: 0.2;
+    transform: translate(var(--x, 0), var(--y, 0));
+    transition: transform 0.2s ease-out;
+}
+
+.blobBlue {
+    background: var(--primary-blue);
+    top: -10%;
+    left: -10%;
+}
+
+.blobRed {
+    background: var(--primary-red);
+    bottom: -10%;
+    right: -10%;
+}
+
+.productCard {
+    background: #111;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.productCard:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+}
+
+.imageWrapper {
+    position: relative;
+    height: 400px;
+    overflow: hidden;
+}
+
+.mainImage {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.productCard:hover .mainImage {
+    transform: scale(1.1);
+}
+
+.hoverOverlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.productCard:hover .hoverOverlay {
+    opacity: 1;
+}
+
+.quickViewBtn {
+    background: white;
+    color: black;
+    padding: 12px 24px;
+    text-decoration: none;
+    font-weight: 700;
+    border-radius: 4px;
+    transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.productCard:hover .quickViewBtn {
+    transform: translateY(0);
+}
+
+.quickViewBtn:hover {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.cardFooter {
+    padding: 20px;
+    text-align: left;
+}
+
+.category {
+    color: var(--primary-blue);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.productName {
+    color: white;
+    font-size: 1.25rem;
+    margin: 5px 0;
+}
+
+.priceTag {
+    color: var(--primary-red);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.title {
+    font-size: 3.5rem;
+    color: white;
+    font-weight: 900;
+}
+
+.gradientText {
+    background: linear-gradient(90deg, var(--primary-blue), var(--primary-red));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.lead {
+    color: #888;
+    margin-top: 20px;
+}

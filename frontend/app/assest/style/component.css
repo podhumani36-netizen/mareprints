@@ -1,0 +1,83 @@
+:root {
+    --primary-blue: #2C7FB8;
+    --primary-red: #E11B22;
+    --accent-red: #f01731;
+    --text-dark: #1a1a1a;
+    --bg-soft: #fbfcfd;
+}
+
+.banner-section {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.mare-hero-bg {
+    position: relative;
+    min-height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mare-hero-bg .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65));
+    z-index: 1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    color: #ffffff;
+}
+
+.hero-title {
+    color: var(--bg-soft);
+    font-weight: 700;
+    letter-spacing: 2px;
+    font-size: 42px;
+    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.breadcrumb {
+    margin-top: 15px;
+    padding: 0;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--primary-red) !important;
+}
+
+.breadcrumb-item a {
+    color: #ffffff;
+    font-weight: 500;
+    transition: 0.3s ease;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--primary-blue);
+}
+
+.breadcrumb-item.active {
+    font-weight: 600;
+    color: var(--primary-blue) !important;
+}
+
+.bi {
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .mare-hero-bg {
+        min-height: 300px;
+    }
+
+    .hero-title {
+        font-size: 28px;
+    }
+}

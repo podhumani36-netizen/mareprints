@@ -1,0 +1,58 @@
+.tabNav {
+    gap: 10px;
+    border-bottom: none;
+}
+
+.tabNav .nav-link {
+    color: #666;
+    font-weight: 600;
+    padding: 12px 30px;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    background: white;
+    border: 1px solid #e0e0e0;
+}
+
+.tabNav .nav-link:hover {
+    background: #f8f9fa;
+    color: #2C7FB8;
+    border-color: #2C7FB8;
+}
+
+.tabNav .nav-link.active {
+    background: linear-gradient(135deg, #2C7FB8, #E11B22);
+    color: white;
+    border: none;
+    box-shadow: 0 5px 15px rgba(52, 150, 203, 0.3);
+}
+
+.tabContent {
+    min-height: 400px;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .tabNav {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 10px;
+        justify-content: flex-start;
+    }
+
+    .tabNav .nav-link {
+        white-space: nowrap;
+        padding: 8px 20px;
+    }
+}

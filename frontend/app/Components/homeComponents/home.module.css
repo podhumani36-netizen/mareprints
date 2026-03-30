@@ -1,0 +1,539 @@
+.banner {
+    --primary-blue: #2C7FB8;
+    --primary-red: #E11B22;
+    --accent-red: #f01731;
+
+    height: 100vh;
+    min-height: 600px;
+    max-height: 880px;
+    background: #1a1a2e;
+    position: relative;
+    overflow: hidden;
+}
+
+.slide {
+    top: 0;
+    left: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+}
+
+.activeSlide {
+    opacity: 1;
+    visibility: visible;
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.6) 50%, rgba(0, 0, 0, 0.3) 100%);
+    z-index: 1;
+}
+
+.badge {
+    padding: 6px 16px;
+    border-radius: 50px;
+    border: 1px solid;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    animation: slideDown 0.8s ease;
+    position: relative;
+    z-index: 2;
+    font-size: 0.9rem;
+}
+
+.title {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.8s ease 0.2s both;
+    z-index: 2;
+    position: relative;
+    font-size: clamp(1.8rem, 5vw, 3.5rem);
+    line-height: 1.2;
+}
+
+.description {
+    animation: slideUp 0.8s ease 0.4s both;
+    max-width: 600px;
+    opacity: 0.9;
+    z-index: 2;
+    position: relative;
+    font-size: clamp(0.9rem, 2.5vw, 1.25rem);
+}
+
+.contactBtn {
+    border: none;
+    border-radius: 50px;
+    color: white;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    animation: slideUp 0.8s ease 0.6s both;
+    z-index: 2;
+    text-decoration: none;
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+}
+
+.contactBtn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.features {
+    animation: slideUp 0.8s ease 0.8s both;
+    z-index: 2;
+    position: relative;
+}
+
+.features i {
+    color: var(--primary-blue);
+}
+
+.imageCard {
+    position: relative;
+    padding: 20px;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 2px solid;
+    animation: float 3s ease-in-out infinite;
+    z-index: 2;
+}
+
+.imageWrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 20px;
+}
+
+.imageWrapper img {
+    transition: transform 0.8s ease;
+    width: 100%;
+    height: auto;
+}
+
+.imageWrapper:hover img {
+    transform: scale(1.1);
+}
+
+.imageBadge {
+    top: 20px;
+    right: 20px;
+    padding: 8px 16px;
+    border-radius: 50px;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    z-index: 3;
+}
+
+.mobileImagePreview {
+    bottom: 120px;
+    right: 20px;
+    z-index: 5;
+    animation: slideInRight 0.8s ease;
+}
+
+.mobileDots {
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    gap: 12px;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px 20px;
+    border-radius: 50px;
+    backdrop-filter: blur(10px);
+}
+
+.mobileDot {
+    width: 8px;
+    height: 8px;
+    border: none;
+    border-radius: 50%;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.activeMobileDot {
+    width: 20px;
+    border-radius: 10px;
+}
+
+.swipeInstruction {
+    position: absolute;
+    bottom: 30px;
+    left: 20px;
+    z-index: 5;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 6px 12px;
+    border-radius: 50px;
+    backdrop-filter: blur(5px);
+    animation: fadeIn 1s ease;
+}
+
+.swipeInstruction i {
+    font-size: 1rem;
+}
+
+.slideCounter {
+    position: absolute;
+    bottom: 80px;
+    right: 20px;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 8px 16px;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    animation: slideInRight 0.8s ease;
+}
+
+.currentSlide {
+    color: var(--primary-blue);
+    font-size: 1.4rem;
+    font-weight: 800;
+}
+
+.counterSeparator {
+    margin: 0 4px;
+    opacity: 0.5;
+}
+
+.totalSlides {
+    opacity: 0.7;
+}
+
+.navBtn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    cursor: pointer;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.navBtn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--primary-blue);
+    transform: scale(1.1);
+}
+
+.navBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.navBtn i {
+    font-size: 1.5rem;
+}
+
+.progressBar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    z-index: 10;
+}
+
+.progressFill {
+    height: 100%;
+    background: var(--primary-blue);
+    transition: width 0.1s linear;
+    border-radius: 0 2px 2px 0;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@media (min-width: 1200px) {
+    .title {
+        font-size: 3.5rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .banner {
+        min-height: 600px;
+    }
+
+    .title {
+        font-size: 2.5rem;
+    }
+
+    .description {
+        font-size: 1rem;
+    }
+
+    .mobileImagePreview {
+        bottom: 100px;
+        right: 15px;
+        max-width: 150px;
+    }
+
+    .mobileImagePreview img {
+        max-height: 150px;
+    }
+}
+
+@media (max-width: 768px) {
+    .banner {
+        min-height: 550px;
+    }
+
+    .title {
+        font-size: 2rem;
+    }
+
+    .description {
+        font-size: 0.95rem;
+        max-width: 80%;
+    }
+
+    .features {
+        flex-direction: column;
+        gap: 10px !important;
+        align-items: flex-start;
+    }
+
+    .badge {
+        font-size: 0.8rem;
+    }
+
+    .slideCounter {
+        bottom: 70px;
+        padding: 6px 12px;
+    }
+
+    .currentSlide {
+        font-size: 1.2rem;
+    }
+
+    .mobileDots {
+        bottom: 70px;
+        padding: 8px 16px;
+    }
+
+    .mobileImagePreview {
+        bottom: 90px;
+        max-width: 120px;
+    }
+
+    .mobileImagePreview img {
+        max-height: 120px;
+    }
+}
+
+@media (max-width: 576px) {
+    .banner {
+        min-height: 500px;
+    }
+
+    .title {
+        font-size: 1.6rem;
+    }
+
+    .description {
+        font-size: 0.9rem;
+        max-width: 70%;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 4px 12px;
+    }
+
+    .contactBtn {
+        font-size: 0.85rem;
+        padding: 8px 20px;
+    }
+
+    .slideCounter {
+        bottom: 60px;
+        right: 15px;
+        font-size: 0.9rem;
+    }
+
+    .currentSlide {
+        font-size: 1rem;
+    }
+
+    .mobileDots {
+        bottom: 60px;
+        gap: 8px;
+        padding: 6px 12px;
+    }
+
+    .mobileDot {
+        width: 6px;
+        height: 6px;
+    }
+
+    .activeMobileDot {
+        width: 16px;
+    }
+
+    .mobileImagePreview {
+        bottom: 80px;
+        max-width: 100px;
+    }
+
+    .mobileImagePreview img {
+        max-height: 100px;
+    }
+
+    .swipeInstruction {
+        bottom: 20px;
+        font-size: 0.7rem;
+        padding: 4px 10px;
+    }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+    .banner {
+        min-height: 400px;
+    }
+
+    .title {
+        font-size: 1.5rem;
+    }
+
+    .description {
+        font-size: 0.85rem;
+        max-width: 60%;
+    }
+
+    .mobileImagePreview {
+        bottom: 70px;
+        max-width: 80px;
+    }
+
+    .mobileImagePreview img {
+        max-height: 80px;
+    }
+
+    .mobileDots {
+        bottom: 50px;
+    }
+
+    .slideCounter {
+        bottom: 50px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .slide,
+    .badge,
+    .title,
+    .description,
+    .contactBtn,
+    .features,
+    .imageCard,
+    .navBtn,
+    .dot,
+    .progressFill,
+    .mobileImagePreview,
+    .swipeInstruction {
+        animation: none !important;
+        transition: none !important;
+    }
+}

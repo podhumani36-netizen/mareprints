@@ -1,0 +1,217 @@
+.pageWrapper {
+    display: flex;
+    min-height: 70vh;
+    background: #ffffff;
+    font-family: 'Inter', sans-serif;
+}
+
+.sideGraphic {
+    flex: 1;
+    background: #f8fafc;
+    background-image:
+        linear-gradient(rgba(44, 127, 184, 0.05) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(44, 127, 184, 0.05) 2px, transparent 2px);
+    background-size: 50px 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.floatingCard {
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 4px;
+    box-shadow: 20px 20px 60px #d1d9e6, -20px -20px 60px #ffffff;
+    border-left: 5px solid #2C7FB8;
+}
+
+.line {
+    width: 30px;
+    height: 2px;
+    background: #2C7FB8;
+    margin-bottom: 10px;
+}
+
+.contentSide {
+    flex: 1.2;
+    padding: 60px 10%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.upperTitle {
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #2C7FB8;
+    display: block;
+    margin-bottom: 20px;
+}
+
+.title {
+    font-size: 4rem;
+    font-weight: 900;
+    color: #0f172a;
+    line-height: 1.1;
+    margin-bottom: 25px;
+}
+
+.title span {
+    color: #2C7FB8;
+}
+
+.text {
+    font-size: 1.1rem;
+    color: #64748b;
+    max-width: 480px;
+    line-height: 1.6;
+    margin-bottom: 40px;
+}
+
+.inputGroup {
+    display: flex;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 10px;
+    max-width: 400px;
+    transition: border-color 0.3s;
+}
+
+.inputGroup:focus-within {
+    border-color: #2C7FB8;
+}
+
+.minimalInput {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-size: 1rem;
+    padding: 10px 0;
+}
+
+.actionBtn {
+    border: none;
+    background: transparent;
+    color: #2C7FB8;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+.backLink {
+    text-decoration: none;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    transition: color 0.3s;
+}
+
+.backLink:hover {
+    color: #2C7FB8;
+}
+
+.popupOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.popupCard {
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    animation: slideUpBounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.checkIcon {
+    width: 60px;
+    height: 60px;
+    background: #2C7FB8;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    margin: 0 auto 20px;
+}
+
+.popupCard h4 {
+    color: #0f172a;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.popupCard p {
+    color: #64748b;
+    margin-bottom: 25px;
+}
+
+.closeBtn {
+    background: #0f172a;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.closeBtn:hover {
+    transform: scale(1.05);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUpBounce {
+    from {
+        opacity: 0;
+        transform: translateY(50px) scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (max-width: 1024px) {
+    .sideGraphic {
+        display: none;
+    }
+
+    .contentSide {
+        padding: 40px 5%;
+        align-items: center;
+        text-align: center;
+    }
+
+    .inputGroup {
+        margin: 0 auto;
+    }
+}

@@ -1,0 +1,100 @@
+:root {
+    --primary-blue: #2C7FB8;
+    --primary-red: #E11B22;
+    --dark-void: #1a202c;
+    --ls-1: 1px;
+}
+
+.contact-root {
+    background-color: #f8fafc;
+}
+
+.contact-overlap {
+    margin-top: -120px;
+    position: relative;
+    z-index: 10;
+}
+
+.contact-card {
+    border-radius: 30px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-info {
+    background: linear-gradient(135deg, var(--dark-void) 0%, #2d3748 100%);
+}
+
+.text-highlight {
+    color: var(--primary-blue);
+}
+
+.method-icon {
+    padding: 13px 15px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.ls-1 {
+    letter-spacing: var(--ls-1);
+    font-size: 0.75rem;
+}
+
+.status-pill {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.status-open {
+    background: #c6f6d5;
+    color: #22543d;
+}
+
+.status-closed {
+    background: #fed7d7;
+    color: #822727;
+}
+
+.social-btn {
+    width: 42px;
+    height: 42px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+}
+
+.social-btn:hover {
+    background: white;
+    color: var(--primary-blue);
+    transform: translateY(-4px);
+}
+
+.map-frame {
+    filter: grayscale(100%) contrast(1.1);
+    transition: filter 0.6s ease;
+    line-height: 0;
+}
+
+.map-frame:hover {
+    filter: grayscale(0%);
+}
+
+@media (max-width: 991px) {
+    .contact-overlap {
+        margin-top: 0;
+        padding-top: 40px;
+    }
+}

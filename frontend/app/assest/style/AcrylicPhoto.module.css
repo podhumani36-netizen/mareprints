@@ -1,0 +1,79 @@
+.acrylicPromo {
+    background: linear-gradient(135deg, #2C7FB810, #E11B2210);
+    padding: 4rem 2rem;
+    border-radius: 30px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(52, 150, 203, 0.1);
+}
+
+.acrylicPromo::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, #2C7FB810 0%, transparent 50%);
+    animation: rotate 30s linear infinite;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.acrylicPromo h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #2C7FB8, #E11B22);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative;
+}
+
+.acrylicPromo p {
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    position: relative;
+}
+
+.promoBtn {
+    display: inline-block;
+    padding: 1rem 3rem;
+    background: linear-gradient(135deg, #2C7FB8, #E11B22);
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: 0 5px 20px rgba(52, 150, 203, 0.3);
+}
+
+.promoBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(214, 40, 57, 0.4);
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .acrylicPromo h2 {
+        font-size: 2rem;
+    }
+
+    .acrylicPromo p {
+        font-size: 1rem;
+    }
+
+    .promoBtn {
+        padding: 0.8rem 2rem;
+    }
+}

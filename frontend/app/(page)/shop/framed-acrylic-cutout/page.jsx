@@ -1,0 +1,25 @@
+import Link from "next/link";
+import styles from "../../../assest/style/Shop.module.css";
+import HeroBanner from "../../../components/minbanner";
+import Products from "../../../Components/products";
+import { shopData } from "../../../data/shopdata";
+
+export default function Shop() {
+  return (
+    <main className="shop">
+      <HeroBanner
+        title="Framed Acrylic Photo Portrait"
+        imageUrl="https://res.cloudinary.com/dsprfys3x/image/upload/v1772614051/interactive-web-design-online-art-gallery-featuring-immersive-visuals-easy-navigation-sleek-modern_1266280-95946_q0cs87.jpg"
+      />
+
+      <div className="container my-5">
+        <h2 className={styles.sectionTitle}>Framed Acrylic Cut Out</h2>
+        <Products
+          data={shopData[2].data}
+          limit={null}
+          link="/product"
+        />
+      </div>
+    </main>
+  );
+}

@@ -1,0 +1,244 @@
+.paymentForm {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.5s ease;
+}
+
+.paymentForm h3 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.formSection {
+    margin-bottom: 2.5rem;
+}
+
+.formSection h4 {
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: #444;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.formSection h4::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background: #2C7FB8;
+    border-radius: 2px;
+}
+
+.formGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.formGroupFull {
+    grid-column: span 2;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.formGroup label,
+.formGroupFull label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #555;
+}
+
+.formGroup input,
+.formGroupFull input,
+.formGroupFull textarea {
+    padding: 0.8rem 1rem;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #fafafa;
+}
+
+.formGroup input:hover,
+.formGroupFull input:hover,
+.formGroupFull textarea:hover {
+    border-color: #2C7FB8;
+    background: white;
+}
+
+.formGroup input:focus,
+.formGroupFull input:focus,
+.formGroupFull textarea:focus {
+    outline: none;
+    border-color: #2C7FB8;
+    box-shadow: 0 0 0 3px rgba(44, 127, 184, 0.1);
+    background: white;
+}
+
+.formGroup input.error,
+.formGroupFull textarea.error {
+    border-color: #dc3545;
+    background: #fff8f8;
+}
+
+.errorText {
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+.paymentOptions {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.paymentOption {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 1rem 1.5rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    flex: 1;
+    min-width: 200px;
+}
+
+.paymentOption:hover {
+    border-color: #2C7FB8;
+    background: #f5f9ff;
+}
+
+.paymentOption input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #2C7FB8;
+}
+
+.paymentOption span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #444;
+}
+
+.paymentOption img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.paymentOption i {
+    font-size: 1.4rem;
+    color: #2C7FB8;
+}
+
+.paymentButton {
+    margin-top: 1.5rem;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.paymentButton:global(.loading) {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.paymentButton:global(.success) button {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.paymentButton:global(.error) button {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+@media (max-width: 768px) {
+    .paymentForm {
+        padding: 1.5rem;
+    }
+
+    .paymentForm h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .formSection h4 {
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+    .formGrid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .formGroupFull {
+        grid-column: span 1;
+    }
+
+    .paymentOptions {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .paymentOption {
+        min-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .paymentForm {
+        padding: 1rem;
+    }
+
+    .paymentForm h3 {
+        font-size: 1.3rem;
+    }
+
+    .formGroup input,
+    .formGroupFull input,
+    .formGroupFull textarea {
+        padding: 0.7rem;
+        font-size: 0.95rem;
+    }
+
+    .paymentOption {
+        padding: 0.8rem 1rem;
+    }
+
+    .paymentOption span {
+        font-size: 1rem;
+    }
+}
