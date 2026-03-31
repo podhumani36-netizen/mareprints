@@ -1,6 +1,6 @@
 import Link from "next/link";
 import styles from "../../../assest/style/Shop.module.css";
-import HeroBanner from "../../../components/minbanner";
+import HeroBanner from "../../../Components/minbanner";
 import Products from "../../../Components/products";
 import { shopData } from "../../../data/shopdata";
 
