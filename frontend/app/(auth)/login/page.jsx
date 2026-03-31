@@ -38,7 +38,7 @@ const LoginPage = () => {
       setIsLoading(true);
 
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/login/", {
+        const res = await fetch("https://mareprints.com/api/login/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -82,7 +82,7 @@ const LoginPage = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://127.0.0.1:8000/api/google-login/";
+    window.location.href = "https://mareprints.com/api/google-login/";
   };
 
   return (
