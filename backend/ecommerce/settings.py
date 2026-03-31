@@ -7,6 +7,12 @@ from pathlib import Path
 from datetime import timedelta
 import os
 
+# import pymysql
+# pymysql.install_as_MySQLdb()
+
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-change-this-in-production-use-env-variable'

@@ -12,64 +12,66 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [cartItemCount, setCartItemCount] = useState(0);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-const [isLoggedIn, setIsLoggedIn] = useState(false);
-const [user, setUser] = useState(null);
-const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const router = useRouter();
   const pathname = usePathname();
 
-useEffect(() => {
-  const checkLoginStatus = () => {
-    const loggedIn = localStorage.getItem("isLoggedIn") === "true";
-    const userData = localStorage.getItem("user");
-    
-    setIsLoggedIn(loggedIn);
-    
-    if (loggedIn && userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-      } catch (error) {
-        console.error("Error parsing user data:", error);
+  useEffect(() => {
+    const checkLoginStatus = () => {
+      const loggedIn = localStorage.getItem("isLoggedIn") === "true";
+      const userData = localStorage.getItem("user");
+
+      setIsLoggedIn(loggedIn);
+
+      if (loggedIn && userData) {
+        try {
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+        } catch (error) {
+          console.error("Error parsing user data:", error);
+        }
       }
+    };
+
+    checkLoginStatus();
+
+    const handleLoginChange = () => {
+      checkLoginStatus();
+    };
+
+    window.addEventListener("loginStatusChanged", handleLoginChange);
+    window.addEventListener("storage", handleLoginChange);
+
+    return () => {
+      window.removeEventListener("loginStatusChanged", handleLoginChange);
+      window.removeEventListener("storage", handleLoginChange);
+    };
+  }, []);
+  
+  const toggleDropdown = () => {
+    if (isLoggedIn) {
+      setIsDropdownOpen(!isDropdownOpen);
+      if (isMenuOpen) setIsMenuOpen(false);
+      if (isSearchOpen) setIsSearchOpen(false);
+    } else {
+      router.push("/login");
     }
   };
 
-  checkLoginStatus();
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("user");
+    setIsLoggedIn(false);
+    setUser(null);
+    setIsDropdownOpen(false);
 
-  const handleLoginChange = () => {
-    checkLoginStatus();
+    window.dispatchEvent(new Event("loginStatusChanged"));
+    router.push("/");
   };
-
-  window.addEventListener("loginStatusChanged", handleLoginChange);
-  window.addEventListener("storage", handleLoginChange);
-
-  return () => {
-    window.removeEventListener("loginStatusChanged", handleLoginChange);
-    window.removeEventListener("storage", handleLoginChange);
-  };
-}, []);
-const toggleDropdown = () => {
-  if (isLoggedIn) {
-    setIsDropdownOpen(!isDropdownOpen);
-    if (isMenuOpen) setIsMenuOpen(false);
-    if (isSearchOpen) setIsSearchOpen(false);
-  } else {
-    router.push("/login");
-  }
-};
-
-const handleLogout = () => {
-  localStorage.removeItem("isLoggedIn");
-  localStorage.removeItem("user");
-  setIsLoggedIn(false);
-  setUser(null);
-  setIsDropdownOpen(false);
   
-  window.dispatchEvent(new Event("loginStatusChanged"));
-  router.push("/");
-};
   useEffect(() => {
     const updateCartCount = () => {
       try {
@@ -308,53 +310,83 @@ const handleLogout = () => {
                 <span className={styles.actionText}>Account</span>
               </Link> */}
 
-            <div className={styles.accountDropdown}>
-  <button
-    className={`${styles.actionBtn} d-none d-md-flex`}
-    onClick={toggleDropdown}
-    aria-label="Account"
-  >
-    <i className="bi bi-person"></i>
-    <span className={styles.actionText}>
-      {isLoggedIn && user ? `Hi, ${user.first_name}` : "Account"}
-    </span>
-    {isLoggedIn && (
-      <i className={`bi bi-chevron-down ${styles.dropdownIcon}`}></i>
-    )}
-  </button>
+              <div className={styles.accountDropdown}>
+                <button
+                  className={`${styles.actionBtn} d-none d-md-flex`}
+                  onClick={toggleDropdown}
+                  aria-label="Account"
+                >
+                  <i className="bi bi-person"></i>
+                  <span className={styles.actionText}>
+                    {isLoggedIn && user ? `Hi, ${user.first_name}` : "Account"}
+                  </span>
+                  {isLoggedIn && (
+                    <i className={`bi bi-chevron-down ${styles.dropdownIcon}`}></i>
+                  )}
+                </button>
 
-  {isLoggedIn && isDropdownOpen && user && (
-    <div className={styles.dropdownContent}>
-      <div className={styles.userInfo}>
-        <div className={styles.userDetails}>
-          <h4>
-            {user.first_name} {user.last_name}
-          </h4>
-          <p>
-            <i className="bi bi-telephone"></i> {user.phone}
-          </p>
-        </div>
-      </div>
-      
-      <div className={styles.dropdownDivider}></div>
-      
-      <div className={styles.dropdownLinks}>
-        <Link href="/profile" className={`${styles.dropdownLink} `}>
-          <i className="bi bi-person"></i> My Profile
-        </Link>
-        <Link href="/orders" className={styles.dropdownLink}>
+                {isLoggedIn && isDropdownOpen && user && (
+                  <div className={styles.dropdownContent}>
+                    {/* Added User Avatar Image */}
+                    <div className={styles.userAvatarContainer}>
+                      <img 
+                        src="https://res.cloudinary.com/dsprfys3x/image/upload/v1774587999/business-man-avatar-vector_1133257-2430_djdkaj.avif"
+                        alt="User Avatar"
+                        className={styles.userAvatar}
+                        style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover" }}
+                      />
+                    </div>
+                    
+                    <div className={styles.userInfo}>
+                      <div className={styles.userDetails}>
+                        <h4>
+                          {user.first_name} {user.last_name}
+                        </h4>
+                        {/* Added Email Display */}
+                        {user.email && (
+                          <p className={styles.userEmail}>
+                            <i className="bi bi-envelope"></i> {user.email}
+                          </p>
+                        )}
+                        <p>
+                          <i className="bi bi-telephone"></i> {user.phone}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className={styles.dropdownDivider}></div>
+
+                    <div className={styles.dropdownLinks}>
+                      {/* <Link href="/profile" className={`${styles.dropdownLink} `}>
+                        <i className="bi bi-person"></i> My Profile
+                      </Link> */}
+                      {/* <Link href="/orders" className={styles.dropdownLink}>
           <i className="bi bi-bag-check"></i> My Orders
-        </Link>
-      </div>
-      
-      <div className={styles.dropdownDivider}></div>
-      
-      <button onClick={handleLogout} className={styles.logoutButton}>
-        <i className="bi bi-box-arrow-right"></i> Logout
-      </button>
-    </div>
-  )}
-</div>
+        </Link> */}
+                      <Link
+                        href="/cart"
+                        className={`${styles.actionBtn} ${styles.cartBtn}`}
+                      >
+                        <div className={styles.cartIcon}>
+                          <i className="bi bi-bag"></i>
+                          {cartItemCount > 0 && (
+                            <span className={styles.cartCount}>{cartItemCount}</span>
+                          )}
+                        </div>
+                        <span className={`${styles.actionText} d-none d-md-inline`}>
+                          Cart
+                        </span>
+                      </Link>
+                    </div>
+
+                    <div className={styles.dropdownDivider}></div>
+
+                    <button onClick={handleLogout} className={styles.logoutButton}>
+                      <i className="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                  </div>
+                )}
+              </div>
               <button
                 className={`${styles.actionBtn} ${styles.menuToggle} justify-content-center d-lg-none ${isMenuOpen ? styles.active : ""}`}
                 onClick={toggleMenu}
@@ -494,51 +526,82 @@ const handleLogout = () => {
             </div>
           </div> */}
           <div className={styles.mobileMenuFooter}>
-  <div className={styles.mobileContact}>
-    <i className="bi bi-telephone-fill"></i>
-    <span>+91 8148040202</span>
-  </div>
-  
-  {isLoggedIn && user ? (
-    <>
-      <div className={styles.mobileUserInfo}>
-        <div className={styles.mobileUserDetails}>
-          <h5>
-            {user.first_name} {user.last_name}
-          </h5>
-          <p>
-            <i className="bi bi-telephone"></i> {user.phone}
-          </p>
-        </div>
-      </div>
-      <div className={styles.mobileActions}>
-        <Link href="/profile" className={styles.mobileAction}>
-          <i className="bi bi-person"></i>
-          <span>My Profile</span>
-        </Link>
-        <Link href="/orders" className={styles.mobileAction}>
+            <div className={styles.mobileContact}>
+              <i className="bi bi-telephone-fill"></i>
+              <span>+91 8148040202</span>
+            </div>
+
+            {isLoggedIn && user ? (
+              <>
+                {/* Added User Avatar Image for Mobile */}
+                <div className={styles.mobileUserAvatarContainer}>
+                  <img 
+                    src="https://res.cloudinary.com/dsprfys3x/image/upload/v1774587999/business-man-avatar-vector_1133257-2430_djdkaj.avif"
+                    alt="User Avatar"
+                    className={styles.mobileUserAvatar}
+                    style={{ width: "60px", height: "60px", borderRadius: "50%", objectFit: "cover", margin: "0 auto" }}
+                  />
+                </div>
+                
+                <div className={styles.mobileUserInfo}>
+                  <div className={styles.mobileUserDetails}>
+                    <h5>
+                      {user.first_name} {user.last_name}
+                    </h5>
+                    {/* Added Email Display for Mobile */}
+                    {user.email && (
+                      <p className={styles.mobileUserEmail}>
+                        <i className="bi bi-envelope"></i> {user.email}
+                      </p>
+                    )}
+                    <p>
+                      <i className="bi bi-telephone"></i> {user.phone}
+                    </p>
+                  </div>
+                </div>
+                <div className={styles.mobileActions}>
+                  {/* <Link href="/profile" className={styles.mobileAction}>
+                    <i className="bi bi-person"></i>
+                    <span>My Profile</span>
+                  </Link> */}
+                  {/* <Link href="/orders" className={styles.mobileAction}>
           <i className="bi bi-bag-check"></i>
           <span>My Orders</span>
-        </Link>
-        <button onClick={handleLogout} className={styles.mobileLogout}>
-          <i className="bi bi-box-arrow-right"></i>
-          <span>Logout</span>
-        </button>
-      </div>
-    </>
-  ) : (
-    <div className={styles.mobileActions}>
-      <Link href="/login" className={styles.mobileAction}>
-        <i className="bi bi-person"></i>
-        <span>Login</span>
-      </Link>
-      <Link href="/signup" className={styles.mobileAction}>
-        <i className="bi bi-person-plus"></i>
-        <span>Sign Up</span>
-      </Link>
-    </div>
-  )}
-</div>
+        </Link> */}
+                  {/* <Link
+                    href="/cart"
+                    className={`${styles.actionBtn} ${styles.cartBtn}`}
+                  >
+                    <div className={styles.cartIcon}>
+                      <i className="bi bi-bag"></i>
+                      {cartItemCount > 0 && (
+                        <span className={styles.cartCount}>{cartItemCount}</span>
+                      )}
+                    </div>
+                    <span className={`${styles.actionText} d-none d-md-inline`}>
+                      Cart
+                    </span>
+                  </Link> */}
+
+                  <button onClick={handleLogout} className={styles.mobileLogout}>
+                    <i className="bi bi-box-arrow-right"></i>
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className={styles.mobileActions}>
+                <Link href="/login" className={styles.mobileAction}>
+                  <i className="bi bi-person"></i>
+                  <span>Login</span>
+                </Link>
+                <Link href="/signup" className={styles.mobileAction}>
+                  <i className="bi bi-person-plus"></i>
+                  <span>Sign Up</span>
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -552,4 +615,4 @@ const handleLogout = () => {
   );
 };
 
-export default Header;
+export default Header;  

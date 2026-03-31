@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap-icons/font/bootstrap-icons.css";
 import { shopData } from "../../../data/shopdata";
+import ProductClientLandscape from "./ProductClientLandscape";
+import ProductClientSquare from "./ProductClientSquare";
+import ProductClientCutout from "./ProductClientCutout";
 import ProductClient from "./ProductClient";
 
 export async function generateStaticParams() {
@@ -39,5 +39,17 @@ export default async function ProductPage({ params }) {
     notFound();
   }
 
-  return <ProductClient product={product} />;
+  // Determine which component to render based on product type
+  const productType = product.type || product.category || "portrait";
+
+  switch (productType.toLowerCase()) {
+    case "landscape":
+      return <ProductClientLandscape product={product} />;
+    case "square":
+      return <ProductClientSquare product={product} />;
+    case "cutout":
+      return <ProductClientCutout product={product} />;
+    default:
+      return <ProductClient product={product} />;
+  }
 }
