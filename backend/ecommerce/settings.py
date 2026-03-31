@@ -17,9 +17,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-change-this-in-production-use-env-variable'
 
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*',
+                'mareprints.com']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -76,9 +77,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'ecommerce_db',
-        'USER': 'root',
-        'PASSWORD': 'Sage',
-        'HOST': '127.0.0.1',
+        'USER': 'mare',
+        'PASSWORD': '@Y4uFY7q',
+        'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {
             'charset': 'utf8mb4',
@@ -123,6 +124,7 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'https://mareprints.com'
 ]
 CORS_ALLOW_CREDENTIALS = True
 
