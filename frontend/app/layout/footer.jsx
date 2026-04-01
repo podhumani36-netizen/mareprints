@@ -125,9 +125,9 @@ export default function Footer() {
                     <Image
                       src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773222813/7f83cd09-398d-46d3-9b93-df2a8bdbbf33-removebg-preview_bq3mkg.png"
                       alt="Mare Enterprises"
-                      width={150}
-                      height={150}
-                      className={styles.logoImage}
+                        width={200}
+                        height={200}
+                        style={{ width: "200px", height: "200px" }}
                       priority
                     />
                   </Link>

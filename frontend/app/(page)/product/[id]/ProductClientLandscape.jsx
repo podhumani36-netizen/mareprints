@@ -11,10 +11,15 @@ export default function ProductClientLandscape() {
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [zoom, setZoom] = useState(1);
+  const [imageOffset, setImageOffset] = useState({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [isImageDragging, setIsImageDragging] = useState(false);
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [orderId, setOrderId] = useState("");
   const [quantity, setQuantity] = useState(1);
+
   const [showToast, setShowToast] = useState({
     visible: false,
     type: "",
@@ -25,9 +30,7 @@ export default function ProductClientLandscape() {
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
-  const containerRef = useRef(null);
 
-  // Landscape specific sizes
   const [size, setSize] = useState("12×9");
   const [thickness, setThickness] = useState("3mm");
   const [pincode, setPincode] = useState("");
@@ -50,21 +53,12 @@ export default function ProductClientLandscape() {
     pincode: "",
     paymentMethod: "razorpay",
   });
+
   const [formErrors, setFormErrors] = useState({});
 
-  // Landscape size options (inches)
-  const sizeOptions = [
-    "12×9",
-    "16×12",
-    "18×12",
-    "21×15",
-    "30×20",
-    "35×23",
-    "48×36",
-  ];
+  const sizeOptions = ["12×9", "16×12", "18×12", "21×15", "30×20", "35×23", "48×36"];
   const thicknessOptions = ["3mm", "5mm", "8mm"];
 
-  // Landscape frame dimensions (width > height)
   const frameDimensions = {
     "12×9": { width: 220, height: 165 },
     "16×12": { width: 280, height: 210 },
@@ -75,7 +69,7 @@ export default function ProductClientLandscape() {
     "48×36": { width: 680, height: 510 },
   };
 
-  const basePrice = 899; // Slightly higher base price for landscape
+  const basePrice = 899;
   const roomWallBackground =
     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
 
@@ -89,42 +83,59 @@ export default function ProductClientLandscape() {
     setOrderId(`#ORD${Math.floor(Math.random() * 10000)}`);
   }, []);
 
-  // Load and draw image on canvas with proper scaling
-  const drawImageOnCanvas = useCallback((imageSrc) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  useEffect(() => {
+    if (!uploadedImage || !canvasRef.current) return;
 
+    const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     const img = new Image();
+
     img.crossOrigin = "anonymous";
+    img.src = uploadedImage;
 
     img.onload = () => {
-      // Set canvas size to match image dimensions
       canvas.width = img.width;
       canvas.height = img.height;
-
-      // Clear canvas and draw image
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, img.width, img.height);
-
-      showNotification("Image loaded successfully!", "success");
     };
 
     img.onerror = () => {
-      showNotification("Failed to load image", "error");
+      showNotification("Failed to load image. Please try again.", "error");
     };
-
-    img.src = imageSrc;
-  }, []);
+  }, [uploadedImage]);
 
   useEffect(() => {
-    if (uploadedImage) {
-      drawImageOnCanvas(uploadedImage);
-    }
-  }, [uploadedImage, drawImageOnCanvas]);
+    setZoom(1);
+    setImageOffset({ x: 0, y: 0 });
+  }, [size]);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isImageDragging) return;
+
+      setImageOffset({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsImageDragging(false);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isImageDragging, dragStart]);
 
   const showNotification = (message, type = "info", title = "") => {
     let notificationTitle = title;
+
     if (!title) {
       switch (type) {
         case "success":
@@ -141,21 +152,31 @@ export default function ProductClientLandscape() {
       }
     }
 
-    setShowToast({ visible: true, type, title: notificationTitle, message });
+    setShowToast({
+      visible: true,
+      type,
+      title: notificationTitle,
+      message,
+    });
 
     setTimeout(() => {
-      setShowToast({ visible: false, type: "", title: "", message: "" });
+      setShowToast({
+        visible: false,
+        type: "",
+        title: "",
+        message: "",
+      });
     }, 3000);
   };
 
   const calculatePrice = useCallback(() => {
     let price = basePrice;
     const sizeIndex = sizeOptions.indexOf(size);
-    if (sizeIndex > 0) price += sizeIndex * 180; // Higher increment for landscape
+    if (sizeIndex > 0) price += sizeIndex * 180;
     if (thickness === "5mm") price += 150;
     if (thickness === "8mm") price += 300;
     return price * quantity;
-  }, [size, thickness, sizeOptions, basePrice, quantity]);
+  }, [size, thickness, quantity]);
 
   const handleDragEnter = (e) => {
     e.preventDefault();
@@ -210,15 +231,20 @@ export default function ProductClientLandscape() {
   const processFile = (file) => {
     setIsProcessing(true);
     const reader = new FileReader();
+
     reader.onload = (event) => {
       setUploadedImage(event.target.result);
+      setZoom(1);
+      setImageOffset({ x: 0, y: 0 });
       setIsProcessing(false);
       showNotification("Image uploaded successfully!", "success");
     };
+
     reader.onerror = () => {
       setIsProcessing(false);
       showNotification("Failed to read file. Please try again.", "error");
     };
+
     reader.readAsDataURL(file);
   };
 
@@ -227,14 +253,24 @@ export default function ProductClientLandscape() {
   };
 
   const handleZoomOut = () => {
-    setZoom((prev) => Math.max(prev - 0.1, 0.5));
+    setZoom((prev) => Math.max(prev - 0.1, 1));
   };
 
   const handleRemoveImage = () => {
     setUploadedImage(null);
     setZoom(1);
+    setImageOffset({ x: 0, y: 0 });
     if (fileInputRef.current) fileInputRef.current.value = "";
     showNotification("Image removed successfully", "warning");
+  };
+
+  const handleImageMouseDown = (e) => {
+    e.preventDefault();
+    setIsImageDragging(true);
+    setDragStart({
+      x: e.clientX - imageOffset.x,
+      y: e.clientY - imageOffset.y,
+    });
   };
 
   const handlePincodeChange = (e) => {
@@ -252,13 +288,7 @@ export default function ProductClientLandscape() {
     setDeliveryStatus({ message: "", type: "", isChecking: true });
 
     setTimeout(() => {
-      const servicable = [
-        "110001",
-        "400001",
-        "700001",
-        "560001",
-        "600001",
-      ].includes(pincode);
+      const servicable = ["110001", "400001", "700001", "560001", "600001"].includes(pincode);
       if (servicable) {
         setDeliveryStatus({
           type: "success",
@@ -291,17 +321,14 @@ export default function ProductClientLandscape() {
     const errors = {};
     if (!formData.fullName.trim()) errors.fullName = "Full name is required";
     if (!formData.email.trim()) errors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(formData.email))
-      errors.email = "Invalid email format";
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = "Invalid email format";
     if (!formData.phone.trim()) errors.phone = "Phone number is required";
-    else if (!/^\d{10}$/.test(formData.phone))
-      errors.phone = "Phone must be 10 digits";
+    else if (!/^\d{10}$/.test(formData.phone)) errors.phone = "Phone must be 10 digits";
     if (!formData.address.trim()) errors.address = "Address is required";
     if (!formData.city.trim()) errors.city = "City is required";
     if (!formData.state.trim()) errors.state = "State is required";
     if (!formData.pincode.trim()) errors.pincode = "Pincode is required";
-    else if (!/^\d{6}$/.test(formData.pincode))
-      errors.pincode = "Pincode must be 6 digits";
+    else if (!/^\d{6}$/.test(formData.pincode)) errors.pincode = "Pincode must be 6 digits";
     return errors;
   };
 
@@ -333,6 +360,27 @@ export default function ProductClientLandscape() {
     setCurrentStep(step);
   };
 
+  const getSummaryFrameSize = () => {
+    switch (size) {
+      case "12×9":
+        return { width: 140, height: 105 };
+      case "16×12":
+        return { width: 160, height: 120 };
+      case "18×12":
+        return { width: 170, height: 113 };
+      case "21×15":
+        return { width: 180, height: 129 };
+      case "30×20":
+        return { width: 190, height: 127 };
+      case "35×23":
+        return { width: 200, height: 131 };
+      case "48×36":
+        return { width: 210, height: 158 };
+      default:
+        return { width: 140, height: 105 };
+    }
+  };
+
   const renderStepIndicator = () => (
     <div className={styles.stepIndicator}>
       <div className="container">
@@ -340,23 +388,18 @@ export default function ProductClientLandscape() {
           {[1, 2, 3].map((step) => (
             <div key={step} className={styles.stepItem}>
               <button
-                className={`${styles.stepButton} ${currentStep === step ? styles.active : ""} ${currentStep > step ? styles.completed : ""}`}
+                className={`${styles.stepButton} ${currentStep === step ? styles.active : ""} ${
+                  currentStep > step ? styles.completed : ""
+                }`}
                 onClick={() => goToStep(step)}
                 disabled={step > 1 && !uploadedImage}
+                type="button"
               >
                 <span className={styles.stepNumber}>
-                  {currentStep > step ? (
-                    <i className="bi bi-check-lg"></i>
-                  ) : (
-                    step
-                  )}
+                  {currentStep > step ? <i className="bi bi-check-lg"></i> : step}
                 </span>
                 <span className={styles.stepLabel}>
-                  {step === 1
-                    ? "Upload & Edit"
-                    : step === 2
-                      ? "Customize"
-                      : "Payment"}
+                  {step === 1 ? "Upload & Edit" : step === 2 ? "Customize" : "Payment"}
                 </span>
               </button>
               {step < 3 && (
@@ -371,181 +414,378 @@ export default function ProductClientLandscape() {
     </div>
   );
 
+  const renderEditorControls = () => (
+    <div className="d-flex gap-2 mt-3 flex-wrap align-items-center">
+      <button
+        type="button"
+        className="btn btn-outline-secondary"
+        onClick={handleZoomOut}
+      >
+        <i className="bi bi-dash-lg"></i>
+      </button>
+
+      <span style={{ minWidth: "64px", textAlign: "center", fontWeight: 600 }}>
+        {zoom.toFixed(1)}x
+      </span>
+
+      <button
+        type="button"
+        className="btn btn-outline-secondary"
+        onClick={handleZoomIn}
+      >
+        <i className="bi bi-plus-lg"></i>
+      </button>
+
+      <button
+        type="button"
+        className="btn btn-outline-primary"
+        onClick={() => {
+          setZoom(1);
+          setImageOffset({ x: 0, y: 0 });
+        }}
+      >
+        Reset
+      </button>
+    </div>
+  );
+
+  const renderBetterPreview = (useWall = false) => {
+    const dims = frameDimensions[size] || { width: 220, height: 165 };
+    const borderSize =
+      thickness === "3mm" ? "6px" : thickness === "5mm" ? "10px" : "14px";
+
+    return (
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "520px",
+          borderRadius: "20px",
+          overflow: "hidden",
+          background: useWall
+            ? undefined
+            : "linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%)",
+          backgroundImage: useWall
+            ? "url(https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg)"
+            : undefined,
+          backgroundSize: useWall ? "cover" : undefined,
+          backgroundPosition: useWall ? "center" : undefined,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+        }}
+      >
+        {useWall && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.14))",
+            }}
+          />
+        )}
+
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "45%",
+            width: `${dims.width}px`,
+            height: `${dims.height}px`,
+            transform: "translate(-50%, -50%)",
+            borderRadius: "8px",
+            overflow: "hidden",
+            background: "#fff",
+            boxShadow:
+              "0 18px 40px rgba(0,0,0,0.22), 0 4px 10px rgba(0,0,0,0.10)",
+            border: `${borderSize} solid #ffffff`,
+          }}
+        >
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              overflow: "hidden",
+              cursor: uploadedImage
+                ? isImageDragging
+                  ? "grabbing"
+                  : "grab"
+                : "default",
+              background: "#f3f4f6",
+            }}
+          >
+            <img
+              src={uploadedImage || roomWallBackground}
+              alt="Frame preview"
+              onMouseDown={uploadedImage ? handleImageMouseDown : undefined}
+              draggable={false}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                transform: `translate(${imageOffset.x}px, ${imageOffset.y}px) scale(${zoom})`,
+                transformOrigin: "center center",
+                transition: isImageDragging ? "none" : "transform 0.18s ease",
+                userSelect: "none",
+              }}
+            />
+
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 38%, rgba(255,255,255,0.00) 55%)",
+                pointerEvents: "none",
+              }}
+            />
+
+            {uploadedImage && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "10px",
+                  right: "10px",
+                  background: "rgba(17,24,39,0.72)",
+                  color: "#fff",
+                  padding: "4px 10px",
+                  borderRadius: "999px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  pointerEvents: "none",
+                }}
+              >
+                Drag to adjust
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "calc(45% + 130px)",
+            transform: "translateX(-50%)",
+            display: "flex",
+            gap: "10px",
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
+          <span
+            style={{
+              background: "rgba(255,255,255,0.92)",
+              padding: "8px 14px",
+              borderRadius: "999px",
+              fontWeight: 600,
+              fontSize: "13px",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.10)",
+            }}
+          >
+            {size}
+          </span>
+
+          <span
+            style={{
+              background: "rgba(255,255,255,0.92)",
+              padding: "8px 14px",
+              borderRadius: "999px",
+              fontWeight: 600,
+              fontSize: "13px",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.10)",
+            }}
+          >
+            {thickness}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSummaryPreview = () => {
+    if (!uploadedImage) return null;
+
+    const summaryDims = getSummaryFrameSize();
+    const borderSize =
+      thickness === "3mm" ? "5px" : thickness === "5mm" ? "8px" : "11px";
+
+    return (
+      <div
+        className={styles.summaryImage}
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "200px",
+          borderRadius: "14px",
+          overflow: "hidden",
+          background: "#f3f4f6",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
+        }}
+      >
+        <div
+          style={{
+            width: `${summaryDims.width}px`,
+            height: `${summaryDims.height}px`,
+            border: `${borderSize} solid #fff`,
+            borderRadius: "8px",
+            overflow: "hidden",
+            background: "#fff",
+            boxShadow: "0 10px 24px rgba(0,0,0,0.16)",
+            position: "relative",
+          }}
+        >
+          <img
+            src={uploadedImage}
+            alt="Product preview"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              transform: `translate(${imageOffset.x * 0.35}px, ${imageOffset.y * 0.35}px) scale(${zoom})`,
+              transformOrigin: "center center",
+              userSelect: "none",
+              pointerEvents: "none",
+            }}
+          />
+
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.05) 40%, rgba(255,255,255,0) 60%)",
+              pointerEvents: "none",
+            }}
+          />
+        </div>
+      </div>
+    );
+  };
+
   const renderStep1 = () => (
     <div className={styles.stepContainer}>
       <div className="container">
         <div className="row g-4">
           <div className="col-sm-12 col-md-8">
-            <div className="">
-              <div className={styles.uploadCard}>
-                <div
-                  ref={dropZoneRef}
-                  className={`${styles.uploadZone} ${isDragging ? styles.dragging : ""}`}
-                  onDragEnter={handleDragEnter}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
-                  {uploadedImage ? (
-                    <div className={styles.previewContainer}>
-                      <div
-                        ref={containerRef}
-                        className={styles.imagePreview}
-                        style={{
-                          overflow: "auto",
-                          maxHeight: "500px",
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          backgroundColor: "#f5f5f5",
-                          borderRadius: "8px",
-                          position: "relative",
-                        }}
-                      >
-                        <canvas
-                          ref={canvasRef}
-                          className={styles.drawingCanvas}
-                          style={{
-                            transform: `scale(${zoom})`,
-                            transformOrigin: "center",
-                            transition: "transform 0.2s ease",
-                            maxWidth: "100%",
-                            height: "auto",
-                            display: "block",
-                          }}
-                        />
-                        {zoom !== 1 && (
-                          <span className={styles.zoomBadge}>
-                            <i className="bi bi-search"></i> {zoom.toFixed(1)}x
-                          </span>
-                        )}
-                      </div>
+            <div className={styles.uploadCard}>
+              <div
+                ref={dropZoneRef}
+                className={`${styles.uploadZone} ${isDragging ? styles.dragging : ""}`}
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                {uploadedImage ? (
+                  <div className={styles.previewContainer}>
+                    {renderBetterPreview(false)}
+                    {renderEditorControls()}
 
-                      <div className={styles.imageControls}>
-                        <button
-                          className={`${styles.controlButton} ${styles.zoomButton}`}
-                          onClick={handleZoomOut}
-                          title="Zoom Out"
-                        >
-                          <i className="bi bi-zoom-out"></i>
-                        </button>
-                        <span className={styles.zoomLevel}>
-                          {Math.round(zoom * 100)}%
-                        </span>
-                        <button
-                          className={`${styles.controlButton} ${styles.zoomButton}`}
-                          onClick={handleZoomIn}
-                          title="Zoom In"
-                        >
-                          <i className="bi bi-zoom-in"></i>
-                        </button>
-                        <button
-                          className={`${styles.controlButton} ${styles.dangerButton}`}
-                          onClick={handleRemoveImage}
-                          title="Remove Image"
-                        >
-                          <i className="bi bi-trash"></i>
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className={styles.uploadPrompt}>
-                      <div className={styles.uploadIcon}>
-                        <i
-                          className={`bi ${isDragging ? "bi-file-earmark-arrow-up" : "bi-cloud-upload"}`}
-                        ></i>
-                      </div>
-                      <h3 className={styles.uploadTitle}>
-                        {isDragging
-                          ? "Drop your landscape image here"
-                          : "Upload your landscape image"}
-                      </h3>
-                      <p className={styles.uploadSubtitle}>
-                        {isDragging
-                          ? "Release to upload"
-                          : "Drag & drop or click to browse"}
-                      </p>
+                    <div className={styles.imageControls}>
                       <button
-                        className={styles.browseButton}
-                        onClick={() => fileInputRef.current?.click()}
+                        className={`${styles.controlButton} ${styles.dangerButton}`}
+                        onClick={handleRemoveImage}
+                        title="Remove Image"
+                        type="button"
                       >
-                        <i className="bi bi-folder2-open me-2"></i>
-                        Browse Files
+                        <i className="bi bi-trash"></i>
                       </button>
-                      <p className={styles.uploadHint}>
-                        Supported formats: JPG, PNG, GIF (Max 10MB)
-                      </p>
-                      <p className={styles.uploadHint}>
-                        <i className="bi bi-info-circle"></i> Best for
-                        landscape/horizontal photos
-                      </p>
                     </div>
-                  )}
+                  </div>
+                ) : (
+                  <div className={styles.uploadPrompt}>
+                    <div className={styles.uploadIcon}>
+                      <i
+                        className={`bi ${isDragging ? "bi-file-earmark-arrow-up" : "bi-cloud-upload"}`}
+                      ></i>
+                    </div>
+                    <h3 className={styles.uploadTitle}>
+                      {isDragging ? "Drop your landscape image here" : "Upload your landscape image"}
+                    </h3>
+                    <p className={styles.uploadSubtitle}>
+                      {isDragging ? "Release to upload" : "Drag & drop or click to browse"}
+                    </p>
+                    <button
+                      className={styles.browseButton}
+                      onClick={() => fileInputRef.current?.click()}
+                      type="button"
+                    >
+                      <i className="bi bi-folder2-open me-2"></i>
+                      Browse Files
+                    </button>
+                    <p className={styles.uploadHint}>
+                      Supported formats: JPG, PNG, GIF (Max 10MB)
+                    </p>
+                    <p className={styles.uploadHint}>
+                      <i className="bi bi-info-circle"></i> Best for landscape/horizontal photos
+                    </p>
+                  </div>
+                )}
 
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileUpload}
-                    accept="image/*"
-                    className="d-none"
-                  />
-                </div>
-              </div>
-              <div className={`${styles.uploadCard} mt-5`}>
-                <img
-                  src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png"
-                  alt="image"
-                  className="img-fluid"
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  accept="image/*"
+                  className="d-none"
                 />
               </div>
             </div>
+
+            <div className={`${styles.uploadCard} mt-5`}>
+              <img
+                src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png"
+                alt="image"
+                className="img-fluid"
+              />
+            </div>
           </div>
+
           <div className="col-sm-12 col-md-4">
-            <div className="">
-              <div className={styles.guideCard}>
-                <h4 className={styles.guideTitle}>
-                  <i className="bi bi-info-circle me-2"></i>
-                  Landscape Photo Guide
-                </h4>
+            <div className={styles.guideCard}>
+              <h4 className={styles.guideTitle}>
+                <i className="bi bi-info-circle me-2"></i>
+                Landscape Print Guide
+              </h4>
 
-                <img
-                  src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png"
-                  alt="Print quality guide"
-                  className={styles.guideImage}
-                />
+              <img
+                src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png"
+                alt="Print quality guide"
+                className={styles.guideImage}
+              />
 
-                <ul className={styles.guideList}>
-                  <li>
-                    <i className="bi bi-check-circle-fill"></i>
-                    Best for landscape/horizontal photos
-                  </li>
-                  <li>
-                    <i className="bi bi-check-circle-fill"></i>
-                    Upload high-resolution images (min 300 DPI)
-                  </li>
-                  <li>
-                    <i className="bi bi-check-circle-fill"></i>
-                    Ensure image width is greater than height
-                  </li>
-                  <li>
-                    <i className="bi bi-check-circle-fill"></i>
-                    Perfect for scenic views and group photos
-                  </li>
-                  <li className={styles.warning}>
-                    <i className="bi bi-exclamation-triangle-fill"></i>
-                    Poor quality images affect final print
-                  </li>
-                </ul>
+              <ul className={styles.guideList}>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  Upload wide horizontal images
+                </li>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  High resolution gives better acrylic output
+                </li>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  Drag image to adjust framing
+                </li>
+                <li className={styles.warning}>
+                  <i className="bi bi-exclamation-triangle-fill"></i>
+                  Low quality images affect final print
+                </li>
+              </ul>
 
-                <button
-                  className={styles.nextButton}
-                  onClick={() => goToStep(2)}
-                  disabled={!uploadedImage}
-                >
-                  Continue to Customize
-                  <i className="bi bi-arrow-right ms-2"></i>
-                </button>
-              </div>
+              <button
+                className={styles.nextButton}
+                onClick={() => goToStep(2)}
+                disabled={!uploadedImage}
+                type="button"
+              >
+                Continue to Customize
+                <i className="bi bi-arrow-right ms-2"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -554,7 +794,7 @@ export default function ProductClientLandscape() {
   );
 
   const renderStep2 = () => {
-    const dims = frameDimensions[size] || { width: 200, height: 150 };
+    const dims = frameDimensions[size] || { width: 220, height: 165 };
 
     return (
       <div className={styles.stepContainer}>
@@ -567,56 +807,16 @@ export default function ProductClientLandscape() {
                   Live Preview - Landscape Acrylic Wall Photo
                 </h4>
 
-                <div className={styles.mockupWrapper}>
-                  <div
-                    className={styles.mockupBackground}
-                    style={{
-                      backgroundImage: `url(https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg)`,
-                    }}
-                  >
-                    <div className={styles.mockupOverlay}></div>
+                {renderBetterPreview(true)}
 
-                    <div
-                      className={styles.frameMockup}
-                      style={{
-                        width: `${dims.width}px`,
-                        height: `${dims.height}px`,
-                        left: "50%",
-                        top: "40%",
-                        transform: "translate(-50%, -50%)",
-                      }}
-                    >
-                      <div className={styles.frameContent}>
-                        <img
-                          src={uploadedImage || roomWallBackground}
-                          alt="Frame preview"
-                          className={styles.frameImage}
-                          style={{ objectFit: "cover" }}
-                        />
-                        <div className={styles.frameGlare}></div>
-                        <div
-                          className={styles.frameEdge}
-                          style={{
-                            borderWidth:
-                              thickness === "3mm"
-                                ? "2px"
-                                : thickness === "5mm"
-                                  ? "4px"
-                                  : "6px",
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    <div className={styles.previewLabels}>
-                      <span className={styles.sizeLabel}>
-                        {size} ({Math.round(dims.width * 2.54)} x{" "}
-                        {Math.round(dims.height * 2.54)} cm)
-                      </span>
-                      <span className={styles.thicknessLabel}>{thickness}</span>
-                    </div>
-                  </div>
+                <div className={styles.previewLabels} style={{ marginTop: "14px" }}>
+                  <span className={styles.sizeLabel}>
+                    {size} ({Math.round(dims.width * 2.54)} x {Math.round(dims.height * 2.54)} cm)
+                  </span>
+                  <span className={styles.thicknessLabel}>{thickness}</span>
                 </div>
+
+                {renderEditorControls()}
               </div>
             </div>
 
@@ -628,15 +828,14 @@ export default function ProductClientLandscape() {
                 </h4>
 
                 <div className={styles.optionGroup}>
-                  <label className={styles.optionLabel}>
-                    Acrylic Sizes (Inches)
-                  </label>
+                  <label className={styles.optionLabel}>Acrylic Sizes (Inches)</label>
                   <div className={styles.sizeGrid}>
                     {sizeOptions.map((opt) => (
                       <button
                         key={opt}
                         className={`${styles.sizeButton} ${size === opt ? styles.active : ""}`}
                         onClick={() => setSize(opt)}
+                        type="button"
                       >
                         {opt}
                       </button>
@@ -645,15 +844,14 @@ export default function ProductClientLandscape() {
                 </div>
 
                 <div className={styles.optionGroup}>
-                  <label className={styles.optionLabel}>
-                    Acrylic Thickness
-                  </label>
+                  <label className={styles.optionLabel}>Acrylic Thickness</label>
                   <div className={styles.buttonGroup}>
                     {thicknessOptions.map((opt) => (
                       <button
                         key={opt}
                         className={`${styles.optionButton} ${thickness === opt ? styles.active : ""}`}
                         onClick={() => setThickness(opt)}
+                        type="button"
                       >
                         {opt}
                       </button>
@@ -675,9 +873,8 @@ export default function ProductClientLandscape() {
                     <button
                       className={styles.checkButton}
                       onClick={handleCheckDelivery}
-                      disabled={
-                        pincode.length !== 6 || deliveryStatus.isChecking
-                      }
+                      disabled={pincode.length !== 6 || deliveryStatus.isChecking}
+                      type="button"
                     >
                       {deliveryStatus.isChecking ? (
                         <span className={styles.spinner}></span>
@@ -692,13 +889,16 @@ export default function ProductClientLandscape() {
                       className={`${styles.deliveryMessage} ${styles[deliveryStatus.type]}`}
                     >
                       <i
-                        className={`bi ${deliveryStatus.type === "success" ? "bi-check-circle" : "bi-exclamation-circle"}`}
+                        className={`bi ${
+                          deliveryStatus.type === "success"
+                            ? "bi-check-circle"
+                            : "bi-exclamation-circle"
+                        }`}
                       ></i>
                       <span>{deliveryStatus.message}</span>
-                      {estimatedDeliveryDate &&
-                        deliveryStatus.type === "success" && (
-                          <small>Est. delivery: {estimatedDeliveryDate}</small>
-                        )}
+                      {estimatedDeliveryDate && deliveryStatus.type === "success" && (
+                        <small>Est. delivery: {estimatedDeliveryDate}</small>
+                      )}
                     </div>
                   )}
                 </div>
@@ -708,18 +908,21 @@ export default function ProductClientLandscape() {
                     <span>Base Price</span>
                     <span>₹{basePrice}</span>
                   </div>
+
                   {size !== "12×9" && (
                     <div className={styles.priceRow}>
                       <span>Size Upgrade</span>
                       <span>+₹{sizeOptions.indexOf(size) * 180}</span>
                     </div>
                   )}
+
                   {thickness !== "3mm" && (
                     <div className={styles.priceRow}>
                       <span>Thickness Upgrade</span>
                       <span>+₹{thickness === "5mm" ? "150" : "300"}</span>
                     </div>
                   )}
+
                   <div className={styles.totalRow}>
                     <span>Total</span>
                     <span>₹{calculatePrice()}</span>
@@ -729,6 +932,7 @@ export default function ProductClientLandscape() {
                 <button
                   className={styles.proceedButton}
                   onClick={() => goToStep(3)}
+                  type="button"
                 >
                   Proceed to Payment
                   <i className="bi bi-arrow-right ms-2"></i>
@@ -752,11 +956,7 @@ export default function ProductClientLandscape() {
                 Order Summary - Landscape
               </h4>
 
-              {uploadedImage && (
-                <div className={styles.summaryImage}>
-                  <img src={uploadedImage} alt="Product preview" />
-                </div>
-              )}
+              {renderSummaryPreview()}
 
               <div className={styles.summaryDetails}>
                 <div className={styles.summaryRow}>
@@ -796,10 +996,7 @@ export default function ProductClientLandscape() {
               </div>
 
               <div className={styles.progressBar}>
-                <div
-                  className={styles.progressFill}
-                  style={{ width: "66%" }}
-                ></div>
+                <div className={styles.progressFill} style={{ width: "66%" }}></div>
               </div>
             </div>
           </div>
@@ -814,16 +1011,14 @@ export default function ProductClientLandscape() {
                 <button
                   className={styles.backButton}
                   onClick={() => setCurrentStep(2)}
+                  type="button"
                 >
                   <i className="bi bi-arrow-left me-2"></i>
                   Back
                 </button>
               </div>
 
-              <form
-                onSubmit={handleSubmitOrder}
-                className={styles.shippingForm}
-              >
+              <form onSubmit={handleSubmitOrder} className={styles.shippingForm}>
                 <div className={styles.formSection}>
                   <h5 className={styles.sectionTitle}>Personal Information</h5>
 
@@ -842,9 +1037,7 @@ export default function ProductClientLandscape() {
                         />
                       </div>
                       {formErrors.fullName && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.fullName}
-                        </span>
+                        <span className={styles.errorMessage}>{formErrors.fullName}</span>
                       )}
                     </div>
 
@@ -862,9 +1055,7 @@ export default function ProductClientLandscape() {
                         />
                       </div>
                       {formErrors.email && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.email}
-                        </span>
+                        <span className={styles.errorMessage}>{formErrors.email}</span>
                       )}
                     </div>
 
@@ -883,16 +1074,12 @@ export default function ProductClientLandscape() {
                         />
                       </div>
                       {formErrors.phone && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.phone}
-                        </span>
+                        <span className={styles.errorMessage}>{formErrors.phone}</span>
                       )}
                     </div>
 
                     <div className="col-md-6">
-                      <label className={styles.fieldLabel}>
-                        Alternate Phone
-                      </label>
+                      <label className={styles.fieldLabel}>Alternate Phone</label>
                       <div className={styles.inputWrapper}>
                         <i className={`bi bi-phone ${styles.inputIcon}`}></i>
                         <input
@@ -927,16 +1114,12 @@ export default function ProductClientLandscape() {
                         />
                       </div>
                       {formErrors.address && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.address}
-                        </span>
+                        <span className={styles.errorMessage}>{formErrors.address}</span>
                       )}
                     </div>
 
                     <div className="col-12">
-                      <label className={styles.fieldLabel}>
-                        Alternate Address
-                      </label>
+                      <label className={styles.fieldLabel}>Alternate Address</label>
                       <div className={styles.inputWrapper}>
                         <i className={`bi bi-geo-alt ${styles.inputIcon}`}></i>
                         <textarea
@@ -961,9 +1144,7 @@ export default function ProductClientLandscape() {
                         onChange={handleInputChange}
                       />
                       {formErrors.city && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.city}
-                        </span>
+                        <span className={styles.errorMessage}>{formErrors.city}</span>
                       )}
                     </div>
 
@@ -978,9 +1159,7 @@ export default function ProductClientLandscape() {
                         onChange={handleInputChange}
                       />
                       {formErrors.state && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.state}
-                        </span>
+                        <span className={styles.errorMessage}>{formErrors.state}</span>
                       )}
                     </div>
 
@@ -996,9 +1175,7 @@ export default function ProductClientLandscape() {
                         maxLength="6"
                       />
                       {formErrors.pincode && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.pincode}
-                        </span>
+                        <span className={styles.errorMessage}>{formErrors.pincode}</span>
                       )}
                     </div>
                   </div>
@@ -1051,18 +1228,21 @@ export default function ProductClientLandscape() {
                           address: formData.address,
                           size,
                           thickness,
-                          productType: "landscape",
+                          imageZoom: zoom,
+                          imageOffsetX: imageOffset.x,
+                          imageOffsetY: imageOffset.y,
+                          orientation: "landscape",
                         }}
                         onSuccess={() =>
                           showNotification(
                             "Payment successful! Thank you for your order.",
-                            "success",
+                            "success"
                           )
                         }
                         onError={() =>
                           showNotification(
                             "Payment failed. Please try again.",
-                            "error",
+                            "error"
                           )
                         }
                       />
@@ -1072,13 +1252,13 @@ export default function ProductClientLandscape() {
                         onSuccess={() =>
                           showNotification(
                             "Payment successful! Thank you for your order.",
-                            "success",
+                            "success"
                           )
                         }
                         onError={() =>
                           showNotification(
                             "Payment failed. Please try again.",
-                            "error",
+                            "error"
                           )
                         }
                       />
@@ -1097,113 +1277,57 @@ export default function ProductClientLandscape() {
     <>
       <div className={styles.productClient}>
         {renderStepIndicator()}
-
         {currentStep === 1 && renderStep1()}
         {currentStep === 2 && renderStep2()}
         {currentStep === 3 && renderStep3()}
+      </div>
 
+      <canvas ref={canvasRef} style={{ display: "none" }} />
+
+      {showToast.visible && (
         <div
-          className="modal fade"
-          id="successModal"
-          tabIndex="-1"
-          aria-hidden="true"
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            background: "#fff",
+            borderRadius: "10px",
+            padding: "12px 16px",
+            boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
+            zIndex: 9999,
+            minWidth: "250px",
+          }}
         >
-          <div className="modal-dialog modal-dialog-centered">
-            <div className={styles.modalContent}>
-              <div className={styles.modalHeader}>
-                <h5 className={styles.modalTitle}>
-                  <i className="bi bi-check-circle-fill me-2"></i>
-                  Order Confirmed!
-                </h5>
-                <button
-                  type="button"
-                  className={styles.modalClose}
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
-                >
-                  <i className="bi bi-x-lg"></i>
-                </button>
-              </div>
-              <div className={styles.modalBody}>
-                <div className={styles.modalIcon}>
-                  <i className="bi bi-check-circle-fill"></i>
-                </div>
-                <h6 className={styles.modalThankYou}>
-                  Thank you for your order!
-                </h6>
-                <p className={styles.modalMessage}>
-                  Your landscape acrylic photo order has been placed
-                  successfully. You will receive a confirmation email shortly.
-                </p>
-                <div className={styles.modalOrderDetails}>
-                  <div className={styles.modalDetailRow}>
-                    <span>Order ID</span>
-                    <span className={styles.modalDetailValue}>
-                      {orderId || "Loading..."}
-                    </span>
-                  </div>
-                  <div className={styles.modalDetailRow}>
-                    <span>Total Amount</span>
-                    <span className={styles.modalDetailValue}>
-                      ₹{calculatePrice()}
-                    </span>
-                  </div>
-                  <div className={styles.modalDetailRow}>
-                    <span>Estimated Delivery</span>
-                    <span className={styles.modalDetailValue}>
-                      {estimatedDeliveryDate || "3-5 business days"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className={styles.modalFooter}>
-                <button
-                  type="button"
-                  className={styles.modalButton}
-                  data-bs-dismiss="modal"
-                >
-                  <i className="bi bi-check me-2"></i>
-                  Done
-                </button>
-              </div>
+          <strong>{showToast.title}</strong>
+          <div>{showToast.message}</div>
+        </div>
+      )}
+
+      <div
+        className="modal fade"
+        id="successModal"
+        tabIndex="-1"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Order Submitted</h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              <p>Your order has been placed successfully.</p>
+              <p>
+                <strong>Order ID:</strong> {orderId}
+              </p>
             </div>
           </div>
         </div>
-
-        {showToast.visible && (
-          <div className={`${styles.toast} ${styles[showToast.type]}`}>
-            <div className={styles.toastIcon}>
-              <i
-                className={`bi ${
-                  showToast.type === "success"
-                    ? "bi-check-circle"
-                    : showToast.type === "error"
-                      ? "bi-exclamation-circle"
-                      : showToast.type === "warning"
-                        ? "bi-exclamation-triangle"
-                        : "bi-info-circle"
-                }`}
-              ></i>
-            </div>
-            <div className={styles.toastContent}>
-              <strong className={styles.toastTitle}>{showToast.title}</strong>
-              <p className={styles.toastMessage}>{showToast.message}</p>
-            </div>
-            <button
-              className={styles.toastClose}
-              onClick={() =>
-                setShowToast({
-                  visible: false,
-                  type: "",
-                  title: "",
-                  message: "",
-                })
-              }
-            >
-              <i className="bi bi-x"></i>
-            </button>
-          </div>
-        )}
       </div>
     </>
   );

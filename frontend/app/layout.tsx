@@ -21,7 +21,7 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "none",
+  title: "Mare Prints",
   description: "Premium Prints & Posters",
 };
 
