@@ -8,6 +8,15 @@ import Newsletter from "../Components/Newsletter";
 import "../assest/style/Landingpage.css";
 import { shopData } from "../data/shopdata";
 
+const portraitProducts = shopData.filter(
+  (product) => product.type === "portrait",
+);
+const landscapeProducts = shopData.filter(
+  (product) => product.type === "landscape",
+);
+const cutoutProducts = shopData.filter((product) => product.type === "cutout");
+const squareProducts = shopData.filter((product) => product.type === "square");
+
 const faqData = [
   {
     id: "shipping",
@@ -88,10 +97,8 @@ export default function Home() {
           <div className="col-12">
             <h2>Framed Acrylic Photo Portrait</h2>
             <Products
-              title="Portrait"
-              data={
-                shopData.find((item) => item.type === "Portrait")?.data || []
-              }
+              title="Portrait Frames"
+              data={portraitProducts}
               limit={8}
               link="/product"
             />
@@ -102,9 +109,9 @@ export default function Home() {
           <div className="col-12">
             <h2>Framed Acrylic Photo Landscape</h2>
             <Products
-              title="Landscape"
-              data={shopData[1].data}
-              limit={4}
+              title="Landscape Frames"
+              data={landscapeProducts}
+              limit={8}
               link="/product"
             />
           </div>
@@ -125,14 +132,24 @@ export default function Home() {
         <div className="row mt-4">
           <div className="col-12">
             <h2>Framed Acrylic Photo Cutout</h2>
-            <Products title="Cutout" data={shopData[2].data} limit={4} />
+            <Products
+              title="Cutout Frames"
+              data={cutoutProducts}
+              limit={8}
+              link="/product"
+            />
           </div>
         </div>
 
         <div className="row mt-4">
           <div className="col-12 d-none">
             <h2>Framed Acrylic Photo Nameplate</h2>
-            <Products title="Nameplate" data={shopData[3].data} limit={4} />
+            <Products
+              title="Square Frames"
+              data={squareProducts}
+              limit={8}
+              link="/product"
+            />
           </div>
         </div>
       </div>

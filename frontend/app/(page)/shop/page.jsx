@@ -8,6 +8,18 @@ import { shopData } from "../../data/shopdata";
 
 const Products = lazy(() => import("../../Components/products"));
 
+const portraitProducts = shopData.filter(
+  (product) => product.type === "portrait",
+);
+const landscapeProducts = shopData.filter(
+  (product) => product.type === "landscape",
+);
+const cutoutProducts = shopData.filter((product) => product.type === "cutout");
+const squareProducts = shopData.filter((product) => product.type === "square");
+const nameplateProducts = shopData.filter(
+  (product) => product.type === "nameplate",
+);
+
 const useNewsletter = () => {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -180,12 +192,12 @@ const ProductSection = ({ title, type, data, limit = 8 }) => {
             <div className={styles.loadingContainer}>Loading products...</div>
           }
         >
-          <Products
-            title={type}
-            data={productData}
-            limit={limit}
-            link="/product"
-          />
+      <Products
+        title="Portrait Frames"
+        data={portraitProducts}
+        limit={8}
+        link="/product"
+      />
         </Suspense>
       </div>
     </div>
