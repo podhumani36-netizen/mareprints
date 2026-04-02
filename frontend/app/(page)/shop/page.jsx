@@ -8,6 +8,18 @@ import { shopData } from "../../data/shopdata";
 
 const Products = lazy(() => import("../../Components/products"));
 
+const portraitProducts = shopData.filter(
+  (item) => String(item.type).toLowerCase() === "portrait"
+);
+
+const landscapeProducts = shopData.filter(
+  (item) => String(item.type).toLowerCase() === "landscape"
+);
+
+const cutoutProducts = shopData.filter(
+  (item) => String(item.type).toLowerCase() === "cutout"
+);
+
 const useNewsletter = () => {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -127,7 +139,7 @@ const HeroVisual = () => {
         alt: "Acrylic nameplate",
       },
     ],
-    [],
+    []
   );
 
   return (
@@ -160,8 +172,6 @@ const ProductSection = ({ title, type, data = [], limit = 8 }) => {
 
   if (!Array.isArray(productData) || productData.length === 0) return null;
 
-  if (!productData.length) return null;
-
   return (
     <div className="row mt-4">
       <div className="col-12">
@@ -171,7 +181,7 @@ const ProductSection = ({ title, type, data = [], limit = 8 }) => {
             <h2 className={styles.sectionTitle}>{title}</h2>
           </div>
           <Link
-            href={`/category/${type.toLowerCase()}`}
+            href={`/category/${String(type).toLowerCase()}`}
             className={styles.viewAllLink}
           >
             View All <i className="bi bi-arrow-right"></i>
@@ -274,7 +284,7 @@ const FeaturedCollections = () => {
         description: "Premium materials, exceptional finish",
       },
     ],
-    [],
+    []
   );
 
   return (
@@ -343,7 +353,11 @@ const NewsletterSection = ({
             role="alert"
           >
             <i
-              className={`bi ${submitStatus.type === "success" ? "bi-check-circle" : "bi-exclamation-circle"}`}
+              className={`bi ${
+                submitStatus.type === "success"
+                  ? "bi-check-circle"
+                  : "bi-exclamation-circle"
+              }`}
             ></i>
             {submitStatus.message}
           </div>
@@ -399,32 +413,33 @@ export default function Shop() {
       { value: "50+", label: "Happy Clients", description: "Across India" },
       { value: "24/7", label: "Support", description: "Dedicated Assistance" },
     ],
-    [],
+    []
   );
 
-const productSections = useMemo(
-  () => [
-    {
-      title: "Framed Acrylic Photo Portrait",
-      type: "Portrait",
-      data: portraitProducts,
-      limit: 8,
-    },
-    {
-      title: "Framed Acrylic Photo Landscape",
-      type: "Landscape",
-      data: landscapeProducts,
-      limit: 4,
-    },
-    {
-      title: "Framed Acrylic Photo Cutout",
-      type: "Cutout",
-      data: cutoutProducts,
-      limit: 4,
-    },
-  ],
-  [],
-);
+  const productSections = useMemo(
+    () => [
+      {
+        title: "Framed Acrylic Photo Portrait",
+        type: "Portrait",
+        data: portraitProducts,
+        limit: 8,
+      },
+      {
+        title: "Framed Acrylic Photo Landscape",
+        type: "Landscape",
+        data: landscapeProducts,
+        limit: 4,
+      },
+      {
+        title: "Framed Acrylic Photo Cutout",
+        type: "Cutout",
+        data: cutoutProducts,
+        limit: 4,
+      },
+    ],
+    []
+  );
+
   return (
     <main className={styles.luxuryShop}>
       <section className={styles.luxuryHero}>
