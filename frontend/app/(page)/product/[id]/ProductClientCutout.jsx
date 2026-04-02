@@ -10,11 +10,11 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 export default function ProductClientCutout({ product }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedImage, setUploadedImage] = useState(null);
-  const [zoom, setZoom] = useState(1);
+  const [originalImage, setOriginalImage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
   const [orderId, setOrderId] = useState("");
   const [quantity, setQuantity] = useState(1);
+
   const [showToast, setShowToast] = useState({
     visible: false,
     type: "",
@@ -22,21 +22,13 @@ export default function ProductClientCutout({ product }) {
     message: "",
   });
 
-  // Cut-out specific states
-  const [cutoutShape, setCutoutShape] = useState("circle");
-  const [cutoutSize, setCutoutSize] = useState(200);
-  const [cutoutPosition, setCutoutPosition] = useState({ x: 0, y: 0 });
-  const [isDraggingCutout, setIsDraggingCutout] = useState(false);
-  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
-  const [showCutoutPreview, setShowCutoutPreview] = useState(true);
+  const [isRemovingBackground, setIsRemovingBackground] = useState(false);
+  const [backgroundRemoved, setBackgroundRemoved] = useState(false);
 
-  const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
-  const containerRef = useRef(null);
-  const cutoutCanvasRef = useRef(null);
+  const displayImageRef = useRef(null);
 
-  // Cut-out specific sizes
   const [size, setSize] = useState(product?.defaultSize || "8x10");
   const [thickness, setThickness] = useState("3mm");
   const [pincode, setPincode] = useState("");
@@ -59,9 +51,9 @@ export default function ProductClientCutout({ product }) {
     pincode: "",
     paymentMethod: "razorpay",
   });
+
   const [formErrors, setFormErrors] = useState({});
 
-  // Size options
   const sizeOptions = product?.sizeOptions || [
     "8x10",
     "11x14",
@@ -69,21 +61,12 @@ export default function ProductClientCutout({ product }) {
     "20x24",
     "24x36",
   ];
+
   const thicknessOptions = ["3mm", "5mm", "8mm"];
-  const cutoutShapes = ["circle", "heart", "star", "diamond"];
-
-  const frameDimensions = {
-    "8x10": { width: 180, height: 220 },
-    "11x14": { width: 220, height: 280 },
-    "16x20": { width: 280, height: 340 },
-    "20x24": { width: 320, height: 380 },
-    "24x36": { width: 360, height: 480 },
-  };
-
   const basePrice = product?.basePrice || 999;
-  const roomWallBackground =
-    product?.backgroundImage ||
-    "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
+
+  const BACKGROUND_REMOVAL_API_KEY = "4ZYh4wnqm1XNzeFEPMcpsYMk";
+  const BACKGROUND_REMOVAL_API_URL = "https://api.remove.bg/v1.0/removebg";
 
   useEffect(() => {
     import("bootstrap/dist/js/bootstrap.bundle.min.js")
@@ -95,168 +78,9 @@ export default function ProductClientCutout({ product }) {
     setOrderId(`#ORD${Math.floor(Math.random() * 10000)}`);
   }, []);
 
-  const drawImageOnCanvas = useCallback((imageSrc) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, img.width, img.height);
-      applyCutout();
-      showNotification("Image loaded successfully!", "success");
-    };
-
-    img.onerror = () => {
-      showNotification("Failed to load image", "error");
-    };
-
-    img.src = imageSrc;
-  }, []);
-
-  const applyCutout = useCallback(() => {
-    const canvas = canvasRef.current;
-    const cutoutCanvas = cutoutCanvasRef.current;
-    if (!canvas || !cutoutCanvas) return;
-
-    const ctx = canvas.getContext("2d");
-    const cutoutCtx = cutoutCanvas.getContext("2d");
-
-    // Set cutout canvas size to match main canvas
-    cutoutCanvas.width = canvas.width;
-    cutoutCanvas.height = canvas.height;
-
-    // Clear cutout canvas
-    cutoutCtx.clearRect(0, 0, cutoutCanvas.width, cutoutCanvas.height);
-
-    // Draw the image on cutout canvas
-    cutoutCtx.drawImage(canvas, 0, 0);
-
-    // Apply cutout mask
-    cutoutCtx.globalCompositeOperation = "destination-in";
-
-    const centerX = cutoutCanvas.width / 2 + cutoutPosition.x;
-    const centerY = cutoutCanvas.height / 2 + cutoutPosition.y;
-    const radius = cutoutSize / 2;
-
-    cutoutCtx.beginPath();
-
-    switch (cutoutShape) {
-      case "circle":
-        cutoutCtx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-        break;
-      case "heart":
-        drawHeart(cutoutCtx, centerX, centerY, radius);
-        break;
-      case "star":
-        drawStar(cutoutCtx, centerX, centerY, radius);
-        break;
-      case "diamond":
-        drawDiamond(cutoutCtx, centerX, centerY, radius);
-        break;
-      default:
-        cutoutCtx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-    }
-
-    cutoutCtx.fill();
-    cutoutCtx.globalCompositeOperation = "source-over";
-  }, [cutoutShape, cutoutSize, cutoutPosition]);
-
-  const drawHeart = (ctx, x, y, size) => {
-    ctx.moveTo(x, y - size * 0.5);
-    ctx.bezierCurveTo(
-      x - size * 0.5,
-      y - size * 0.8,
-      x - size,
-      y,
-      x,
-      y + size * 0.5,
-    );
-    ctx.bezierCurveTo(
-      x + size,
-      y,
-      x + size * 0.5,
-      y - size * 0.8,
-      x,
-      y - size * 0.5,
-    );
-  };
-
-  const drawStar = (ctx, x, y, size) => {
-    const spikes = 5;
-    const outerRadius = size;
-    const innerRadius = size * 0.4;
-
-    for (let i = 0; i < spikes * 2; i++) {
-      const radius = i % 2 === 0 ? outerRadius : innerRadius;
-      const angle = (Math.PI * 2 * i) / (spikes * 2) - Math.PI / 2;
-      const xPos = x + radius * Math.cos(angle);
-      const yPos = y + radius * Math.sin(angle);
-
-      if (i === 0) ctx.moveTo(xPos, yPos);
-      else ctx.lineTo(xPos, yPos);
-    }
-    ctx.closePath();
-  };
-
-  const drawDiamond = (ctx, x, y, size) => {
-    ctx.moveTo(x, y - size);
-    ctx.lineTo(x + size, y);
-    ctx.lineTo(x, y + size);
-    ctx.lineTo(x - size, y);
-    ctx.closePath();
-  };
-
-  const handleCutoutMouseDown = (e) => {
-    setIsDraggingCutout(true);
-    const rect = cutoutCanvasRef.current.getBoundingClientRect();
-    setDragStartPos({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
-  };
-
-  const handleCutoutMouseMove = (e) => {
-    if (!isDraggingCutout) return;
-
-    const rect = cutoutCanvasRef.current.getBoundingClientRect();
-    const currentX = e.clientX - rect.left;
-    const currentY = e.clientY - rect.top;
-
-    const deltaX = currentX - dragStartPos.x;
-    const deltaY = currentY - dragStartPos.y;
-
-    setCutoutPosition((prev) => ({
-      x: prev.x + deltaX,
-      y: prev.y + deltaY,
-    }));
-
-    setDragStartPos({ x: currentX, y: currentY });
-  };
-
-  const handleCutoutMouseUp = () => {
-    setIsDraggingCutout(false);
-  };
-
-  useEffect(() => {
-    if (uploadedImage) {
-      drawImageOnCanvas(uploadedImage);
-    }
-  }, [uploadedImage, drawImageOnCanvas]);
-
-  useEffect(() => {
-    if (uploadedImage && canvasRef.current) {
-      applyCutout();
-    }
-  }, [cutoutShape, cutoutSize, cutoutPosition, uploadedImage, applyCutout]);
-
   const showNotification = (message, type = "info", title = "") => {
     let notificationTitle = title;
+
     if (!title) {
       switch (type) {
         case "success":
@@ -273,46 +97,125 @@ export default function ProductClientCutout({ product }) {
       }
     }
 
-    setShowToast({ visible: true, type, title: notificationTitle, message });
+    setShowToast({
+      visible: true,
+      type,
+      title: notificationTitle,
+      message,
+    });
+
     setTimeout(() => {
-      setShowToast({ visible: false, type: "", title: "", message: "" });
+      setShowToast({
+        visible: false,
+        type: "",
+        title: "",
+        message: "",
+      });
     }, 3000);
   };
 
   const calculatePrice = useCallback(() => {
     let price = basePrice;
     const sizeIndex = sizeOptions.indexOf(size);
-    if (sizeIndex > 0) price += sizeIndex * (product?.priceIncrement || 200);
+
+    if (sizeIndex > 0) {
+      price += sizeIndex * (product?.priceIncrement || 200);
+    }
+
     if (thickness === "5mm") price += 150;
     if (thickness === "8mm") price += 300;
+
     return price * quantity;
   }, [size, thickness, sizeOptions, basePrice, quantity, product]);
 
-  // Drag and drop handlers
+  const totalAmount = calculatePrice() + (product?.cutoutPremium || 199);
+
+  const autoRemoveBackground = async (imageDataURL) => {
+    setIsRemovingBackground(true);
+
+    try {
+      const blob = await fetch(imageDataURL).then((res) => res.blob());
+
+      const bgFormData = new FormData();
+      bgFormData.append("image_file", blob, "image.png");
+      bgFormData.append("size", "auto");
+
+      const response = await fetch(BACKGROUND_REMOVAL_API_URL, {
+        method: "POST",
+        headers: {
+          "X-Api-Key": BACKGROUND_REMOVAL_API_KEY,
+        },
+        body: bgFormData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.errors?.[0]?.title || "Background removal failed"
+        );
+      }
+
+      const resultBlob = await response.blob();
+
+      const reader = new FileReader();
+      const resultDataURL = await new Promise((resolve, reject) => {
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(resultBlob);
+      });
+
+      setUploadedImage(resultDataURL);
+      setBackgroundRemoved(true);
+      showNotification("Background removed successfully!", "success");
+    } catch (error) {
+      console.error("Background removal failed:", error);
+      showNotification("Using original image", "warning");
+      setUploadedImage(imageDataURL);
+    } finally {
+      setIsRemovingBackground(false);
+    }
+  };
+
   const handleDragEnter = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(true);
   };
 
   const handleDragLeave = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(false);
   };
 
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isDragging) setIsDragging(true);
+  };
+
+  const processFile = (file) => {
+    setIsProcessing(true);
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      const result = event.target.result;
+      setOriginalImage(result);
+      autoRemoveBackground(result);
+      setIsProcessing(false);
+    };
+
+    reader.onerror = () => {
+      setIsProcessing(false);
+      showNotification("Failed to read file. Please try again.", "error");
+    };
+
+    reader.readAsDataURL(file);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(false);
 
     const file = e.dataTransfer.files[0];
+
     if (file && file.type.startsWith("image/")) {
       if (file.size > 10 * 1024 * 1024) {
         showNotification("File size must be less than 10MB", "error");
@@ -326,46 +229,30 @@ export default function ProductClientCutout({ product }) {
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
+
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
         showNotification("File size must be less than 10MB", "error");
         return;
       }
+
       if (!file.type.startsWith("image/")) {
         showNotification("Please upload an image file", "error");
         return;
       }
+
       processFile(file);
     }
   };
 
-  const processFile = (file) => {
-    setIsProcessing(true);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setUploadedImage(event.target.result);
-      setIsProcessing(false);
-      showNotification("Image uploaded successfully!", "success");
-    };
-    reader.onerror = () => {
-      setIsProcessing(false);
-      showNotification("Failed to read file. Please try again.", "error");
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleZoomIn = () => {
-    setZoom((prev) => Math.min(prev + 0.1, 3));
-  };
-
-  const handleZoomOut = () => {
-    setZoom((prev) => Math.max(prev - 0.1, 0.5));
-  };
-
   const handleRemoveImage = () => {
     setUploadedImage(null);
-    setZoom(1);
+    setOriginalImage(null);
+    setBackgroundRemoved(false);
+
     if (fileInputRef.current) fileInputRef.current.value = "";
+
+    setCurrentStep(1);
     showNotification("Image removed successfully", "warning");
   };
 
@@ -391,6 +278,7 @@ export default function ProductClientCutout({ product }) {
         "560001",
         "600001",
       ].includes(pincode);
+
       if (servicable) {
         setDeliveryStatus({
           type: "success",
@@ -413,33 +301,54 @@ export default function ProductClientCutout({ product }) {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
     if (formErrors[name]) {
-      setFormErrors((prev) => ({ ...prev, [name]: "" }));
+      setFormErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
     }
   };
 
   const validateForm = () => {
     const errors = {};
+
     if (!formData.fullName.trim()) errors.fullName = "Full name is required";
-    if (!formData.email.trim()) errors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(formData.email))
+    if (!formData.email.trim()) {
+      errors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       errors.email = "Invalid email format";
-    if (!formData.phone.trim()) errors.phone = "Phone number is required";
-    else if (!/^\d{10}$/.test(formData.phone))
+    }
+
+    if (!formData.phone.trim()) {
+      errors.phone = "Phone number is required";
+    } else if (!/^\d{10}$/.test(formData.phone)) {
       errors.phone = "Phone must be 10 digits";
+    }
+
     if (!formData.address.trim()) errors.address = "Address is required";
     if (!formData.city.trim()) errors.city = "City is required";
     if (!formData.state.trim()) errors.state = "State is required";
-    if (!formData.pincode.trim()) errors.pincode = "Pincode is required";
-    else if (!/^\d{6}$/.test(formData.pincode))
+
+    if (!formData.pincode.trim()) {
+      errors.pincode = "Pincode is required";
+    } else if (!/^\d{6}$/.test(formData.pincode)) {
       errors.pincode = "Pincode must be 6 digits";
+    }
+
     return errors;
   };
 
   const handleSubmitOrder = (e) => {
     e.preventDefault();
+
     const errors = validateForm();
+
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       showNotification("Please fill all required fields correctly", "error");
@@ -458,10 +367,11 @@ export default function ProductClientCutout({ product }) {
   };
 
   const goToStep = (step) => {
-    if (step === 2 && !uploadedImage) {
+    if ((step === 2 || step === 3) && !uploadedImage && !originalImage) {
       showNotification("Please upload an image first", "warning");
       return;
     }
+
     setCurrentStep(step);
   };
 
@@ -472,28 +382,30 @@ export default function ProductClientCutout({ product }) {
           {[1, 2, 3].map((step) => (
             <div key={step} className={styles.stepItem}>
               <button
-                className={`${styles.stepButton} ${currentStep === step ? styles.active : ""} ${currentStep > step ? styles.completed : ""}`}
+                className={`${styles.stepButton} ${
+                  currentStep === step ? styles.active : ""
+                } ${currentStep > step ? styles.completed : ""}`}
                 onClick={() => goToStep(step)}
-                disabled={step > 1 && !uploadedImage}
+                disabled={step > 1 && !uploadedImage && !originalImage}
+                type="button"
               >
                 <span className={styles.stepNumber}>
-                  {currentStep > step ? (
-                    <i className="bi bi-check-lg"></i>
-                  ) : (
-                    step
-                  )}
+                  {currentStep > step ? <i className="bi bi-check-lg"></i> : step}
                 </span>
                 <span className={styles.stepLabel}>
                   {step === 1
-                    ? "Upload & Cut"
+                    ? "Upload"
                     : step === 2
-                      ? "Customize"
-                      : "Payment"}
+                    ? "Customize"
+                    : "Payment"}
                 </span>
               </button>
+
               {step < 3 && (
                 <div
-                  className={`${styles.stepConnector} ${currentStep > step ? styles.completed : ""}`}
+                  className={`${styles.stepConnector} ${
+                    currentStep > step ? styles.completed : ""
+                  }`}
                 />
               )}
             </div>
@@ -503,244 +415,317 @@ export default function ProductClientCutout({ product }) {
     </div>
   );
 
-  const renderStep1 = () => (
-    <div className={styles.stepContainer}>
-      <div className="container">
-        <div className="row g-4">
-          <div className="col-sm-12 col-md-8">
-            <div className={styles.uploadCard}>
-              <div
-                ref={dropZoneRef}
-                className={`${styles.uploadZone} ${isDragging ? styles.dragging : ""}`}
-                onDragEnter={handleDragEnter}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-              >
-                {uploadedImage ? (
-                  <div className={styles.previewContainer}>
-                    <div
-                      ref={containerRef}
-                      className={styles.imagePreview}
-                      style={{
-                        overflow: "auto",
-                        maxHeight: "500px",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        backgroundColor: "#f5f5f5",
-                        borderRadius: "8px",
-                        position: "relative",
-                      }}
-                    >
-                      <canvas
-                        ref={cutoutCanvasRef}
-                        className={styles.drawingCanvas}
-                        style={{
-                          transform: `scale(${zoom})`,
-                          transformOrigin: "center",
-                          transition: "transform 0.2s ease",
-                          maxWidth: "100%",
-                          height: "auto",
-                          display: "block",
-                          cursor: isDraggingCutout ? "grabbing" : "grab",
-                        }}
-                        onMouseDown={handleCutoutMouseDown}
-                        onMouseMove={handleCutoutMouseMove}
-                        onMouseUp={handleCutoutMouseUp}
-                        onMouseLeave={handleCutoutMouseUp}
-                      />
-                      {zoom !== 1 && (
-                        <span className={styles.zoomBadge}>
-                          <i className="bi bi-search"></i> {zoom.toFixed(1)}x
-                        </span>
-                      )}
-                    </div>
+  const renderUploadSection = () => (
+    <div className={styles.uploadCard}>
+      <h4 className="mb-3">
+        <i className="bi bi-image me-2"></i>
+        Upload Your Photo
+      </h4>
 
-                    <div className={styles.cutoutControls}>
-                      <div className={styles.shapeSelector}>
-                        <label className={styles.controlLabel}>
-                          Cutout Shape:
-                        </label>
-                        <div className={styles.shapeButtons}>
-                          {cutoutShapes.map((shape) => (
-                            <button
-                              key={shape}
-                              className={`${styles.shapeButton} ${cutoutShape === shape ? styles.active : ""}`}
-                              onClick={() => setCutoutShape(shape)}
-                              title={`${shape} shape`}
-                            >
-                              <i
-                                className={`bi bi-${shape === "circle" ? "circle" : shape === "heart" ? "heart" : shape === "star" ? "star" : "diamond"}`}
-                              ></i>
-                              {shape}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+      <div
+        ref={dropZoneRef}
+        className={styles.uploadZone}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        style={{ minHeight: "400px", cursor: "pointer" }}
+      >
+        {!uploadedImage && !originalImage ? (
+          <div className="text-center p-5">
+            <div className="mb-3">
+              <i className="bi bi-cloud-upload fs-1 text-primary"></i>
+            </div>
+            <h5>Upload your photo</h5>
+            <p className="text-muted">Drag & drop or click to browse</p>
 
-                      <div className={styles.sizeControl}>
-                        <label className={styles.controlLabel}>
-                          Cutout Size: {cutoutSize}px
-                        </label>
-                        <input
-                          type="range"
-                          min="50"
-                          max="500"
-                          value={cutoutSize}
-                          onChange={(e) =>
-                            setCutoutSize(parseInt(e.target.value))
-                          }
-                          className={styles.sizeSlider}
-                        />
-                      </div>
+            <button
+              className="btn btn-primary"
+              onClick={() => fileInputRef.current?.click()}
+              type="button"
+            >
+              <i className="bi bi-folder2-open me-2"></i>
+              Browse Files
+            </button>
 
-                      <div className={styles.cutoutHint}>
-                        <i className="bi bi-info-circle"></i>
-                        Click and drag the cutout area to reposition it
-                      </div>
-                    </div>
+            <small className="text-muted mt-3 d-block">
+              JPG, PNG, GIF (Max 10MB)
+            </small>
 
-                    <div className={styles.imageControls}>
-                      <button
-                        className={`${styles.controlButton} ${styles.zoomButton}`}
-                        onClick={handleZoomOut}
-                        title="Zoom Out"
-                      >
-                        <i className="bi bi-zoom-out"></i>
-                      </button>
-                      <span className={styles.zoomLevel}>
-                        {Math.round(zoom * 100)}%
-                      </span>
-                      <button
-                        className={`${styles.controlButton} ${styles.zoomButton}`}
-                        onClick={handleZoomIn}
-                        title="Zoom In"
-                      >
-                        <i className="bi bi-zoom-in"></i>
-                      </button>
-                      <button
-                        className={`${styles.controlButton} ${styles.dangerButton}`}
-                        onClick={handleRemoveImage}
-                        title="Remove Image"
-                      >
-                        <i className="bi bi-trash"></i>
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className={styles.uploadPrompt}>
-                    <div className={styles.uploadIcon}>
-                      <i
-                        className={`bi ${isDragging ? "bi-file-earmark-arrow-up" : "bi-cloud-upload"}`}
-                      ></i>
-                    </div>
-                    <h3 className={styles.uploadTitle}>
-                      {isDragging
-                        ? "Drop your image here"
-                        : `Upload your ${product?.name || "Cut-Out"} image`}
-                    </h3>
-                    <p className={styles.uploadSubtitle}>
-                      {isDragging
-                        ? "Release to upload"
-                        : "Drag & drop or click to browse"}
-                    </p>
-                    <button
-                      className={styles.browseButton}
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <i className="bi bi-folder2-open me-2"></i>
-                      Browse Files
-                    </button>
-                    <p className={styles.uploadHint}>
-                      Supported formats: JPG, PNG, GIF (Max 10MB)
-                    </p>
-                    <p className={styles.uploadHint}>
-                      <i className="bi bi-info-circle"></i> Create custom shaped
-                      cutouts from your photos
-                    </p>
-                  </div>
-                )}
-
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept="image/*"
-                  className="d-none"
-                />
+            {isProcessing && (
+              <div className="mt-3">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <p className="mt-2">Processing image...</p>
               </div>
-            </div>
-            <div className={`${styles.uploadCard} mt-5`}>
-              <img
-                src={
-                  product?.infoImage ||
-                  "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png"
-                }
-                alt="info"
-                className="img-fluid"
-              />
-            </div>
+            )}
           </div>
-          <div className="col-sm-12 col-md-4">
-            <div className={styles.guideCard}>
-              <h4 className={styles.guideTitle}>
-                <i className="bi bi-info-circle me-2"></i>
-                {product?.name || "Cut-Out"} Photo Guide
-              </h4>
-
+        ) : (
+          <div className="p-3">
+            <div className="position-relative">
               <img
-                src={
-                  product?.guideImage ||
-                  "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png"
-                }
-                alt="Print quality guide"
-                className={styles.guideImage}
+                ref={displayImageRef}
+                src={uploadedImage || originalImage || ""}
+                className="img-fluid rounded"
+                style={{
+                  maxHeight: "400px",
+                  width: "100%",
+                  objectFit: "contain",
+                  backgroundColor: "#f5f5f5",
+                  display: uploadedImage || originalImage ? "block" : "none",
+                }}
+                alt="Preview"
               />
-
-              <ul className={styles.guideList}>
-                {product?.tips?.map((tip, index) => (
-                  <li key={index}>
-                    <i className="bi bi-check-circle-fill"></i>
-                    {tip}
-                  </li>
-                )) || (
-                  <>
-                    <li>
-                      <i className="bi bi-check-circle-fill"></i>
-                      Create unique shaped photo cutouts
-                    </li>
-                    <li>
-                      <i className="bi bi-check-circle-fill"></i>
-                      Choose from circle, heart, star, or diamond shapes
-                    </li>
-                    <li>
-                      <i className="bi bi-check-circle-fill"></i>
-                      Drag and position the cutout area
-                    </li>
-                    <li>
-                      <i className="bi bi-check-circle-fill"></i>
-                      Adjust cutout size for perfect fit
-                    </li>
-                    <li>
-                      <i className="bi bi-check-circle-fill"></i>
-                      Perfect for personalized gifts
-                    </li>
-                  </>
-                )}
-                <li className={styles.warning}>
-                  <i className="bi bi-exclamation-triangle-fill"></i>
-                  Ensure subject is centered for best results
-                </li>
-              </ul>
 
               <button
-                className={styles.nextButton}
-                onClick={() => goToStep(2)}
-                disabled={!uploadedImage}
+                className="position-absolute top-0 end-0 btn btn-danger btn-sm m-2"
+                onClick={handleRemoveImage}
+                type="button"
               >
-                Continue to Customize
-                <i className="bi bi-arrow-right ms-2"></i>
+                <i className="bi bi-x-lg"></i>
+              </button>
+            </div>
+
+            {isRemovingBackground && (
+              <div className="mt-3 text-center">
+                <div className="spinner-border text-success" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <p className="mt-2 text-muted">Removing background...</p>
+              </div>
+            )}
+
+            {backgroundRemoved && !isRemovingBackground && (
+              <div className="mt-3 p-2 bg-success bg-opacity-10 rounded text-success small text-center">
+                <i className="bi bi-check-circle-fill me-1"></i>
+                Background removed successfully!
+              </div>
+            )}
+          </div>
+        )}
+
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileUpload}
+          accept="image/*"
+          className="d-none"
+        />
+      </div>
+    </div>
+  );
+
+  const renderSummaryCard = () => (
+    <div className={styles.optionsCard}>
+      <h4 className="mb-3">
+        <i className="bi bi-receipt me-2"></i>
+        Order Summary
+      </h4>
+
+      <div className="bg-light rounded p-3">
+        <div className="d-flex justify-content-between py-2">
+          <span>Base Price</span>
+          <span>₹{calculatePrice()}</span>
+        </div>
+
+        <div className="d-flex justify-content-between py-2">
+          <span>Cutout Premium</span>
+          <span>₹{product?.cutoutPremium || 199}</span>
+        </div>
+
+        <hr className="my-2" />
+
+        <div className="d-flex justify-content-between fw-bold fs-5 py-2">
+          <span>Total</span>
+          <span className="text-primary">₹{totalAmount}</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStep1 = () => (
+    <div className="container py-4">
+      <div className="row g-4">
+        <div className="col-lg-7">{renderUploadSection()}</div>
+
+        <div className="col-lg-5">
+          <div className={styles.optionsCard}>
+            <h4 className="mb-3">
+              <i className="bi bi-stars me-2"></i>
+              Upload & Continue
+            </h4>
+
+            <p className="text-muted">
+              First upload your photo. After that you can customize size,
+              thickness, shipping and payment.
+            </p>
+
+            {renderSummaryCard()}
+
+            <button
+              className="btn btn-primary w-100 mt-4 py-3 fw-bold"
+              onClick={() => goToStep(2)}
+              disabled={!uploadedImage && !originalImage}
+              type="button"
+            >
+              Next Step
+              <i className="bi bi-arrow-right ms-2"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStep2 = () => (
+    <div className="container py-4">
+      <div className="row g-4">
+        <div className="col-lg-6">{renderUploadSection()}</div>
+
+        <div className="col-lg-6">
+          <div className={styles.optionsCard}>
+            <h4 className="mb-3">
+              <i className="bi bi-sliders2 me-2"></i>
+              Customize Your {product?.name || "Photo Print"}
+            </h4>
+
+            <div className="mb-4">
+              <label className="form-label fw-bold">Acrylic Size (Inches)</label>
+              <div className="d-flex flex-wrap gap-2 mt-2">
+                {sizeOptions.map((opt) => (
+                  <button
+                    key={opt}
+                    className={`btn ${
+                      size === opt ? "btn-primary" : "btn-outline-primary"
+                    }`}
+                    onClick={() => setSize(opt)}
+                    type="button"
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label fw-bold">Thickness</label>
+              <div className="d-flex flex-wrap gap-2 mt-2">
+                {thicknessOptions.map((opt) => (
+                  <button
+                    key={opt}
+                    className={`btn ${
+                      thickness === opt ? "btn-dark" : "btn-outline-dark"
+                    }`}
+                    onClick={() => setThickness(opt)}
+                    type="button"
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label fw-bold">Quantity</label>
+              <div className="d-flex align-items-center gap-3 mt-2">
+                <button
+                  className="btn btn-outline-secondary"
+                  onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                  type="button"
+                >
+                  <i className="bi bi-dash-lg"></i>
+                </button>
+
+                <span className="fw-bold fs-5">{quantity}</span>
+
+                <button
+                  className="btn btn-outline-secondary"
+                  onClick={() => setQuantity((prev) => prev + 1)}
+                  type="button"
+                >
+                  <i className="bi bi-plus-lg"></i>
+                </button>
+              </div>
+            </div>
+
+            <div className="mb-4">
+             <label className="form-label fw-bold">Price</label>
+              {/*  <div className="d-flex gap-2 mt-2">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Enter pincode"
+                  value={pincode}
+                  onChange={handlePincodeChange}
+                  maxLength="6"
+                />
+                <button
+                  className="btn btn-outline-primary"
+                  onClick={handleCheckDelivery}
+                  disabled={deliveryStatus.isChecking}
+                  type="button"
+                >
+                  {deliveryStatus.isChecking ? "Checking..." : "Check"}
+                </button>
+              </div> */}
+
+              {deliveryStatus.message && (
+                <div
+                  className={`mt-2 small ${
+                    deliveryStatus.type === "success"
+                      ? "text-success"
+                      : "text-danger"
+                  }`}
+                >
+                  {deliveryStatus.message}
+                </div>
+              )}
+
+              {estimatedDeliveryDate && (
+                <div className="mt-2 small text-muted">
+                  Estimated delivery: {estimatedDeliveryDate}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-light rounded p-3">
+              <div className="d-flex justify-content-between py-2">
+                <span>Base Price</span>
+                <span>₹{calculatePrice()}</span>
+              </div>
+
+              <div className="d-flex justify-content-between py-2">
+                <span>Cutout Premium</span>
+                <span>₹{product?.cutoutPremium || 199}</span>
+              </div>
+
+              <hr className="my-2" />
+
+              <div className="d-flex justify-content-between fw-bold fs-5 py-2">
+                <span>Total</span>
+                <span className="text-primary">₹{totalAmount}</span>
+              </div>
+            </div>
+
+            <div className="d-flex gap-2 mt-4">
+              <button
+                className="btn btn-outline-secondary w-50 py-3 fw-bold"
+                onClick={() => goToStep(1)}
+                type="button"
+              >
+                <i className="bi bi-arrow-left me-2"></i>
+                Back
+              </button>
+
+              <button
+                className="btn btn-success w-50 py-3 fw-bold"
+                onClick={() => goToStep(3)}
+                disabled={!uploadedImage && !originalImage}
+                type="button"
+              >
+                <i className="bi bi-cart-check me-2"></i>
+                Buy Now
               </button>
             </div>
           </div>
@@ -749,570 +734,291 @@ export default function ProductClientCutout({ product }) {
     </div>
   );
 
-  const renderStep2 = () => {
-    const dims = frameDimensions[size] || { width: 200, height: 250 };
-
-    return (
-      <div className={styles.stepContainer}>
-        <div className="container">
-          <div className="row g-4">
-            <div className="col-lg-8">
-              <div className={styles.previewCard}>
-                <h4 className={styles.previewTitle}>
-                  <i className="bi bi-eye me-2"></i>
-                  Live Preview - {product?.name || "Cut-Out"} Acrylic Wall Photo
-                </h4>
-
-                <div className={styles.mockupWrapper}>
-                  <div
-                    className={styles.mockupBackground}
-                    style={{
-                      backgroundImage: `url(${product?.mockupBackground || "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg"})`,
-                    }}
-                  >
-                    <div className={styles.mockupOverlay}></div>
-
-                    <div
-                      className={styles.frameMockup}
-                      style={{
-                        width: `${dims.width}px`,
-                        height: `${dims.height}px`,
-                        left: "50%",
-                        top: "40%",
-                        transform: "translate(-50%, -50%)",
-                      }}
-                    >
-                      <div className={styles.frameContent}>
-                        <img
-                          src={
-                            uploadedImage
-                              ? cutoutCanvasRef.current?.toDataURL()
-                              : roomWallBackground
-                          }
-                          alt="Frame preview"
-                          className={styles.frameImage}
-                          style={{ objectFit: "cover" }}
-                        />
-                        <div className={styles.frameGlare}></div>
-                        <div
-                          className={styles.frameEdge}
-                          style={{
-                            borderWidth:
-                              thickness === "3mm"
-                                ? "2px"
-                                : thickness === "5mm"
-                                  ? "4px"
-                                  : "6px",
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    <div className={styles.previewLabels}>
-                      <span className={styles.sizeLabel}>
-                        {size} ({Math.round(dims.width * 2.54)} x{" "}
-                        {Math.round(dims.height * 2.54)} cm)
-                      </span>
-                      <span className={styles.thicknessLabel}>{thickness}</span>
-                      <span className={styles.cutoutLabel}>
-                        {cutoutShape} cutout
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="col-lg-4">
-              <div className={styles.optionsCard}>
-                <h4 className={styles.optionsTitle}>
-                  <i className="bi bi-sliders2 me-2"></i>
-                  Customize Your {product?.name || "Cut-Out"} Print
-                </h4>
-
-                <div className={styles.optionGroup}>
-                  <label className={styles.optionLabel}>
-                    Acrylic Sizes (Inches)
-                  </label>
-                  <div className={styles.sizeGrid}>
-                    {sizeOptions.map((opt) => (
-                      <button
-                        key={opt}
-                        className={`${styles.sizeButton} ${size === opt ? styles.active : ""}`}
-                        onClick={() => setSize(opt)}
-                      >
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className={styles.optionGroup}>
-                  <label className={styles.optionLabel}>
-                    Acrylic Thickness
-                  </label>
-                  <div className={styles.buttonGroup}>
-                    {thicknessOptions.map((opt) => (
-                      <button
-                        key={opt}
-                        className={`${styles.optionButton} ${thickness === opt ? styles.active : ""}`}
-                        onClick={() => setThickness(opt)}
-                      >
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className={styles.optionGroup}>
-                  <label className={styles.optionLabel}>Delivery Pincode</label>
-                  <div className={styles.pincodeInput}>
-                    <input
-                      type="text"
-                      className={styles.pincodeField}
-                      placeholder="Enter 6-digit pincode"
-                      value={pincode}
-                      onChange={handlePincodeChange}
-                      maxLength="6"
-                    />
-                    <button
-                      className={styles.checkButton}
-                      onClick={handleCheckDelivery}
-                      disabled={
-                        pincode.length !== 6 || deliveryStatus.isChecking
-                      }
-                    >
-                      {deliveryStatus.isChecking ? (
-                        <span className={styles.spinner}></span>
-                      ) : (
-                        "Check"
-                      )}
-                    </button>
-                  </div>
-
-                  {deliveryStatus.message && (
-                    <div
-                      className={`${styles.deliveryMessage} ${styles[deliveryStatus.type]}`}
-                    >
-                      <i
-                        className={`bi ${deliveryStatus.type === "success" ? "bi-check-circle" : "bi-exclamation-circle"}`}
-                      ></i>
-                      <span>{deliveryStatus.message}</span>
-                      {estimatedDeliveryDate &&
-                        deliveryStatus.type === "success" && (
-                          <small>Est. delivery: {estimatedDeliveryDate}</small>
-                        )}
-                    </div>
-                  )}
-                </div>
-
-                <div className={styles.priceBreakdown}>
-                  <div className={styles.priceRow}>
-                    <span>Base Price</span>
-                    <span>₹{basePrice}</span>
-                  </div>
-                  {size !== sizeOptions[0] && (
-                    <div className={styles.priceRow}>
-                      <span>Size Upgrade</span>
-                      <span>
-                        +₹
-                        {sizeOptions.indexOf(size) *
-                          (product?.priceIncrement || 200)}
-                      </span>
-                    </div>
-                  )}
-                  {thickness !== "3mm" && (
-                    <div className={styles.priceRow}>
-                      <span>Thickness Upgrade</span>
-                      <span>+₹{thickness === "5mm" ? "150" : "300"}</span>
-                    </div>
-                  )}
-                  <div className={styles.priceRow}>
-                    <span>Cut-out Premium</span>
-                    <span>+₹{product?.cutoutPremium || 199}</span>
-                  </div>
-                  <div className={styles.totalRow}>
-                    <span>Total</span>
-                    <span>
-                      ₹{calculatePrice() + (product?.cutoutPremium || 199)}
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  className={styles.proceedButton}
-                  onClick={() => goToStep(3)}
-                >
-                  Proceed to Payment
-                  <i className="bi bi-arrow-right ms-2"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   const renderStep3 = () => (
-    <div className={styles.stepContainer}>
-      <div className="container">
-        <div className="row g-4">
-          <div className="col-lg-4 order-lg-2">
-            <div className={styles.summaryCard}>
-              <h4 className={styles.summaryTitle}>
-                <i className="bi bi-bag-check me-2"></i>
-                Order Summary - {product?.name || "Cut-Out"}
+    <div className="container py-4">
+      <div className="row justify-content-center">
+        <div className="col-lg-10">
+          <div className={styles.formCard}>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h4>
+                <i className="bi bi-credit-card me-2"></i>
+                Shipping & Payment
               </h4>
 
-              {uploadedImage && (
-                <div className={styles.summaryImage}>
-                  <img
-                    src={cutoutCanvasRef.current?.toDataURL()}
-                    alt="Product preview"
+              <button
+                className="btn btn-outline-secondary"
+                onClick={() => goToStep(2)}
+                type="button"
+              >
+                <i className="bi bi-arrow-left me-2"></i>
+                Back
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitOrder}>
+              <div className="row g-3">
+                <div className="col-md-6">
+                  <label className="form-label">Full Name *</label>
+                  <input
+                    type="text"
+                    name="fullName"
+                    className={`form-control ${
+                      formErrors.fullName ? "is-invalid" : ""
+                    }`}
+                    value={formData.fullName}
+                    onChange={handleInputChange}
+                  />
+                  {formErrors.fullName && (
+                    <div className="invalid-feedback">
+                      {formErrors.fullName}
+                    </div>
+                  )}
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Email *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    className={`form-control ${
+                      formErrors.email ? "is-invalid" : ""
+                    }`}
+                    value={formData.email}
+                    onChange={handleInputChange}
+                  />
+                  {formErrors.email && (
+                    <div className="invalid-feedback">{formErrors.email}</div>
+                  )}
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Phone *</label>
+                  <input
+                    type="text"
+                    name="phone"
+                    className={`form-control ${
+                      formErrors.phone ? "is-invalid" : ""
+                    }`}
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    maxLength="10"
+                  />
+                  {formErrors.phone && (
+                    <div className="invalid-feedback">{formErrors.phone}</div>
+                  )}
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Alternate Phone</label>
+                  <input
+                    type="text"
+                    name="alternatePhone"
+                    className="form-control"
+                    value={formData.alternatePhone}
+                    onChange={handleInputChange}
+                    maxLength="10"
                   />
                 </div>
-              )}
 
-              <div className={styles.summaryDetails}>
-                <div className={styles.summaryRow}>
-                  <span>Size</span>
-                  <span className={styles.summaryValue}>{size}</span>
-                </div>
-                <div className={styles.summaryRow}>
-                  <span>Thickness</span>
-                  <span className={styles.summaryValue}>{thickness}</span>
-                </div>
-                <div className={styles.summaryRow}>
-                  <span>Cut-out Shape</span>
-                  <span className={styles.summaryValue}>{cutoutShape}</span>
-                </div>
-                <div className={styles.summaryRow}>
-                  <span>Quantity</span>
-                  <div className={styles.quantityWrapper}>
-                    <select
-                      className={styles.quantityDropdown}
-                      value={quantity}
-                      onChange={(e) => setQuantity(Number(e.target.value))}
-                    >
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                        <option key={num} value={num}>
-                          {num}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.totalItems}>
-                <span>Total Items:</span>
-                <span className={styles.totalItemsValue}>{quantity}</span>
-              </div>
-
-              <div className={styles.summaryTotal}>
-                <span>Total Amount</span>
-                <span>
-                  ₹{calculatePrice() + (product?.cutoutPremium || 199)}
-                </span>
-              </div>
-
-              <div className={styles.progressBar}>
-                <div
-                  className={styles.progressFill}
-                  style={{ width: "66%" }}
-                ></div>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-lg-8 order-lg-1">
-            <div className={styles.formCard}>
-              <div className={styles.formHeader}>
-                <h4 className={styles.formTitle}>
-                  <i className="bi bi-truck me-2"></i>
-                  Shipping Details
-                </h4>
-                <button
-                  className={styles.backButton}
-                  onClick={() => setCurrentStep(2)}
-                >
-                  <i className="bi bi-arrow-left me-2"></i>
-                  Back
-                </button>
-              </div>
-
-              <form
-                onSubmit={handleSubmitOrder}
-                className={styles.shippingForm}
-              >
-                {/* Form fields same as portrait */}
-                <div className={styles.formSection}>
-                  <h5 className={styles.sectionTitle}>Personal Information</h5>
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className={styles.fieldLabel}>Full Name *</label>
-                      <div className={styles.inputWrapper}>
-                        <i className={`bi bi-person ${styles.inputIcon}`}></i>
-                        <input
-                          type="text"
-                          name="fullName"
-                          className={`${styles.formInput} ${formErrors.fullName ? styles.error : ""}`}
-                          placeholder="Enter your full name"
-                          value={formData.fullName}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                      {formErrors.fullName && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.fullName}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="col-md-6">
-                      <label className={styles.fieldLabel}>Email *</label>
-                      <div className={styles.inputWrapper}>
-                        <i className={`bi bi-envelope ${styles.inputIcon}`}></i>
-                        <input
-                          type="email"
-                          name="email"
-                          className={`${styles.formInput} ${formErrors.email ? styles.error : ""}`}
-                          placeholder="Enter your email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                      {formErrors.email && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.email}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="col-md-6">
-                      <label className={styles.fieldLabel}>Phone *</label>
-                      <div className={styles.inputWrapper}>
-                        <i className={`bi bi-phone ${styles.inputIcon}`}></i>
-                        <input
-                          type="tel"
-                          name="phone"
-                          className={`${styles.formInput} ${formErrors.phone ? styles.error : ""}`}
-                          placeholder="10-digit mobile number"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          maxLength="10"
-                        />
-                      </div>
-                      {formErrors.phone && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.phone}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="col-md-6">
-                      <label className={styles.fieldLabel}>
-                        Alternate Phone
-                      </label>
-                      <div className={styles.inputWrapper}>
-                        <i className={`bi bi-phone ${styles.inputIcon}`}></i>
-                        <input
-                          type="tel"
-                          name="alternatePhone"
-                          className={styles.formInput}
-                          placeholder="Optional"
-                          value={formData.alternatePhone}
-                          onChange={handleInputChange}
-                          maxLength="10"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                <div className="col-12">
+                  <label className="form-label">Address *</label>
+                  <textarea
+                    name="address"
+                    className={`form-control ${
+                      formErrors.address ? "is-invalid" : ""
+                    }`}
+                    rows="2"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                  />
+                  {formErrors.address && (
+                    <div className="invalid-feedback">{formErrors.address}</div>
+                  )}
                 </div>
 
-                <div className={styles.formSection}>
-                  <h5 className={styles.sectionTitle}>Shipping Address</h5>
-                  <div className="row g-3">
-                    <div className="col-12">
-                      <label className={styles.fieldLabel}>Address *</label>
-                      <div className={styles.inputWrapper}>
-                        <i className={`bi bi-geo-alt ${styles.inputIcon}`}></i>
-                        <textarea
-                          name="address"
-                          className={`${styles.formInput} ${styles.textarea} ${formErrors.address ? styles.error : ""}`}
-                          placeholder="Enter your complete address"
-                          value={formData.address}
-                          onChange={handleInputChange}
-                          rows="2"
-                        />
-                      </div>
-                      {formErrors.address && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.address}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="col-12">
-                      <label className={styles.fieldLabel}>
-                        Alternate Address
-                      </label>
-                      <div className={styles.inputWrapper}>
-                        <i className={`bi bi-geo-alt ${styles.inputIcon}`}></i>
-                        <textarea
-                          name="alternateAddress"
-                          className={styles.formInput}
-                          placeholder="Optional"
-                          value={formData.alternateAddress}
-                          onChange={handleInputChange}
-                          rows="2"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="col-md-4">
-                      <label className={styles.fieldLabel}>City *</label>
-                      <input
-                        type="text"
-                        name="city"
-                        className={`${styles.formInput} ${formErrors.city ? styles.error : ""}`}
-                        placeholder="City"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.city && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.city}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="col-md-4">
-                      <label className={styles.fieldLabel}>State *</label>
-                      <input
-                        type="text"
-                        name="state"
-                        className={`${styles.formInput} ${formErrors.state ? styles.error : ""}`}
-                        placeholder="State"
-                        value={formData.state}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.state && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.state}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="col-md-4">
-                      <label className={styles.fieldLabel}>Pincode *</label>
-                      <input
-                        type="text"
-                        name="pincode"
-                        className={`${styles.formInput} ${formErrors.pincode ? styles.error : ""}`}
-                        placeholder="6-digit pincode"
-                        value={formData.pincode}
-                        onChange={handleInputChange}
-                        maxLength="6"
-                      />
-                      {formErrors.pincode && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.pincode}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                <div className="col-12">
+                  <label className="form-label">Alternate Address</label>
+                  <textarea
+                    name="alternateAddress"
+                    className="form-control"
+                    rows="2"
+                    value={formData.alternateAddress}
+                    onChange={handleInputChange}
+                  />
                 </div>
 
-                <div className={styles.formSection}>
-                  <h5 className={styles.sectionTitle}>Payment Method</h5>
-                  <div className={styles.paymentOptions}>
-                    <label className={styles.paymentOption}>
+                <div className="col-md-4">
+                  <label className="form-label">City *</label>
+                  <input
+                    type="text"
+                    name="city"
+                    className={`form-control ${
+                      formErrors.city ? "is-invalid" : ""
+                    }`}
+                    value={formData.city}
+                    onChange={handleInputChange}
+                  />
+                  {formErrors.city && (
+                    <div className="invalid-feedback">{formErrors.city}</div>
+                  )}
+                </div>
+
+                <div className="col-md-4">
+                  <label className="form-label">State *</label>
+                  <input
+                    type="text"
+                    name="state"
+                    className={`form-control ${
+                      formErrors.state ? "is-invalid" : ""
+                    }`}
+                    value={formData.state}
+                    onChange={handleInputChange}
+                  />
+                  {formErrors.state && (
+                    <div className="invalid-feedback">{formErrors.state}</div>
+                  )}
+                </div>
+
+                <div className="col-md-4">
+                  <label className="form-label">Pincode *</label>
+                  <input
+                    type="text"
+                    name="pincode"
+                    className={`form-control ${
+                      formErrors.pincode ? "is-invalid" : ""
+                    }`}
+                    value={formData.pincode}
+                    onChange={handleInputChange}
+                    maxLength="6"
+                  />
+                  {formErrors.pincode && (
+                    <div className="invalid-feedback">{formErrors.pincode}</div>
+                  )}
+                </div>
+
+                <div className="col-12">
+                  <label className="form-label">Payment Method</label>
+                  <div className="d-flex gap-3 mt-2">
+                    <div className="form-check">
                       <input
                         type="radio"
+                        className="form-check-input"
                         name="paymentMethod"
                         value="razorpay"
                         checked={formData.paymentMethod === "razorpay"}
                         onChange={handleInputChange}
                       />
-                      <span className={styles.radioCustom}></span>
-                      <img
-                        src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773377507/razorpay_chzbwv.svg"
-                        alt="Razorpay"
-                      />
-                      <span>Razorpay</span>
-                    </label>
+                      <label className="form-check-label">Razorpay</label>
+                    </div>
 
-                    <label className={styles.paymentOption}>
+                    <div className="form-check">
                       <input
                         type="radio"
+                        className="form-check-input"
                         name="paymentMethod"
                         value="gpay"
                         checked={formData.paymentMethod === "gpay"}
                         onChange={handleInputChange}
                       />
-                      <span className={styles.radioCustom}></span>
-                      <i className="bi bi-google"></i>
-                      <span>Google Pay</span>
-                    </label>
-                  </div>
-
-                  <div className={styles.paymentButton}>
-                    {formData.paymentMethod === "razorpay" ? (
-                      <RazorpayPayment
-                        amount={
-                          calculatePrice() + (product?.cutoutPremium || 199)
-                        }
-                        buttonText={`Pay ₹${calculatePrice() + (product?.cutoutPremium || 199)}`}
-                        themeColor="#3496cb"
-                        customerDetails={{
-                          name: formData.fullName,
-                          email: formData.email,
-                          phone: formData.phone,
-                          address: formData.address,
-                          size,
-                          thickness,
-                          cutoutShape,
-                          cutoutSize,
-                          productType: product?.type || "cutout",
-                        }}
-                        onSuccess={() =>
-                          showNotification(
-                            "Payment successful! Thank you for your order.",
-                            "success",
-                          )
-                        }
-                        onError={() =>
-                          showNotification(
-                            "Payment failed. Please try again.",
-                            "error",
-                          )
-                        }
-                      />
-                    ) : (
-                      <GPayButton
-                        amount={
-                          calculatePrice() + (product?.cutoutPremium || 199)
-                        }
-                        onSuccess={() =>
-                          showNotification(
-                            "Payment successful! Thank you for your order.",
-                            "success",
-                          )
-                        }
-                        onError={() =>
-                          showNotification(
-                            "Payment failed. Please try again.",
-                            "error",
-                          )
-                        }
-                      />
-                    )}
+                      <label className="form-check-label">Google Pay</label>
+                    </div>
                   </div>
                 </div>
-              </form>
-            </div>
+
+                <div className="col-12">
+                  <div className="bg-light rounded p-3 mt-2">
+                    <div className="d-flex justify-content-between py-1">
+                      <span>Selected Size</span>
+                      <span>{size}</span>
+                    </div>
+                    <div className="d-flex justify-content-between py-1">
+                      <span>Thickness</span>
+                      <span>{thickness}</span>
+                    </div>
+                    <div className="d-flex justify-content-between py-1">
+                      <span>Quantity</span>
+                      <span>{quantity}</span>
+                    </div>
+                    <div className="d-flex justify-content-between py-1">
+                      <span>Estimated Delivery</span>
+                      <span>{estimatedDeliveryDate || "3-5 business days"}</span>
+                    </div>
+                    <hr />
+                    <div className="d-flex justify-content-between fw-bold fs-5">
+                      <span>Total</span>
+                      <span className="text-primary">₹{totalAmount}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="col-12 mt-4">
+                  {formData.paymentMethod === "razorpay" ? (
+                    <RazorpayPayment
+                      amount={totalAmount}
+                      buttonText={`Pay ₹${totalAmount}`}
+                      themeColor="#3496cb"
+                      customerDetails={{
+                        name: formData.fullName,
+                        email: formData.email,
+                        phone: formData.phone,
+                        address: formData.address,
+                        size,
+                        thickness,
+                        quantity,
+                        productType: product?.type || "photo",
+                        productName: product?.name || "Cutout Print",
+                      }}
+                      onSuccess={() => {
+                        showNotification(
+                          "Payment successful! Thank you for your order.",
+                          "success"
+                        );
+
+                        if (typeof window !== "undefined" && window.bootstrap) {
+                          const modalEl =
+                            document.getElementById("successModal");
+                          if (modalEl) {
+                            const modal = new window.bootstrap.Modal(modalEl);
+                            modal.show();
+                          }
+                        }
+                      }}
+                      onError={() =>
+                        showNotification(
+                          "Payment failed. Please try again.",
+                          "error"
+                        )
+                      }
+                    />
+                  ) : (
+                    <GPayButton
+                      amount={totalAmount}
+                      onSuccess={() => {
+                        showNotification(
+                          "Payment successful! Thank you for your order.",
+                          "success"
+                        );
+
+                        if (typeof window !== "undefined" && window.bootstrap) {
+                          const modalEl =
+                            document.getElementById("successModal");
+                          if (modalEl) {
+                            const modal = new window.bootstrap.Modal(modalEl);
+                            modal.show();
+                          }
+                        }
+                      }}
+                      onError={() =>
+                        showNotification(
+                          "Payment failed. Please try again.",
+                          "error"
+                        )
+                      }
+                    />
+                  )}
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       </div>
@@ -1323,115 +1029,88 @@ export default function ProductClientCutout({ product }) {
     <>
       <div className={styles.productClient}>
         {renderStepIndicator()}
+
         {currentStep === 1 && renderStep1()}
         {currentStep === 2 && renderStep2()}
         {currentStep === 3 && renderStep3()}
+      </div>
 
-        {/* Success Modal */}
-        <div
-          className="modal fade"
-          id="successModal"
-          tabIndex="-1"
-          aria-hidden="true"
-        >
-          <div className="modal-dialog modal-dialog-centered">
-            <div className={styles.modalContent}>
-              <div className={styles.modalHeader}>
-                <h5 className={styles.modalTitle}>
-                  <i className="bi bi-check-circle-fill me-2"></i>
-                  Order Confirmed!
-                </h5>
-                <button
-                  type="button"
-                  className={styles.modalClose}
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
-                >
-                  <i className="bi bi-x-lg"></i>
-                </button>
+      <div
+        className="modal fade"
+        id="successModal"
+        tabIndex="-1"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h5 className={styles.modalTitle}>
+                <i className="bi bi-check-circle-fill me-2"></i>
+                Order Confirmed!
+              </h5>
+
+              <button
+                type="button"
+                className={styles.modalClose}
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                <i className="bi bi-x-lg"></i>
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <div className={styles.modalIcon}>
+                <i className="bi bi-check-circle-fill"></i>
               </div>
-              <div className={styles.modalBody}>
-                <div className={styles.modalIcon}>
-                  <i className="bi bi-check-circle-fill"></i>
+
+              <h6 className={styles.modalThankYou}>Thank you for your order!</h6>
+
+              <p className={styles.modalMessage}>
+                Your {product?.name || "Photo"} acrylic cutout order has been
+                placed successfully. You will receive a confirmation email
+                shortly.
+              </p>
+
+              <div className={styles.modalOrderDetails}>
+                <div className={styles.orderDetailRow}>
+                  <span>Order ID:</span>
+                  <strong>{orderId}</strong>
                 </div>
-                <h6 className={styles.modalThankYou}>
-                  Thank you for your order!
-                </h6>
-                <p className={styles.modalMessage}>
-                  Your {product?.name || "Cut-Out"} acrylic photo order has been
-                  placed successfully. You will receive a confirmation email
-                  shortly.
-                </p>
-                <div className={styles.modalOrderDetails}>
-                  <div className={styles.modalDetailRow}>
-                    <span>Order ID</span>
-                    <span className={styles.modalDetailValue}>
-                      {orderId || "Loading..."}
-                    </span>
-                  </div>
-                  <div className={styles.modalDetailRow}>
-                    <span>Total Amount</span>
-                    <span className={styles.modalDetailValue}>
-                      ₹{calculatePrice() + (product?.cutoutPremium || 199)}
-                    </span>
-                  </div>
-                  <div className={styles.modalDetailRow}>
-                    <span>Estimated Delivery</span>
-                    <span className={styles.modalDetailValue}>
-                      {estimatedDeliveryDate || "3-5 business days"}
-                    </span>
-                  </div>
+
+                <div className={styles.orderDetailRow}>
+                  <span>Total Amount:</span>
+                  <strong>₹{totalAmount}</strong>
                 </div>
-              </div>
-              <div className={styles.modalFooter}>
-                <button
-                  type="button"
-                  className={styles.modalButton}
-                  data-bs-dismiss="modal"
-                >
-                  <i className="bi bi-check me-2"></i>
-                  Done
-                </button>
+
+                <div className={styles.orderDetailRow}>
+                  <span>Estimated Delivery:</span>
+                  <strong>{estimatedDeliveryDate || "3-5 business days"}</strong>
+                </div>
               </div>
             </div>
           </div>
         </div>
-
-        {showToast.visible && (
-          <div className={`${styles.toast} ${styles[showToast.type]}`}>
-            <div className={styles.toastIcon}>
-              <i
-                className={`bi ${
-                  showToast.type === "success"
-                    ? "bi-check-circle"
-                    : showToast.type === "error"
-                      ? "bi-exclamation-circle"
-                      : showToast.type === "warning"
-                        ? "bi-exclamation-triangle"
-                        : "bi-info-circle"
-                }`}
-              ></i>
-            </div>
-            <div className={styles.toastContent}>
-              <strong className={styles.toastTitle}>{showToast.title}</strong>
-              <p className={styles.toastMessage}>{showToast.message}</p>
-            </div>
-            <button
-              className={styles.toastClose}
-              onClick={() =>
-                setShowToast({
-                  visible: false,
-                  type: "",
-                  title: "",
-                  message: "",
-                })
-              }
-            >
-              <i className="bi bi-x"></i>
-            </button>
-          </div>
-        )}
       </div>
+
+      {showToast.visible && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            background: "#fff",
+            borderRadius: "10px",
+            padding: "12px 16px",
+            boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
+            zIndex: 9999,
+            minWidth: "250px",
+          }}
+        >
+          <strong>{showToast.title}</strong>
+          <div>{showToast.message}</div>
+        </div>
+      )}
     </>
   );
 }

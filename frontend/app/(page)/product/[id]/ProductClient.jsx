@@ -11,10 +11,15 @@ export default function ProductClient() {
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [zoom, setZoom] = useState(1);
+  const [imageOffset, setImageOffset] = useState({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [isImageDragging, setIsImageDragging] = useState(false);
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [orderId, setOrderId] = useState("");
   const [quantity, setQuantity] = useState(1);
+
   const [showToast, setShowToast] = useState({
     visible: false,
     type: "",
@@ -49,12 +54,14 @@ export default function ProductClient() {
     pincode: "",
     paymentMethod: "razorpay",
   });
+
   const [formErrors, setFormErrors] = useState({});
 
   const sizeOptions = {
     portrait: ["8x10", "11x14", "16x20", "20x24", "24x36"],
     landscape: ["10x8", "14x11", "20x16", "24x20", "36x24"],
   };
+
   const thicknessOptions = ["3mm", "5mm", "8mm"];
 
   const frameDimensions = {
@@ -86,11 +93,14 @@ export default function ProductClient() {
 
   useEffect(() => {
     if (!uploadedImage || !canvasRef.current) return;
+
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     const img = new Image();
+
     img.crossOrigin = "anonymous";
     img.src = uploadedImage;
+
     img.onload = () => {
       canvas.width = img.width;
       canvas.height = img.height;
@@ -98,6 +108,7 @@ export default function ProductClient() {
       ctx.drawImage(img, 0, 0, img.width, img.height);
       showNotification("Image uploaded successfully!", "success");
     };
+
     img.onerror = () => {
       showNotification("Failed to load image. Please try again.", "error");
     };
@@ -105,10 +116,36 @@ export default function ProductClient() {
 
   useEffect(() => {
     setSize(orientation === "portrait" ? "8x10" : "10x8");
+    setZoom(1);
+    setImageOffset({ x: 0, y: 0 });
   }, [orientation]);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isImageDragging) return;
+
+      setImageOffset({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsImageDragging(false);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isImageDragging, dragStart]);
 
   const showNotification = (message, type = "info", title = "") => {
     let notificationTitle = title;
+
     if (!title) {
       switch (type) {
         case "success":
@@ -125,24 +162,37 @@ export default function ProductClient() {
       }
     }
 
-    setShowToast({ visible: true, type, title: notificationTitle, message });
+    setShowToast({
+      visible: true,
+      type,
+      title: notificationTitle,
+      message,
+    });
 
     setTimeout(() => {
-      setShowToast({ visible: false, type: "", title: "", message: "" });
+      setShowToast({
+        visible: false,
+        type: "",
+        title: "",
+        message: "",
+      });
     }, 3000);
   };
 
   const calculatePrice = useCallback(() => {
     let price = basePrice;
+
     const sizeIndex =
       orientation === "portrait"
         ? sizeOptions.portrait.indexOf(size)
         : sizeOptions.landscape.indexOf(size);
+
     if (sizeIndex > 0) price += sizeIndex * 150;
     if (thickness === "5mm") price += 150;
     if (thickness === "8mm") price += 300;
+
     return price * quantity;
-  }, [orientation, size, thickness, sizeOptions, basePrice, quantity]);
+  }, [orientation, size, thickness, quantity]);
 
   const handleDragEnter = (e) => {
     e.preventDefault();
@@ -168,6 +218,7 @@ export default function ProductClient() {
     setIsDragging(false);
 
     const file = e.dataTransfer.files[0];
+
     if (file && file.type.startsWith("image/")) {
       if (file.size > 10 * 1024 * 1024) {
         showNotification("File size must be less than 10MB", "error");
@@ -181,48 +232,73 @@ export default function ProductClient() {
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
+
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
         showNotification("File size must be less than 10MB", "error");
         return;
       }
+
       if (!file.type.startsWith("image/")) {
         showNotification("Please upload an image file", "error");
         return;
       }
+
       processFile(file);
     }
   };
 
   const processFile = (file) => {
     setIsProcessing(true);
+
     const reader = new FileReader();
+
     reader.onload = (event) => {
       setUploadedImage(event.target.result);
+      setZoom(1);
+      setImageOffset({ x: 0, y: 0 });
       setIsProcessing(false);
     };
+
     reader.onerror = () => {
       setIsProcessing(false);
       showNotification("Failed to read file. Please try again.", "error");
     };
+
     reader.readAsDataURL(file);
   };
 
   const handleZoomIn = () => {
     setZoom((prev) => Math.min(prev + 0.1, 3));
-    showNotification(`Zoom level: ${(zoom + 0.1).toFixed(1)}x`, "info");
   };
 
   const handleZoomOut = () => {
-    setZoom((prev) => Math.max(prev - 0.1, 0.5));
-    showNotification(`Zoom level: ${(zoom - 0.1).toFixed(1)}x`, "info");
+    setZoom((prev) => Math.max(prev - 0.1, 1));
+  };
+
+  const handleResetZoom = () => {
+    setZoom(1);
+  };
+
+  const handleResetPosition = () => {
+    setImageOffset({ x: 0, y: 0 });
   };
 
   const handleRemoveImage = () => {
     setUploadedImage(null);
     setZoom(1);
+    setImageOffset({ x: 0, y: 0 });
     if (fileInputRef.current) fileInputRef.current.value = "";
     showNotification("Image removed successfully", "warning");
+  };
+
+  const handleImageMouseDown = (e) => {
+    e.preventDefault();
+    setIsImageDragging(true);
+    setDragStart({
+      x: e.clientX - imageOffset.x,
+      y: e.clientY - imageOffset.y,
+    });
   };
 
   const handlePincodeChange = (e) => {
@@ -247,6 +323,7 @@ export default function ProductClient() {
         "560001",
         "600001",
       ].includes(pincode);
+
       if (servicable) {
         setDeliveryStatus({
           type: "success",
@@ -269,7 +346,9 @@ export default function ProductClient() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
     setFormData((prev) => ({ ...prev, [name]: value }));
+
     if (formErrors[name]) {
       setFormErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -277,25 +356,33 @@ export default function ProductClient() {
 
   const validateForm = () => {
     const errors = {};
+
     if (!formData.fullName.trim()) errors.fullName = "Full name is required";
     if (!formData.email.trim()) errors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(formData.email))
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       errors.email = "Invalid email format";
+    }
+
     if (!formData.phone.trim()) errors.phone = "Phone number is required";
-    else if (!/^\d{10}$/.test(formData.phone))
+    else if (!/^\d{10}$/.test(formData.phone)) {
       errors.phone = "Phone must be 10 digits";
+    }
+
     if (!formData.address.trim()) errors.address = "Address is required";
     if (!formData.city.trim()) errors.city = "City is required";
     if (!formData.state.trim()) errors.state = "State is required";
     if (!formData.pincode.trim()) errors.pincode = "Pincode is required";
-    else if (!/^\d{6}$/.test(formData.pincode))
+    else if (!/^\d{6}$/.test(formData.pincode)) {
       errors.pincode = "Pincode must be 6 digits";
+    }
+
     return errors;
   };
 
   const handleSubmitOrder = (e) => {
     e.preventDefault();
     const errors = validateForm();
+
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       showNotification("Please fill all required fields correctly", "error");
@@ -321,6 +408,28 @@ export default function ProductClient() {
     setCurrentStep(step);
   };
 
+  const getSummaryFrameSize = () => {
+    switch (size) {
+      case "8x10":
+      case "10x8":
+        return { width: 120, height: 150 };
+      case "11x14":
+      case "14x11":
+        return { width: 135, height: 170 };
+      case "16x20":
+      case "20x16":
+        return { width: 150, height: 185 };
+      case "20x24":
+      case "24x20":
+        return { width: 165, height: 200 };
+      case "24x36":
+      case "36x24":
+        return { width: 180, height: 215 };
+      default:
+        return { width: 120, height: 150 };
+    }
+  };
+
   const renderStepIndicator = () => (
     <div className={styles.stepIndicator}>
       <div className="container">
@@ -328,24 +437,26 @@ export default function ProductClient() {
           {[1, 2, 3].map((step) => (
             <div key={step} className={styles.stepItem}>
               <button
-                className={`${styles.stepButton} ${currentStep === step ? styles.active : ""} ${currentStep > step ? styles.completed : ""}`}
+                className={`${styles.stepButton} ${
+                  currentStep === step ? styles.active : ""
+                } ${currentStep > step ? styles.completed : ""}`}
                 onClick={() => goToStep(step)}
                 disabled={step > 1 && !uploadedImage}
+                type="button"
               >
                 <span className={styles.stepNumber}>
-                  {currentStep > step ? (
-                    <i className="bi bi-check-lg"></i>
-                  ) : (
-                    step
-                  )}
+                  {currentStep > step ? <i className="bi bi-check-lg"></i> : step}
                 </span>
                 <span className={styles.stepLabel}>
                   {step === 1 ? "Upload" : step === 2 ? "Customize" : "Payment"}
                 </span>
               </button>
+
               {step < 3 && (
                 <div
-                  className={`${styles.stepConnector} ${currentStep > step ? styles.completed : ""}`}
+                  className={`${styles.stepConnector} ${
+                    currentStep > step ? styles.completed : ""
+                  }`}
                 />
               )}
             </div>
@@ -355,137 +466,403 @@ export default function ProductClient() {
     </div>
   );
 
+  const renderEditorControls = () => (
+    <div className="d-flex gap-2 mt-3 flex-wrap align-items-center">
+      <button
+        type="button"
+        className="btn btn-outline-secondary"
+        onClick={handleZoomOut}
+      >
+        <i className="bi bi-dash-lg"></i>
+      </button>
+
+      <span
+        style={{
+          minWidth: "64px",
+          textAlign: "center",
+          fontWeight: 600,
+        }}
+      >
+        {zoom.toFixed(1)}x
+      </span>
+
+      <button
+        type="button"
+        className="btn btn-outline-secondary"
+        onClick={handleZoomIn}
+      >
+        <i className="bi bi-plus-lg"></i>
+      </button>
+
+      <button
+        type="button"
+        className="btn btn-outline-primary"
+        onClick={() => {
+          setZoom(1);
+          setImageOffset({ x: 0, y: 0 });
+        }}
+      >
+        Reset
+      </button>
+    </div>
+  );
+
+  const renderBetterPreview = (useWall = false) => {
+    const dims = frameDimensions[size] || { width: 220, height: 280 };
+
+    const borderSize =
+      thickness === "3mm" ? "6px" : thickness === "5mm" ? "10px" : "14px";
+
+    return (
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "540px",
+          borderRadius: "20px",
+          overflow: "hidden",
+          background: useWall
+            ? undefined
+            : "linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%)",
+          backgroundImage: useWall
+            ? "url(https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg)"
+            : undefined,
+          backgroundSize: useWall ? "cover" : undefined,
+          backgroundPosition: useWall ? "center" : undefined,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+        }}
+      >
+        {useWall && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.14))",
+            }}
+          />
+        )}
+
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            width: `${dims.width}px`,
+            height: `${dims.height}px`,
+            transform: "translate(-50%, -50%)",
+            borderRadius: "8px",
+            overflow: "hidden",
+            background: "#fff",
+            boxShadow:
+              "0 18px 40px rgba(0,0,0,0.22), 0 4px 10px rgba(0,0,0,0.10)",
+            border: `${borderSize} solid #ffffff`,
+          }}
+        >
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              overflow: "hidden",
+              cursor: uploadedImage
+                ? isImageDragging
+                  ? "grabbing"
+                  : "grab"
+                : "default",
+              background: "#f3f4f6",
+            }}
+          >
+            <img
+              src={uploadedImage || roomWallBackground}
+              alt="Frame preview"
+              onMouseDown={uploadedImage ? handleImageMouseDown : undefined}
+              draggable={false}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                transform: `translate(${imageOffset.x}px, ${imageOffset.y}px) scale(${zoom})`,
+                transformOrigin: "center center",
+                transition: isImageDragging ? "none" : "transform 0.18s ease",
+                userSelect: "none",
+              }}
+            />
+
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 38%, rgba(255,255,255,0.00) 55%)",
+                pointerEvents: "none",
+              }}
+            />
+
+            {uploadedImage && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "10px",
+                  right: "10px",
+                  background: "rgba(17,24,39,0.72)",
+                  color: "#fff",
+                  padding: "4px 10px",
+                  borderRadius: "999px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  pointerEvents: "none",
+                }}
+              >
+                Drag to adjust
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "calc(50% + 170px)",
+            transform: "translateX(-50%)",
+            display: "flex",
+            gap: "10px",
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
+          <span
+            style={{
+              background: "rgba(255,255,255,0.92)",
+              padding: "8px 14px",
+              borderRadius: "999px",
+              fontWeight: 600,
+              fontSize: "13px",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.10)",
+            }}
+          >
+            {size}
+          </span>
+
+          <span
+            style={{
+              background: "rgba(255,255,255,0.92)",
+              padding: "8px 14px",
+              borderRadius: "999px",
+              fontWeight: 600,
+              fontSize: "13px",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.10)",
+            }}
+          >
+            {thickness}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSummaryPreview = () => {
+    if (!uploadedImage) return null;
+
+    const summaryDims = getSummaryFrameSize();
+    const borderSize =
+      thickness === "3mm" ? "5px" : thickness === "5mm" ? "8px" : "11px";
+
+    return (
+      <div
+        className={styles.summaryImage}
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "220px",
+          borderRadius: "14px",
+          overflow: "hidden",
+          background: "#f3f4f6",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
+        }}
+      >
+        <div
+          style={{
+            width: `${summaryDims.width}px`,
+            height: `${summaryDims.height}px`,
+            border: `${borderSize} solid #fff`,
+            borderRadius: "8px",
+            overflow: "hidden",
+            background: "#fff",
+            boxShadow: "0 10px 24px rgba(0,0,0,0.16)",
+            position: "relative",
+          }}
+        >
+          <img
+            src={uploadedImage}
+            alt="Product preview"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              transform: `translate(${imageOffset.x * 0.35}px, ${
+                imageOffset.y * 0.35
+              }px) scale(${zoom})`,
+              transformOrigin: "center center",
+              userSelect: "none",
+              pointerEvents: "none",
+            }}
+          />
+
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.05) 40%, rgba(255,255,255,0) 60%)",
+              pointerEvents: "none",
+            }}
+          />
+        </div>
+      </div>
+    );
+  };
+
   const renderStep1 = () => (
     <div className={styles.stepContainer}>
       <div className="container">
         <div className="row g-4">
           <div className="col-sm-12 col-md-8">
-            <div className="">
-              <div className={styles.uploadCard}>
-                <div
-                  ref={dropZoneRef}
-                  className={`${styles.uploadZone} ${isDragging ? styles.dragging : ""}`}
-                  onDragEnter={handleDragEnter}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
-                  {uploadedImage ? (
-                    <div className={styles.previewContainer}>
-                      <div className={styles.imagePreview}>
-                        <img
-                          src={uploadedImage}
-                          alt="Preview"
-                          className={styles.previewImage}
-                          style={{ transform: `scale(${zoom})` }}
-                        />
-                        {zoom !== 1 && (
-                          <span className={styles.zoomBadge}>
-                            <i className="bi bi-search"></i> {zoom.toFixed(1)}x
-                          </span>
-                        )}
-                      </div>
+            <div className={styles.uploadCard}>
+              <div
+                ref={dropZoneRef}
+                className={`${styles.uploadZone} ${
+                  isDragging ? styles.dragging : ""
+                }`}
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                {uploadedImage ? (
+                  <div className={styles.previewContainer}>
+                    {renderBetterPreview(false)}
 
-                      <div className={styles.imageControls}>
-                        <button
-                          className={`${styles.controlButton} ${styles.dangerButton}`}
-                          onClick={handleRemoveImage}
-                          title="Remove Image"
-                        >
-                          <i className="bi bi-trash"></i>
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className={styles.uploadPrompt}>
-                      <div className={styles.uploadIcon}>
-                        <i
-                          className={`bi ${isDragging ? "bi-file-earmark-arrow-up" : "bi-cloud-upload"}`}
-                        ></i>
-                      </div>
-                      <h3 className={styles.uploadTitle}>
-                        {isDragging
-                          ? "Drop your image here"
-                          : "Upload your image"}
-                      </h3>
-                      <p className={styles.uploadSubtitle}>
-                        {isDragging
-                          ? "Release to upload"
-                          : "Drag & drop or click to browse"}
-                      </p>
+                    {renderEditorControls()}
+
+                    <div className={styles.imageControls}>
                       <button
-                        className={styles.browseButton}
-                        onClick={() => fileInputRef.current?.click()}
+                        className={`${styles.controlButton} ${styles.dangerButton}`}
+                        onClick={handleRemoveImage}
+                        title="Remove Image"
+                        type="button"
                       >
-                        <i className="bi bi-folder2-open me-2"></i>
-                        Browse Files
+                        <i className="bi bi-trash"></i>
                       </button>
-                      <p className={styles.uploadHint}>
-                        Supported formats: JPG, PNG, GIF (Max 10MB)
-                      </p>
                     </div>
-                  )}
+                  </div>
+                ) : (
+                  <div className={styles.uploadPrompt}>
+                    <div className={styles.uploadIcon}>
+                      <i
+                        className={`bi ${
+                          isDragging
+                            ? "bi-file-earmark-arrow-up"
+                            : "bi-cloud-upload"
+                        }`}
+                      ></i>
+                    </div>
 
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileUpload}
-                    accept="image/*"
-                    className="d-none"
-                  />
-                </div>
-              </div>
-              <div className={`${styles.uploadCard} mt-5`}>
-                <img
-                  src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png"
-                  alt="image"
-                  className="img-fluid"
+                    <h3 className={styles.uploadTitle}>
+                      {isDragging ? "Drop your image here" : "Upload your image"}
+                    </h3>
+
+                    <p className={styles.uploadSubtitle}>
+                      {isDragging
+                        ? "Release to upload"
+                        : "Drag & drop or click to browse"}
+                    </p>
+
+                    <button
+                      className={styles.browseButton}
+                      onClick={() => fileInputRef.current?.click()}
+                      type="button"
+                    >
+                      <i className="bi bi-folder2-open me-2"></i>
+                      Browse Files
+                    </button>
+
+                    <p className={styles.uploadHint}>
+                      Supported formats: JPG, PNG, GIF (Max 10MB)
+                    </p>
+
+                    {isProcessing && (
+                      <p style={{ marginTop: "10px", fontWeight: 600 }}>
+                        Processing image...
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  accept="image/*"
+                  className="d-none"
                 />
               </div>
             </div>
+
+            <div className={`${styles.uploadCard} mt-5`}>
+              <img
+                src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png"
+                alt="image"
+                className="img-fluid"
+              />
+            </div>
           </div>
+
           <div className="col-sm-12 col-md-4">
-            <div className="">
-              <div className={styles.guideCard}>
-                <h4 className={styles.guideTitle}>
-                  <i className="bi bi-info-circle me-2"></i>
-                  Print Quality Guide
-                </h4>
+            <div className={styles.guideCard}>
+              <h4 className={styles.guideTitle}>
+                <i className="bi bi-info-circle me-2"></i>
+                Print Quality Guide
+              </h4>
 
-                <img
-                  src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png"
-                  alt="Print quality guide"
-                  className={styles.guideImage}
-                />
+              <img
+                src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png"
+                alt="Print quality guide"
+                className={styles.guideImage}
+              />
 
-                <ul className={styles.guideList}>
-                  <li>
-                    <i className="bi bi-check-circle-fill"></i>
-                    Upload high-resolution images
-                  </li>
-                  <li>
-                    <i className="bi bi-check-circle-fill"></i>
-                    Ensure image is sharp and clear
-                  </li>
-                  <li>
-                    <i className="bi bi-check-circle-fill"></i>
-                    Avoid screenshots or low-quality images
-                  </li>
-                  <li className={styles.warning}>
-                    <i className="bi bi-exclamation-triangle-fill"></i>
-                    Poor quality images affect final print
-                  </li>
-                </ul>
+              <ul className={styles.guideList}>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  Upload high-resolution images
+                </li>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  Ensure image is sharp and clear
+                </li>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  Avoid screenshots or low-quality images
+                </li>
+                <li className={styles.warning}>
+                  <i className="bi bi-exclamation-triangle-fill"></i>
+                  Poor quality images affect final print
+                </li>
+              </ul>
 
-                <button
-                  className={styles.nextButton}
-                  onClick={() => goToStep(2)}
-                  disabled={!uploadedImage}
-                >
-                  Continue to Customize
-                  <i className="bi bi-arrow-right ms-2"></i>
-                </button>
-              </div>
+              <button
+                className={styles.nextButton}
+                onClick={() => goToStep(2)}
+                disabled={!uploadedImage}
+                type="button"
+              >
+                Continue to Customize
+                <i className="bi bi-arrow-right ms-2"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -507,55 +884,17 @@ export default function ProductClient() {
                   Live Preview
                 </h4>
 
-                <div className={styles.mockupWrapper}>
-                  <div
-                    className={styles.mockupBackground}
-                    style={{
-                      backgroundImage: `url(https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg)`,
-                    }}
-                  >
-                    <div className={styles.mockupOverlay}></div>
+                {renderBetterPreview(true)}
 
-                    <div
-                      className={styles.frameMockup}
-                      style={{
-                        width: `${dims.width}px`,
-                        height: `${dims.height}px`,
-                        left: "50%",
-                        top: "40%",
-                        transform: "translate(-50%, -50%)",
-                      }}
-                    >
-                      <div className={styles.frameContent}>
-                        <img
-                          src={uploadedImage || roomWallBackground}
-                          alt="Frame preview"
-                          className={styles.frameImage}
-                        />
-                        <div className={styles.frameGlare}></div>
-                        <div
-                          className={styles.frameEdge}
-                          style={{
-                            borderWidth:
-                              thickness === "3mm"
-                                ? "2px"
-                                : thickness === "5mm"
-                                  ? "4px"
-                                  : "6px",
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    <div className={styles.previewLabels}>
-                      <span className={styles.sizeLabel}>
-                        {size} ({Math.round(dims.width * 2.54)} x{" "}
-                        {Math.round(dims.height * 2.54)} cm)
-                      </span>
-                      <span className={styles.thicknessLabel}>{thickness}</span>
-                    </div>
-                  </div>
+                <div className={styles.previewLabels} style={{ marginTop: "14px" }}>
+                  <span className={styles.sizeLabel}>
+                    {size} ({Math.round(dims.width * 2.54)} x{" "}
+                    {Math.round(dims.height * 2.54)} cm)
+                  </span>
+                  <span className={styles.thicknessLabel}>{thickness}</span>
                 </div>
+
+                {renderEditorControls()}
               </div>
             </div>
 
@@ -570,15 +909,22 @@ export default function ProductClient() {
                   <label className={styles.optionLabel}>Orientation</label>
                   <div className={styles.buttonGroup}>
                     <button
-                      className={`${styles.optionButton} ${orientation === "portrait" ? styles.active : ""}`}
+                      className={`${styles.optionButton} ${
+                        orientation === "portrait" ? styles.active : ""
+                      }`}
                       onClick={() => setOrientation("portrait")}
+                      type="button"
                     >
                       <i className="bi bi-phone-portrait"></i>
                       Portrait
                     </button>
+
                     <button
-                      className={`${styles.optionButton} ${orientation === "landscape" ? styles.active : ""}`}
+                      className={`${styles.optionButton} ${
+                        orientation === "landscape" ? styles.active : ""
+                      }`}
                       onClick={() => setOrientation("landscape")}
+                      type="button"
                     >
                       <i className="bi bi-phone-landscape"></i>
                       Landscape
@@ -595,8 +941,11 @@ export default function ProductClient() {
                     ).map((opt) => (
                       <button
                         key={opt}
-                        className={`${styles.sizeButton} ${size === opt ? styles.active : ""}`}
+                        className={`${styles.sizeButton} ${
+                          size === opt ? styles.active : ""
+                        }`}
                         onClick={() => setSize(opt)}
+                        type="button"
                       >
                         {opt}
                       </button>
@@ -610,8 +959,11 @@ export default function ProductClient() {
                     {thicknessOptions.map((opt) => (
                       <button
                         key={opt}
-                        className={`${styles.optionButton} ${thickness === opt ? styles.active : ""}`}
+                        className={`${styles.optionButton} ${
+                          thickness === opt ? styles.active : ""
+                        }`}
                         onClick={() => setThickness(opt)}
+                        type="button"
                       >
                         {opt}
                       </button>
@@ -620,8 +972,8 @@ export default function ProductClient() {
                 </div>
 
                 <div className={styles.optionGroup}>
-                  <label className={styles.optionLabel}>Delivery Pincode</label>
-                  <div className={styles.pincodeInput}>
+                  <label className={styles.optionLabel}>Price</label>
+                  {/* <div className={styles.pincodeInput}>
                     <input
                       type="text"
                       className={styles.pincodeField}
@@ -633,9 +985,8 @@ export default function ProductClient() {
                     <button
                       className={styles.checkButton}
                       onClick={handleCheckDelivery}
-                      disabled={
-                        pincode.length !== 6 || deliveryStatus.isChecking
-                      }
+                      disabled={pincode.length !== 6 || deliveryStatus.isChecking}
+                      type="button"
                     >
                       {deliveryStatus.isChecking ? (
                         <span className={styles.spinner}></span>
@@ -643,14 +994,20 @@ export default function ProductClient() {
                         "Check"
                       )}
                     </button>
-                  </div>
+                  </div> */}
 
                   {deliveryStatus.message && (
                     <div
-                      className={`${styles.deliveryMessage} ${styles[deliveryStatus.type]}`}
+                      className={`${styles.deliveryMessage} ${
+                        styles[deliveryStatus.type]
+                      }`}
                     >
                       <i
-                        className={`bi ${deliveryStatus.type === "success" ? "bi-check-circle" : "bi-exclamation-circle"}`}
+                        className={`bi ${
+                          deliveryStatus.type === "success"
+                            ? "bi-check-circle"
+                            : "bi-exclamation-circle"
+                        }`}
                       ></i>
                       <span>{deliveryStatus.message}</span>
                       {estimatedDeliveryDate &&
@@ -666,6 +1023,7 @@ export default function ProductClient() {
                     <span>Base Price</span>
                     <span>₹{basePrice}</span>
                   </div>
+
                   {size !== (orientation === "portrait" ? "8x10" : "10x8") && (
                     <div className={styles.priceRow}>
                       <span>Size Upgrade</span>
@@ -677,12 +1035,14 @@ export default function ProductClient() {
                       </span>
                     </div>
                   )}
+
                   {thickness !== "3mm" && (
                     <div className={styles.priceRow}>
                       <span>Thickness Upgrade</span>
                       <span>+₹{thickness === "5mm" ? "150" : "300"}</span>
                     </div>
                   )}
+
                   <div className={styles.totalRow}>
                     <span>Total</span>
                     <span>₹{calculatePrice()}</span>
@@ -692,6 +1052,7 @@ export default function ProductClient() {
                 <button
                   className={styles.proceedButton}
                   onClick={() => goToStep(3)}
+                  type="button"
                 >
                   Proceed to Payment
                   <i className="bi bi-arrow-right ms-2"></i>
@@ -715,11 +1076,7 @@ export default function ProductClient() {
                 Order Summary
               </h4>
 
-              {uploadedImage && (
-                <div className={styles.summaryImage}>
-                  <img src={uploadedImage} alt="Product preview" />
-                </div>
-              )}
+              {renderSummaryPreview()}
 
               <div className={styles.summaryDetails}>
                 <div className={styles.summaryRow}>
@@ -781,6 +1138,7 @@ export default function ProductClient() {
                 <button
                   className={styles.backButton}
                   onClick={() => setCurrentStep(2)}
+                  type="button"
                 >
                   <i className="bi bi-arrow-left me-2"></i>
                   Back
@@ -802,7 +1160,9 @@ export default function ProductClient() {
                         <input
                           type="text"
                           name="fullName"
-                          className={`${styles.formInput} ${formErrors.fullName ? styles.error : ""}`}
+                          className={`${styles.formInput} ${
+                            formErrors.fullName ? styles.error : ""
+                          }`}
                           placeholder="Enter your full name"
                           value={formData.fullName}
                           onChange={handleInputChange}
@@ -822,7 +1182,9 @@ export default function ProductClient() {
                         <input
                           type="email"
                           name="email"
-                          className={`${styles.formInput} ${formErrors.email ? styles.error : ""}`}
+                          className={`${styles.formInput} ${
+                            formErrors.email ? styles.error : ""
+                          }`}
                           placeholder="Enter your email"
                           value={formData.email}
                           onChange={handleInputChange}
@@ -842,7 +1204,9 @@ export default function ProductClient() {
                         <input
                           type="tel"
                           name="phone"
-                          className={`${styles.formInput} ${formErrors.phone ? styles.error : ""}`}
+                          className={`${styles.formInput} ${
+                            formErrors.phone ? styles.error : ""
+                          }`}
                           placeholder="10-digit mobile number"
                           value={formData.phone}
                           onChange={handleInputChange}
@@ -886,7 +1250,9 @@ export default function ProductClient() {
                         <i className={`bi bi-geo-alt ${styles.inputIcon}`}></i>
                         <textarea
                           name="address"
-                          className={`${styles.formInput} ${styles.textarea} ${formErrors.address ? styles.error : ""}`}
+                          className={`${styles.formInput} ${styles.textarea} ${
+                            formErrors.address ? styles.error : ""
+                          }`}
                           placeholder="Enter your complete address"
                           value={formData.address}
                           onChange={handleInputChange}
@@ -922,7 +1288,9 @@ export default function ProductClient() {
                       <input
                         type="text"
                         name="city"
-                        className={`${styles.formInput} ${formErrors.city ? styles.error : ""}`}
+                        className={`${styles.formInput} ${
+                          formErrors.city ? styles.error : ""
+                        }`}
                         placeholder="City"
                         value={formData.city}
                         onChange={handleInputChange}
@@ -939,7 +1307,9 @@ export default function ProductClient() {
                       <input
                         type="text"
                         name="state"
-                        className={`${styles.formInput} ${formErrors.state ? styles.error : ""}`}
+                        className={`${styles.formInput} ${
+                          formErrors.state ? styles.error : ""
+                        }`}
                         placeholder="State"
                         value={formData.state}
                         onChange={handleInputChange}
@@ -956,7 +1326,9 @@ export default function ProductClient() {
                       <input
                         type="text"
                         name="pincode"
-                        className={`${styles.formInput} ${formErrors.pincode ? styles.error : ""}`}
+                        className={`${styles.formInput} ${
+                          formErrors.pincode ? styles.error : ""
+                        }`}
                         placeholder="6-digit pincode"
                         value={formData.pincode}
                         onChange={handleInputChange}
@@ -1019,17 +1391,20 @@ export default function ProductClient() {
                           orientation,
                           size,
                           thickness,
+                          imageZoom: zoom,
+                          imageOffsetX: imageOffset.x,
+                          imageOffsetY: imageOffset.y,
                         }}
                         onSuccess={() =>
                           showNotification(
                             "Payment successful! Thank you for your order.",
-                            "success",
+                            "success"
                           )
                         }
                         onError={() =>
                           showNotification(
                             "Payment failed. Please try again.",
-                            "error",
+                            "error"
                           )
                         }
                       />
@@ -1039,13 +1414,13 @@ export default function ProductClient() {
                         onSuccess={() =>
                           showNotification(
                             "Payment successful! Thank you for your order.",
-                            "success",
+                            "success"
                           )
                         }
                         onError={() =>
                           showNotification(
                             "Payment failed. Please try again.",
-                            "error",
+                            "error"
                           )
                         }
                       />
@@ -1064,113 +1439,57 @@ export default function ProductClient() {
     <>
       <div className={styles.productClient}>
         {renderStepIndicator()}
-
         {currentStep === 1 && renderStep1()}
         {currentStep === 2 && renderStep2()}
         {currentStep === 3 && renderStep3()}
+      </div>
 
+      <canvas ref={canvasRef} style={{ display: "none" }} />
+
+      {showToast.visible && (
         <div
-          className="modal fade"
-          id="successModal"
-          tabIndex="-1"
-          aria-hidden="true"
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            background: "#fff",
+            borderRadius: "10px",
+            padding: "12px 16px",
+            boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
+            zIndex: 9999,
+            minWidth: "250px",
+          }}
         >
-          <div className="modal-dialog modal-dialog-centered">
-            <div className={styles.modalContent}>
-              <div className={styles.modalHeader}>
-                <h5 className={styles.modalTitle}>
-                  <i className="bi bi-check-circle-fill me-2"></i>
-                  Order Confirmed!
-                </h5>
-                <button
-                  type="button"
-                  className={styles.modalClose}
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
-                >
-                  <i className="bi bi-x-lg"></i>
-                </button>
-              </div>
-              <div className={styles.modalBody}>
-                <div className={styles.modalIcon}>
-                  <i className="bi bi-check-circle-fill"></i>
-                </div>
-                <h6 className={styles.modalThankYou}>
-                  Thank you for your order!
-                </h6>
-                <p className={styles.modalMessage}>
-                  Your order has been placed successfully. You will receive a
-                  confirmation email shortly.
-                </p>
-                <div className={styles.modalOrderDetails}>
-                  <div className={styles.modalDetailRow}>
-                    <span>Order ID</span>
-                    <span className={styles.modalDetailValue}>
-                      {orderId || "Loading..."}
-                    </span>
-                  </div>
-                  <div className={styles.modalDetailRow}>
-                    <span>Total Amount</span>
-                    <span className={styles.modalDetailValue}>
-                      ₹{calculatePrice()}
-                    </span>
-                  </div>
-                  <div className={styles.modalDetailRow}>
-                    <span>Estimated Delivery</span>
-                    <span className={styles.modalDetailValue}>
-                      {estimatedDeliveryDate || "3-5 business days"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className={styles.modalFooter}>
-                <button
-                  type="button"
-                  className={styles.modalButton}
-                  data-bs-dismiss="modal"
-                >
-                  <i className="bi bi-check me-2"></i>
-                  Done
-                </button>
-              </div>
+          <strong>{showToast.title}</strong>
+          <div>{showToast.message}</div>
+        </div>
+      )}
+
+      <div
+        className="modal fade"
+        id="successModal"
+        tabIndex="-1"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Order Submitted</h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              <p>Your order has been placed successfully.</p>
+              <p>
+                <strong>Order ID:</strong> {orderId}
+              </p>
             </div>
           </div>
         </div>
-
-        {showToast.visible && (
-          <div className={`${styles.toast} ${styles[showToast.type]}`}>
-            <div className={styles.toastIcon}>
-              <i
-                className={`bi ${
-                  showToast.type === "success"
-                    ? "bi-check-circle"
-                    : showToast.type === "error"
-                      ? "bi-exclamation-circle"
-                      : showToast.type === "warning"
-                        ? "bi-exclamation-triangle"
-                        : "bi-info-circle"
-                }`}
-              ></i>
-            </div>
-            <div className={styles.toastContent}>
-              <strong className={styles.toastTitle}>{showToast.title}</strong>
-              <p className={styles.toastMessage}>{showToast.message}</p>
-            </div>
-            <button
-              className={styles.toastClose}
-              onClick={() =>
-                setShowToast({
-                  visible: false,
-                  type: "",
-                  title: "",
-                  message: "",
-                })
-              }
-            >
-              <i className="bi bi-x"></i>
-            </button>
-          </div>
-        )}
       </div>
     </>
   );

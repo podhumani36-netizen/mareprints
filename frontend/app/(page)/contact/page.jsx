@@ -9,14 +9,14 @@ import ContactForm from "../../Components/ContactForm";
 
 const OFFICE_CONFIG = {
   details: [
-    {
-      id: "loc",
-      icon: "bi-geo-alt",
-      label: "Our Studio",
-      value:
-        "3/55 Matha Kovil street, Dhargas, Naduveerapattu, Kancheepuram, Chennai - 600132.",
-      theme: "blue",
-    },
+    // {
+    //   id: "loc",
+    //   icon: "bi-geo-alt",
+    //   label: "Our Studio",
+    //   value:
+    //     "3/55 Matha Kovil street, Dhargas, Naduveerapattu, Kancheepuram, Chennai - 600132.",
+    //   theme: "blue",
+    // },
     {
       id: "tel",
       icon: "bi-telephone",
@@ -32,10 +32,24 @@ const OFFICE_CONFIG = {
       theme: "blue",
     },
   ],
+
+  //  UPDATED SOCIAL LINKS
   socials: [
-    { name: "facebook", icon: "bi-facebook" },
-    { name: "instagram", icon: "bi-instagram" },
-    { name: "YouTube", icon: "bi-youtube" },
+    {
+      name: "facebook",
+      icon: "bi-facebook",
+      link: "https://www.facebook.com/profile.php?id=61588375887755",
+    },
+    {
+      name: "instagram",
+      icon: "bi-instagram",
+      link: "https://www.instagram.com/mare_prints/?utm_source=ig_web_button_share_sheet",
+    },
+    {
+      name: "youtube",
+      icon: "bi-youtube",
+      link: "#",
+    },
   ],
 };
 
@@ -61,22 +75,28 @@ export default function Contact() {
       <section className="contact-overlap container">
         <div className="contact-card shadow-2xl">
           <div className="row g-0">
+            
+            {/* LEFT SIDE */}
             <div className="col-lg-5 sidebar-info p-4 p-md-5 text-white">
               <div className="d-flex flex-column h-100">
+                
                 <header className="mb-5">
                   <div className={`status-pill ${shopStatus.variant} mb-3`}>
                     {shopStatus.text}
                   </div>
+
                   <h2 className="display-6 fw-bold">
                     <span className="text-white">Get in touch</span> <br />
                     <span className="text-highlight">MARE ENTERPRISES</span>.
                   </h2>
+
                   <p className="opacity-75 mt-3">
                     We're just a message away. Get in touch and we'll turn your
                     idea into reality.
                   </p>
                 </header>
 
+                {/* CONTACT DETAILS */}
                 <div className="info-methods flex-grow-1">
                   {OFFICE_CONFIG.details.map((item) => (
                     <div
@@ -84,10 +104,13 @@ export default function Contact() {
                       key={item.id}
                     >
                       <div
-                        className={`method-icon bg-white text-${item.theme === "red" ? "danger" : "primary"}`}
+                        className={`method-icon bg-white text-${
+                          item.theme === "red" ? "danger" : "primary"
+                        }`}
                       >
                         <i className={`bi ${item.icon}`}></i>
                       </div>
+
                       <div className="ms-3">
                         <small className="d-block text-white-50 text-uppercase fw-bold ls-1">
                           {item.label}
@@ -98,13 +121,16 @@ export default function Contact() {
                   ))}
                 </div>
 
+                {/*  SOCIAL ICONS */}
                 <footer className="social-footer pt-4 border-top border-white-10">
                   <div className="d-flex gap-3">
                     {OFFICE_CONFIG.socials.map((social) => (
                       <a
-                        href="#"
+                        href={social.link}
                         key={social.name}
                         className="social-btn"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         aria-label={social.name}
                       >
                         <i className={`bi ${social.icon}`}></i>
@@ -115,13 +141,15 @@ export default function Contact() {
               </div>
             </div>
 
+            {/* RIGHT SIDE */}
             <div className="col-lg-7 p-4 p-md-5">
-              <div className="mb-4"></div>
               <ContactForm />
             </div>
+
           </div>
         </div>
       </section>
+
 
       <section className="map-frame mt-5">
         <iframe
