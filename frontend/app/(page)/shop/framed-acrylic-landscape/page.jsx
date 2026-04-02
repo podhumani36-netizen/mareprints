@@ -1,8 +1,9 @@
-import Link from "next/link";
 import styles from "../../../assest/style/Shop.module.css";
 import HeroBanner from "../../../Components/minbanner";
 import Products from "../../../Components/products";
 import { shopData } from "../../../data/shopdata";
+
+const landscapeProducts = shopData.filter((product) => product.type === "landscape");
 
 export default function Shop() {
   return (
@@ -14,7 +15,7 @@ export default function Shop() {
 
       <div className="container my-5">
         <h2 className={styles.sectionTitle}>Framed Acrylic Photo Landscape</h2>
-        <Products data={shopData[1].data} limit={null} link="/product" />
+        <Products data={landscapeProducts} limit={null} link="/product" />
       </div>
     </main>
   );
