@@ -8,18 +8,6 @@ import { shopData } from "../../data/shopdata";
 
 const Products = lazy(() => import("../../Components/products"));
 
-const portraitProducts = shopData.filter(
-  (product) => product.type === "portrait",
-);
-const landscapeProducts = shopData.filter(
-  (product) => product.type === "landscape",
-);
-const cutoutProducts = shopData.filter((product) => product.type === "cutout");
-const squareProducts = shopData.filter((product) => product.type === "square");
-const nameplateProducts = shopData.filter(
-  (product) => product.type === "nameplate",
-);
-
 const useNewsletter = () => {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -162,13 +150,15 @@ const HeroVisual = () => {
   );
 };
 
-const ProductSection = ({ title, type, data, limit = 8 }) => {
+const ProductSection = ({ title, type, data = [], limit = 8 }) => {
   const productData = useMemo(() => {
-    if (type === "Portrait") {
-      return shopData.find((item) => item.type === "Portrait")?.data || [];
+    if (Array.isArray(data)) {
+      return data;
     }
-    return data;
-  }, [type, data]);
+    return [];
+  }, [data]);
+
+  if (!Array.isArray(productData) || productData.length === 0) return null;
 
   if (!productData.length) return null;
 
@@ -192,12 +182,12 @@ const ProductSection = ({ title, type, data, limit = 8 }) => {
             <div className={styles.loadingContainer}>Loading products...</div>
           }
         >
-      <Products
-        title="Portrait Frames"
-        data={portraitProducts}
-        limit={8}
-        link="/product"
-      />
+          <Products
+            title={type}
+            data={productData}
+            limit={limit}
+            link="/product"
+          />
         </Suspense>
       </div>
     </div>
@@ -412,25 +402,29 @@ export default function Shop() {
     [],
   );
 
-  const productSections = useMemo(
-    () => [
-      { title: "Framed Acrylic Photo Portrait", type: "Portrait", limit: 8 },
-      {
-        title: "Framed Acrylic Photo Landscape",
-        type: "Landscape",
-        data: shopData[1]?.data,
-        limit: 4,
-      },
-      {
-        title: "Framed Acrylic Photo Cutout",
-        type: "Cutout",
-        data: shopData[2]?.data,
-        limit: 4,
-      },
-    ],
-    [],
-  );
-
+const productSections = useMemo(
+  () => [
+    {
+      title: "Framed Acrylic Photo Portrait",
+      type: "Portrait",
+      data: portraitProducts,
+      limit: 8,
+    },
+    {
+      title: "Framed Acrylic Photo Landscape",
+      type: "Landscape",
+      data: landscapeProducts,
+      limit: 4,
+    },
+    {
+      title: "Framed Acrylic Photo Cutout",
+      type: "Cutout",
+      data: cutoutProducts,
+      limit: 4,
+    },
+  ],
+  [],
+);
   return (
     <main className={styles.luxuryShop}>
       <section className={styles.luxuryHero}>
