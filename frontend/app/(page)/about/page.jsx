@@ -80,6 +80,15 @@ const VIDEO_GALLERY_DATA = [
   },
 ];
 
+const WHY_CHOOSE_US = [
+  "Direct Manufacturer (Acrylic & MDF)",
+  "12+ Years Experience",
+  "Premium Quality Materials",
+  "Precision Cutting & Engraving",
+  "Fast Turnaround Time",
+  "Best Pricing (No Middlemen)",
+];
+
 const VideoPlayer = memo(({ video, isActive, onLoad, onError, isLoading }) => {
   const videoRef = useRef(null);
 
@@ -115,15 +124,6 @@ const VideoPlayer = memo(({ video, isActive, onLoad, onError, isLoading }) => {
         <source src={video.url.replace(".mp4", ".webm")} type="video/webm" />
         Your browser does not support the video tag.
       </video>
-
-      {isLoading && (
-        <img
-          src={video.thumbnail}
-          alt={video.title}
-          className="position-absolute top-0 start-0 w-100 h-100 rounded-custom"
-          style={{ objectFit: "cover", opacity: 0.3 }}
-        />
-      )}
     </div>
   );
 });
@@ -137,7 +137,6 @@ const VideoGallery = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [touchStartX, setTouchStartX] = useState(null);
 
-  const videoRef = useRef(null);
   const autoPlayIntervalRef = useRef(null);
   const progressIntervalRef = useRef(null);
   const [progress, setProgress] = useState(0);
@@ -197,16 +196,9 @@ const VideoGallery = () => {
     setIsLoading(false);
   }, []);
 
-  const handleVideoError = useCallback(
-    (e) => {
-      console.error(
-        "Video failed to load:",
-        VIDEO_GALLERY_DATA[currentVideoIndex].url,
-      );
-      setIsLoading(false);
-    },
-    [currentVideoIndex],
-  );
+  const handleVideoError = useCallback(() => {
+    setIsLoading(false);
+  }, []);
 
   const handleTouchStart = useCallback((e) => {
     setTouchStartX(e.touches[0].clientX);
@@ -309,66 +301,11 @@ const VideoGallery = () => {
           <i className="bi bi-chevron-right fs-5"></i>
         </button>
       </div>
-
-      <div className="video-thumbnails d-none justify-content-center mt-4 gap-2 flex-wrap">
-        {VIDEO_GALLERY_DATA.map((video, index) => (
-          <button
-            key={video.id}
-            onClick={() => {
-              clearAllIntervals();
-              setCurrentVideoIndex(index);
-            }}
-            className={`p-0 border-2 overflow-hidden rounded-3 ${
-              index === currentVideoIndex
-                ? "border-primary shadow-lg"
-                : "border-transparent opacity-75"
-            }`}
-            style={{
-              width: "60px",
-              height: "60px",
-              transition: "all 0.3s ease",
-              cursor: "pointer",
-            }}
-            aria-label={`Go to video ${index + 1}`}
-          >
-            <img
-              src={video.thumbnail}
-              alt={video.title}
-              className="w-100 h-100"
-              style={{ objectFit: "cover" }}
-            />
-          </button>
-        ))}
-      </div>
-
-      <div className="d-flex d-md-none justify-content-center mt-3 gap-2 d-none">
-        {VIDEO_GALLERY_DATA.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => {
-              clearAllIntervals();
-              setCurrentVideoIndex(index);
-            }}
-            className={`p-0 border-0 rounded-circle ${
-              index === currentVideoIndex ? "bg-primary" : "bg-secondary"
-            }`}
-            style={{
-              width: "10px",
-              height: "10px",
-              transition: "all 0.3s ease",
-              transform:
-                index === currentVideoIndex ? "scale(1.2)" : "scale(1)",
-            }}
-            aria-label={`Go to video ${index + 1}`}
-          />
-        ))}
-      </div>
     </div>
   );
 };
 
 function AboutUs() {
-  const scrollTracker = useRef(new Map());
   const sectionRefs = useRef({});
 
   useEffect(() => {
@@ -430,6 +367,76 @@ function AboutUs() {
           <div className="row">
             <div className="col-sm-12">
               <WorkingProcess />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* WHY CHOOSE US SECTION */}
+      <section className="py-5 bg-white">
+        <div className="container">
+          <div className="row justify-content-center">
+            <div className="col-lg-10">
+              <div
+                className="text-center mb-5 motion-fade-up"
+                ref={setSectionRef("why-choose-head")}
+              >
+                <span
+                  className="text-uppercase fw-bold"
+                  style={{
+                    letterSpacing: "2px",
+                    color: "#2C7FB8",
+                    fontSize: "14px",
+                  }}
+                >
+                  Why Choose Us
+                </span>
+                <h2 className="fw-bold display-5 text-dark mt-2">
+                  Trusted Quality, Crafted With Care
+                </h2>
+                <p className="text-secondary fs-5 mb-0">
+                  We bring experience, premium materials, and precise
+                  craftsmanship together to create products that truly stand out.
+                </p>
+              </div>
+
+              <div className="row g-4">
+                {WHY_CHOOSE_US.map((item, index) => (
+                  <div
+                    key={index}
+                    className="col-md-6 motion-fade-up"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                    ref={setSectionRef(`why-item-${index}`)}
+                  >
+                    <div
+                      className="h-100 d-flex align-items-start gap-3 p-4 rounded-4 shadow-sm"
+                      style={{
+                        backgroundColor: "#f8fbff",
+                        border: "1px solid rgba(44,127,184,0.12)",
+                      }}
+                    >
+                      <div
+                        className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                        style={{
+                          width: "48px",
+                          height: "48px",
+                          backgroundColor: "#2C7FB8",
+                          color: "#fff",
+                          fontSize: "18px",
+                        }}
+                      >
+                        <i className="bi bi-check-lg"></i>
+                      </div>
+
+                      <div>
+                        <p className="mb-0 fw-semibold text-dark fs-5">
+                          {item}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

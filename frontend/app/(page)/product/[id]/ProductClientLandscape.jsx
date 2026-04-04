@@ -57,7 +57,15 @@ export default function ProductClientLandscape() {
 
   const [formErrors, setFormErrors] = useState({});
 
-  const sizeOptions = ["12×9", "16×12", "18×12", "21×15", "30×20", "35×23", "48×36"];
+  const sizeOptions = [
+    "12×9",
+    "16×12",
+    "18×12",
+    "21×15",
+    "30×20",
+    "35×23",
+    "48×36",
+  ];
   const thicknessOptions = ["3mm", "5mm", "8mm"];
 
   const frameDimensions = {
@@ -70,7 +78,7 @@ export default function ProductClientLandscape() {
     "48×36": { width: 680, height: 510 },
   };
 
-  const basePrice = 1;
+  const basePrice = 899;
   const roomWallBackground =
     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
 
@@ -291,7 +299,13 @@ export default function ProductClientLandscape() {
     setDeliveryStatus({ message: "", type: "", isChecking: true });
 
     setTimeout(() => {
-      const servicable = ["110001", "400001", "700001", "560001", "600001"].includes(pincode);
+      const servicable = [
+        "110001",
+        "400001",
+        "700001",
+        "560001",
+        "600001",
+      ].includes(pincode);
 
       if (servicable) {
         setDeliveryStatus({
@@ -327,17 +341,20 @@ export default function ProductClientLandscape() {
 
     if (!formData.fullName.trim()) errors.fullName = "Full name is required";
     if (!formData.email.trim()) errors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = "Invalid email format";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      errors.email = "Invalid email format";
 
     if (!formData.phone.trim()) errors.phone = "Phone number is required";
-    else if (!/^\d{10}$/.test(formData.phone)) errors.phone = "Phone must be 10 digits";
+    else if (!/^\d{10}$/.test(formData.phone))
+      errors.phone = "Phone must be 10 digits";
 
     if (!formData.address.trim()) errors.address = "Address is required";
     if (!formData.city.trim()) errors.city = "City is required";
     if (!formData.state.trim()) errors.state = "State is required";
 
     if (!formData.pincode.trim()) errors.pincode = "Pincode is required";
-    else if (!/^\d{6}$/.test(formData.pincode)) errors.pincode = "Pincode must be 6 digits";
+    else if (!/^\d{6}$/.test(formData.pincode))
+      errors.pincode = "Pincode must be 6 digits";
 
     return errors;
   };
@@ -399,9 +416,9 @@ export default function ProductClientLandscape() {
           {[1, 2, 3].map((step) => (
             <div key={step} className={styles.stepItem}>
               <button
-                className={`${styles.stepButton} ${currentStep === step ? styles.active : ""} ${
-                  currentStep > step ? styles.completed : ""
-                }`}
+                className={`${styles.stepButton} ${
+                  currentStep === step ? styles.active : ""
+                } ${currentStep > step ? styles.completed : ""}`}
                 onClick={() => goToStep(step)}
                 disabled={step > 1 && !uploadedImage}
                 type="button"
@@ -416,7 +433,9 @@ export default function ProductClientLandscape() {
 
               {step < 3 && (
                 <div
-                  className={`${styles.stepConnector} ${currentStep > step ? styles.completed : ""}`}
+                  className={`${styles.stepConnector} ${
+                    currentStep > step ? styles.completed : ""
+                  }`}
                 />
               )}
             </div>
@@ -428,7 +447,11 @@ export default function ProductClientLandscape() {
 
   const renderEditorControls = () => (
     <div className="d-flex gap-2 mt-3 flex-wrap align-items-center">
-      <button type="button" className="btn btn-outline-secondary" onClick={handleZoomOut}>
+      <button
+        type="button"
+        className="btn btn-outline-secondary"
+        onClick={handleZoomOut}
+      >
         <i className="bi bi-dash-lg"></i>
       </button>
 
@@ -436,7 +459,11 @@ export default function ProductClientLandscape() {
         {zoom.toFixed(1)}x
       </span>
 
-      <button type="button" className="btn btn-outline-secondary" onClick={handleZoomIn}>
+      <button
+        type="button"
+        className="btn btn-outline-secondary"
+        onClick={handleZoomIn}
+      >
         <i className="bi bi-plus-lg"></i>
       </button>
 
@@ -515,7 +542,11 @@ export default function ProductClientLandscape() {
                 ) : (
                   <div className={styles.uploadPrompt}>
                     <div className={styles.uploadIcon}>
-                      <i className={`bi ${isDragging ? "bi-file-earmark-arrow-up" : "bi-cloud-upload"}`}></i>
+                      <i
+                        className={`bi ${
+                          isDragging ? "bi-file-earmark-arrow-up" : "bi-cloud-upload"
+                        }`}
+                      ></i>
                     </div>
 
                     <h3 className={styles.uploadTitle}>
@@ -637,7 +668,9 @@ export default function ProductClientLandscape() {
                   style={{
                     width: `${frameDimensions[size]?.width || 220}px`,
                     height: `${frameDimensions[size]?.height || 165}px`,
-                    border: `${thickness === "3mm" ? 6 : thickness === "5mm" ? 10 : 14}px solid #fff`,
+                    border: `${
+                      thickness === "3mm" ? 6 : thickness === "5mm" ? 10 : 14
+                    }px solid #fff`,
                     borderRadius: "8px",
                     overflow: "hidden",
                     background: "#fff",
@@ -712,9 +745,7 @@ export default function ProductClientLandscape() {
               <div className={styles.optionGroup}>
                 <label className={styles.optionLabel}>Price</label>
                 {deliveryStatus.message && (
-                  <div
-                    className={`${styles.deliveryMessage} ${styles[deliveryStatus.type]}`}
-                  >
+                  <div className={`${styles.deliveryMessage} ${styles[deliveryStatus.type]}`}>
                     <span>{deliveryStatus.message}</span>
                     {estimatedDeliveryDate && deliveryStatus.type === "success" && (
                       <small>Est. delivery: {estimatedDeliveryDate}</small>
@@ -815,7 +846,9 @@ export default function ProductClientLandscape() {
                       style={{
                         width: `${summaryDims.width}px`,
                         height: `${summaryDims.height}px`,
-                        border: `${thickness === "3mm" ? 5 : thickness === "5mm" ? 8 : 11}px solid #fff`,
+                        border: `${
+                          thickness === "3mm" ? 5 : thickness === "5mm" ? 8 : 11
+                        }px solid #fff`,
                         borderRadius: "8px",
                         overflow: "hidden",
                         background: "#fff",
@@ -1083,6 +1116,11 @@ export default function ProductClientLandscape() {
                             email: formData.email,
                             phone: formData.phone,
                             address: formData.address,
+                            alternatePhone: formData.alternatePhone,
+                            alternateAddress: formData.alternateAddress,
+                            city: formData.city,
+                            state: formData.state,
+                            pincode: formData.pincode,
                             size,
                             thickness,
                             quantity,
@@ -1147,7 +1185,6 @@ export default function ProductClientLandscape() {
     <>
       <div className={styles.productClient}>
         {renderStepIndicator()}
-
         {currentStep === 1 && renderStep1()}
         {currentStep === 2 && renderStep2()}
         {currentStep === 3 && renderStep3()}

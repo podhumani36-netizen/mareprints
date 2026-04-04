@@ -14,6 +14,7 @@ export default function ProductClient({ product }) {
   const [imageOffset, setImageOffset] = useState({ x: 0, y: 0 });
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isImageDragging, setIsImageDragging] = useState(false);
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [orderId, setOrderId] = useState("");
@@ -29,7 +30,13 @@ export default function ProductClient({ product }) {
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
-  const containerRef = useRef(null);
+
+  const [orientation, setOrientation] = useState(
+    product?.productType?.toLowerCase() === "landscape" ? "landscape" : "portrait"
+  );
+
+  const portraitSizes = ["8x10", "11x14", "16x20", "20x24", "24x36"];
+  const landscapeSizes = ["10x8", "14x11", "20x16", "24x20", "36x24"];
 
   const [size, setSize] = useState(product?.defaultSize || "8x10");
   const [thickness, setThickness] = useState("3mm");
@@ -56,13 +63,15 @@ export default function ProductClient({ product }) {
 
   const [formErrors, setFormErrors] = useState({});
 
-  const sizeOptions = product?.sizeOptions || [
-    "8x10",
-    "11x14",
-    "16x20",
-    "20x24",
-    "24x36",
-  ];
+  const sizeOptions = product?.sizeOptions
+    ? {
+        portrait: product.sizeOptions,
+        landscape: product.sizeOptions,
+      }
+    : {
+        portrait: portraitSizes,
+        landscape: landscapeSizes,
+      };
 
   const thicknessOptions = product?.thicknessOptions || ["3mm", "5mm", "8mm"];
 
@@ -72,6 +81,11 @@ export default function ProductClient({ product }) {
     "16x20": { width: 280, height: 340 },
     "20x24": { width: 320, height: 380 },
     "24x36": { width: 360, height: 480 },
+    "10x8": { width: 220, height: 180 },
+    "14x11": { width: 280, height: 220 },
+    "20x16": { width: 340, height: 280 },
+    "24x20": { width: 380, height: 320 },
+    "36x24": { width: 480, height: 360 },
   };
 
   const basePrice = product?.basePrice || 799;
@@ -82,9 +96,9 @@ export default function ProductClient({ product }) {
     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
 
   useEffect(() => {
-    import("bootstrap/dist/js/bootstrap.bundle.min.js").catch((err) =>
-      console.error("Failed to load Bootstrap JS:", err)
-    );
+    import("bootstrap/dist/js/bootstrap.bundle.min.js")
+      .then(() => console.log("Bootstrap JS loaded"))
+      .catch((err) => console.error("Failed to load Bootstrap JS:", err));
   }, []);
 
   useEffect(() => {
@@ -92,8 +106,22 @@ export default function ProductClient({ product }) {
   }, []);
 
   useEffect(() => {
-    setSize(product?.defaultSize || "8x10");
+    if (product?.productType?.toLowerCase() === "landscape") {
+      setOrientation("landscape");
+    } else if (product?.productType?.toLowerCase() === "portrait") {
+      setOrientation("portrait");
+    }
   }, [product]);
+
+  useEffect(() => {
+    if (product?.defaultSize) {
+      setSize(product.defaultSize);
+    } else {
+      setSize(orientation === "portrait" ? "8x10" : "10x8");
+    }
+    setZoom(1);
+    setImageOffset({ x: 0, y: 0 });
+  }, [orientation, product]);
 
   useEffect(() => {
     if (!uploadedImage || !canvasRef.current) return;
@@ -110,17 +138,13 @@ export default function ProductClient({ product }) {
       canvas.height = img.height;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, img.width, img.height);
+      showNotification("Image uploaded successfully!", "success");
     };
 
     img.onerror = () => {
       showNotification("Failed to load image. Please try again.", "error");
     };
   }, [uploadedImage]);
-
-  useEffect(() => {
-    setZoom(1);
-    setImageOffset({ x: 0, y: 0 });
-  }, [size]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -183,14 +207,20 @@ export default function ProductClient({ product }) {
 
   const calculatePrice = useCallback(() => {
     let price = basePrice;
-    const sizeIndex = sizeOptions.indexOf(size);
+
+    const currentSizeOptions =
+      orientation === "portrait"
+        ? sizeOptions.portrait
+        : sizeOptions.landscape;
+
+    const sizeIndex = currentSizeOptions.indexOf(size);
 
     if (sizeIndex > 0) price += sizeIndex * priceIncrement;
     if (thickness === "5mm") price += 150;
     if (thickness === "8mm") price += 300;
 
     return price * quantity;
-  }, [basePrice, size, sizeOptions, thickness, quantity, priceIncrement]);
+  }, [basePrice, orientation, size, sizeOptions, thickness, quantity, priceIncrement]);
 
   const handleDragEnter = (e) => {
     e.preventDefault();
@@ -210,32 +240,13 @@ export default function ProductClient({ product }) {
     if (!isDragging) setIsDragging(true);
   };
 
-  const processFile = (file) => {
-    setIsProcessing(true);
-    const reader = new FileReader();
-
-    reader.onload = (event) => {
-      setUploadedImage(event.target.result);
-      setZoom(1);
-      setImageOffset({ x: 0, y: 0 });
-      setIsProcessing(false);
-      showNotification("Image uploaded successfully!", "success");
-    };
-
-    reader.onerror = () => {
-      setIsProcessing(false);
-      showNotification("Failed to read file. Please try again.", "error");
-    };
-
-    reader.readAsDataURL(file);
-  };
-
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
 
     const file = e.dataTransfer.files[0];
+
     if (file && file.type.startsWith("image/")) {
       if (file.size > 10 * 1024 * 1024) {
         showNotification("File size must be less than 10MB", "error");
@@ -249,30 +260,55 @@ export default function ProductClient({ product }) {
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      showNotification("File size must be less than 10MB", "error");
-      return;
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        showNotification("File size must be less than 10MB", "error");
+        return;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        showNotification("Please upload an image file", "error");
+        return;
+      }
+
+      processFile(file);
     }
-
-    if (!file.type.startsWith("image/")) {
-      showNotification("Please upload an image file", "error");
-      return;
-    }
-
-    processFile(file);
   };
 
-  const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.1, 3));
-  const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.1, 1));
+  const processFile = (file) => {
+    setIsProcessing(true);
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      setUploadedImage(event.target.result);
+      setZoom(1);
+      setImageOffset({ x: 0, y: 0 });
+      setIsProcessing(false);
+    };
+
+    reader.onerror = () => {
+      setIsProcessing(false);
+      showNotification("Failed to read file. Please try again.", "error");
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const handleZoomIn = () => {
+    setZoom((prev) => Math.min(prev + 0.1, 3));
+  };
+
+  const handleZoomOut = () => {
+    setZoom((prev) => Math.max(prev - 0.1, 1));
+  };
 
   const handleRemoveImage = () => {
     setUploadedImage(null);
     setZoom(1);
     setImageOffset({ x: 0, y: 0 });
     if (fileInputRef.current) fileInputRef.current.value = "";
-    setCurrentStep(1);
     showNotification("Image removed successfully", "warning");
   };
 
@@ -292,7 +328,7 @@ export default function ProductClient({ product }) {
     setDeliveryStatus({ message: "", type: "", isChecking: false });
   };
 
-  const handleCheckDelivery = () => {
+  const handleCheckDelivery = async () => {
     if (pincode.length !== 6) {
       showNotification("Please enter a valid 6-digit pincode", "warning");
       return;
@@ -301,7 +337,13 @@ export default function ProductClient({ product }) {
     setDeliveryStatus({ message: "", type: "", isChecking: true });
 
     setTimeout(() => {
-      const servicable = ["110001", "400001", "700001", "560001", "600001"].includes(pincode);
+      const servicable = [
+        "110001",
+        "400001",
+        "700001",
+        "560001",
+        "600001",
+      ].includes(pincode);
 
       if (servicable) {
         setDeliveryStatus({
@@ -325,6 +367,7 @@ export default function ProductClient({ product }) {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
     setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (formErrors[name]) {
@@ -337,19 +380,37 @@ export default function ProductClient({ product }) {
 
     if (!formData.fullName.trim()) errors.fullName = "Full name is required";
     if (!formData.email.trim()) errors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = "Invalid email format";
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = "Invalid email format";
+    }
 
     if (!formData.phone.trim()) errors.phone = "Phone number is required";
-    else if (!/^\d{10}$/.test(formData.phone)) errors.phone = "Phone must be 10 digits";
+    else if (!/^\d{10}$/.test(formData.phone)) {
+      errors.phone = "Phone must be 10 digits";
+    }
 
     if (!formData.address.trim()) errors.address = "Address is required";
     if (!formData.city.trim()) errors.city = "City is required";
     if (!formData.state.trim()) errors.state = "State is required";
-
     if (!formData.pincode.trim()) errors.pincode = "Pincode is required";
-    else if (!/^\d{6}$/.test(formData.pincode)) errors.pincode = "Pincode must be 6 digits";
+    else if (!/^\d{6}$/.test(formData.pincode)) {
+      errors.pincode = "Pincode must be 6 digits";
+    }
 
     return errors;
+  };
+
+  const handleSubmitOrder = (e) => {
+    e.preventDefault();
+    const errors = validateForm();
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      showNotification("Please fill all required fields correctly", "error");
+      return;
+    }
+
+    showNotification("Details saved successfully!", "success");
   };
 
   const goToStep = (step) => {
@@ -359,12 +420,13 @@ export default function ProductClient({ product }) {
     }
 
     if (step === 3) {
+      const errors = validateForm();
+
       if (!uploadedImage) {
         showNotification("Please upload an image first", "warning");
         return;
       }
 
-      const errors = validateForm();
       if (Object.keys(errors).length > 0) {
         setFormErrors(errors);
         showNotification("Please fill all required fields correctly", "error");
@@ -376,14 +438,25 @@ export default function ProductClient({ product }) {
   };
 
   const getSummaryFrameSize = () => {
-    const dim = frameDimensions[size];
-    if (!dim) return { width: 90, height: 112 };
-
-    const scale = 0.5;
-    return {
-      width: Math.max(80, dim.width * scale),
-      height: Math.max(100, dim.height * scale),
-    };
+    switch (size) {
+      case "8x10":
+      case "10x8":
+        return { width: 120, height: 150 };
+      case "11x14":
+      case "14x11":
+        return { width: 135, height: 170 };
+      case "16x20":
+      case "20x16":
+        return { width: 150, height: 185 };
+      case "20x24":
+      case "24x20":
+        return { width: 165, height: 200 };
+      case "24x36":
+      case "36x24":
+        return { width: 180, height: 215 };
+      default:
+        return { width: 120, height: 150 };
+    }
   };
 
   const renderStepIndicator = () => (
@@ -393,17 +466,18 @@ export default function ProductClient({ product }) {
           {[1, 2, 3].map((step) => (
             <div key={step} className={styles.stepItem}>
               <button
-                className={`${styles.stepButton} ${currentStep === step ? styles.active : ""} ${
-                  currentStep > step ? styles.completed : ""
-                }`}
+                className={`${styles.stepButton} ${
+                  currentStep === step ? styles.active : ""
+                } ${currentStep > step ? styles.completed : ""}`}
                 onClick={() => goToStep(step)}
+                disabled={step > 1 && !uploadedImage}
                 type="button"
               >
                 <span className={styles.stepNumber}>
                   {currentStep > step ? <i className="bi bi-check-lg"></i> : step}
                 </span>
                 <span className={styles.stepLabel}>
-                  {step === 1 ? "Upload & Edit" : step === 2 ? "Customize" : "Payment"}
+                  {step === 1 ? "Upload" : step === 2 ? "Customize" : "Payment"}
                 </span>
               </button>
 
@@ -423,15 +497,29 @@ export default function ProductClient({ product }) {
 
   const renderEditorControls = () => (
     <div className="d-flex gap-2 mt-3 flex-wrap align-items-center">
-      <button type="button" className="btn btn-outline-secondary" onClick={handleZoomOut}>
+      <button
+        type="button"
+        className="btn btn-outline-secondary"
+        onClick={handleZoomOut}
+      >
         <i className="bi bi-dash-lg"></i>
       </button>
 
-      <span style={{ minWidth: "64px", textAlign: "center", fontWeight: 600 }}>
+      <span
+        style={{
+          minWidth: "64px",
+          textAlign: "center",
+          fontWeight: 600,
+        }}
+      >
         {zoom.toFixed(1)}x
       </span>
 
-      <button type="button" className="btn btn-outline-secondary" onClick={handleZoomIn}>
+      <button
+        type="button"
+        className="btn btn-outline-secondary"
+        onClick={handleZoomIn}
+      >
         <i className="bi bi-plus-lg"></i>
       </button>
 
@@ -448,93 +536,279 @@ export default function ProductClient({ product }) {
     </div>
   );
 
+  const renderBetterPreview = (useWall = false) => {
+    const dims = frameDimensions[size] || { width: 220, height: 280 };
+
+    const borderSize =
+      thickness === "3mm" ? "6px" : thickness === "5mm" ? "10px" : "14px";
+
+    return (
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "540px",
+          borderRadius: "20px",
+          overflow: "hidden",
+          background: useWall
+            ? undefined
+            : "linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%)",
+          backgroundImage: useWall
+            ? "url(https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg)"
+            : undefined,
+          backgroundSize: useWall ? "cover" : undefined,
+          backgroundPosition: useWall ? "center" : undefined,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+        }}
+      >
+        {useWall && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.14))",
+            }}
+          />
+        )}
+
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            width: `${dims.width}px`,
+            height: `${dims.height}px`,
+            transform: "translate(-50%, -50%)",
+            borderRadius: "8px",
+            overflow: "hidden",
+            background: "#fff",
+            boxShadow:
+              "0 18px 40px rgba(0,0,0,0.22), 0 4px 10px rgba(0,0,0,0.10)",
+            border: `${borderSize} solid #ffffff`,
+          }}
+        >
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              overflow: "hidden",
+              cursor: uploadedImage
+                ? isImageDragging
+                  ? "grabbing"
+                  : "grab"
+                : "default",
+              background: "#f3f4f6",
+            }}
+          >
+            <img
+              src={uploadedImage || roomWallBackground}
+              alt="Frame preview"
+              onMouseDown={uploadedImage ? handleImageMouseDown : undefined}
+              draggable={false}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                transform: `translate(${imageOffset.x}px, ${imageOffset.y}px) scale(${zoom})`,
+                transformOrigin: "center center",
+                transition: isImageDragging ? "none" : "transform 0.18s ease",
+                userSelect: "none",
+              }}
+            />
+
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 38%, rgba(255,255,255,0.00) 55%)",
+                pointerEvents: "none",
+              }}
+            />
+
+            {uploadedImage && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "10px",
+                  right: "10px",
+                  background: "rgba(17,24,39,0.72)",
+                  color: "#fff",
+                  padding: "4px 10px",
+                  borderRadius: "999px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  pointerEvents: "none",
+                }}
+              >
+                Drag to adjust
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "calc(50% + 170px)",
+            transform: "translateX(-50%)",
+            display: "flex",
+            gap: "10px",
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
+          <span
+            style={{
+              background: "rgba(255,255,255,0.92)",
+              padding: "8px 14px",
+              borderRadius: "999px",
+              fontWeight: 600,
+              fontSize: "13px",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.10)",
+            }}
+          >
+            {size}
+          </span>
+
+          <span
+            style={{
+              background: "rgba(255,255,255,0.92)",
+              padding: "8px 14px",
+              borderRadius: "999px",
+              fontWeight: 600,
+              fontSize: "13px",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.10)",
+            }}
+          >
+            {thickness}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSummaryPreview = () => {
+    if (!uploadedImage) return null;
+
+    const summaryDims = getSummaryFrameSize();
+    const borderSize =
+      thickness === "3mm" ? "5px" : thickness === "5mm" ? "8px" : "11px";
+
+    return (
+      <div
+        className={styles.summaryImage}
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "220px",
+          borderRadius: "14px",
+          overflow: "hidden",
+          background: "#f3f4f6",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
+        }}
+      >
+        <div
+          style={{
+            width: `${summaryDims.width}px`,
+            height: `${summaryDims.height}px`,
+            border: `${borderSize} solid #fff`,
+            borderRadius: "8px",
+            overflow: "hidden",
+            background: "#fff",
+            boxShadow: "0 10px 24px rgba(0,0,0,0.16)",
+            position: "relative",
+          }}
+        >
+          <img
+            src={uploadedImage}
+            alt="Product preview"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              transform: `translate(${imageOffset.x * 0.35}px, ${
+                imageOffset.y * 0.35
+              }px) scale(${zoom})`,
+              transformOrigin: "center center",
+              userSelect: "none",
+              pointerEvents: "none",
+            }}
+          />
+
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.05) 40%, rgba(255,255,255,0) 60%)",
+              pointerEvents: "none",
+            }}
+          />
+        </div>
+      </div>
+    );
+  };
+
   const renderStep1 = () => (
     <div className={styles.stepContainer}>
-      <div className="container py-4">
+      <div className="container">
         <div className="row g-4">
-          <div className="col-lg-8">
+          <div className="col-sm-12 col-md-8">
             <div className={styles.uploadCard}>
-              <h2 className="mb-3">{product?.name || "Portrait Customization"}</h2>
-              <p className="text-muted mb-4">
-                {product?.description || "Upload and edit your portrait image."}
-              </p>
-
               <div
                 ref={dropZoneRef}
-                className={`${styles.uploadZone} ${isDragging ? styles.dragging : ""}`}
+                className={`${styles.uploadZone} ${
+                  isDragging ? styles.dragging : ""
+                }`}
                 onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
                 onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
                 {uploadedImage ? (
                   <div className={styles.previewContainer}>
-                    <div
-                      ref={containerRef}
-                      className={styles.imagePreview}
-                      style={{
-                        overflow: "auto",
-                        maxHeight: "500px",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        backgroundColor: "#f5f5f5",
-                        borderRadius: "8px",
-                        position: "relative",
-                        padding: "20px",
-                      }}
-                    >
-                      <canvas
-                        ref={canvasRef}
-                        className={styles.drawingCanvas}
-                        style={{
-                          transform: `scale(${zoom}) translate(${imageOffset.x / 8}px, ${imageOffset.y / 8}px)`,
-                          transformOrigin: "center",
-                          transition: isImageDragging ? "none" : "transform 0.2s ease",
-                          maxWidth: "100%",
-                          height: "auto",
-                          display: "block",
-                          cursor: isImageDragging ? "grabbing" : "grab",
-                        }}
-                        onMouseDown={handleImageMouseDown}
-                      />
-                    </div>
+                    {renderBetterPreview(false)}
 
                     {renderEditorControls()}
 
-                    <div className="d-flex gap-2 mt-3 flex-wrap">
+                    <div className={styles.imageControls}>
                       <button
-                        className="btn btn-outline-danger"
+                        className={`${styles.controlButton} ${styles.dangerButton}`}
                         onClick={handleRemoveImage}
+                        title="Remove Image"
                         type="button"
                       >
-                        <i className="bi bi-trash me-2"></i>
-                        Remove Image
-                      </button>
-
-                      <button
-                        className="btn btn-primary"
-                        onClick={() => goToStep(2)}
-                        type="button"
-                        style={{ backgroundColor: themeColor, borderColor: themeColor }}
-                      >
-                        Continue
-                        <i className="bi bi-arrow-right ms-2"></i>
+                        <i className="bi bi-trash"></i>
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div className={styles.uploadPrompt}>
                     <div className={styles.uploadIcon}>
-                      <i className={`bi ${isDragging ? "bi-file-earmark-arrow-up" : "bi-cloud-upload"}`}></i>
+                      <i
+                        className={`bi ${
+                          isDragging
+                            ? "bi-file-earmark-arrow-up"
+                            : "bi-cloud-upload"
+                        }`}
+                      ></i>
                     </div>
 
                     <h3 className={styles.uploadTitle}>
-                      {isDragging ? "Drop your image here" : "Upload your portrait image"}
+                      {isDragging ? "Drop your image here" : "Upload your image"}
                     </h3>
 
                     <p className={styles.uploadSubtitle}>
-                      {isDragging ? "Release to upload" : "Drag & drop or click to browse"}
+                      {isDragging
+                        ? "Release to upload"
+                        : "Drag & drop or click to browse"}
                     </p>
 
                     <button
@@ -546,9 +820,15 @@ export default function ProductClient({ product }) {
                       Browse Files
                     </button>
 
-                    <p className={styles.uploadHint}>Supported formats: JPG, PNG, GIF (Max 10MB)</p>
+                    <p className={styles.uploadHint}>
+                      Supported formats: JPG, PNG, GIF (Max 10MB)
+                    </p>
 
-                    {isProcessing && <p style={{ marginTop: "10px", fontWeight: 600 }}>Processing image...</p>}
+                    {isProcessing && (
+                      <p style={{ marginTop: "10px", fontWeight: 600 }}>
+                        Processing image...
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -561,64 +841,57 @@ export default function ProductClient({ product }) {
                 />
               </div>
             </div>
+
+            <div className={`${styles.uploadCard} mt-5`}>
+              <img
+                src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png"
+                alt="image"
+                className="img-fluid"
+              />
+            </div>
           </div>
 
-          <div className="col-lg-4">
-            <div className="card shadow-sm border-0 h-100">
-              <div className="card-body">
-                <h4 className="mb-3">Live Preview</h4>
-                <div
-                  style={{
-                    backgroundImage: `url(${roomWallBackground})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    minHeight: "420px",
-                    borderRadius: "12px",
-                    position: "relative",
-                    overflow: "hidden",
-                  }}
-                >
-                  {uploadedImage ? (
-                    <div
-                      style={{
-                        position: "absolute",
-                        inset: 0,
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: `${getSummaryFrameSize().width}px`,
-                          height: `${getSummaryFrameSize().height}px`,
-                          border: "10px solid #fff",
-                          boxShadow: "0 12px 30px rgba(0,0,0,0.25)",
-                          backgroundImage: `url(${uploadedImage})`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                          borderRadius: "6px",
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        height: "100%",
-                        minHeight: "420px",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        color: "#fff",
-                        fontWeight: 600,
-                        background: "rgba(0,0,0,0.25)",
-                      }}
-                    >
-                      No image uploaded
-                    </div>
-                  )}
-                </div>
-              </div>
+          <div className="col-sm-12 col-md-4">
+            <div className={styles.guideCard}>
+              <h4 className={styles.guideTitle}>
+                <i className="bi bi-info-circle me-2"></i>
+                Print Quality Guide
+              </h4>
+
+              <img
+                src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png"
+                alt="Print quality guide"
+                className={styles.guideImage}
+              />
+
+              <ul className={styles.guideList}>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  Upload high-resolution images
+                </li>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  Ensure image is sharp and clear
+                </li>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  Avoid screenshots or low-quality images
+                </li>
+                <li className={styles.warning}>
+                  <i className="bi bi-exclamation-triangle-fill"></i>
+                  Poor quality images affect final print
+                </li>
+              </ul>
+
+              <button
+                className={styles.nextButton}
+                onClick={() => goToStep(2)}
+                disabled={!uploadedImage}
+                type="button"
+              >
+                Continue to Customize
+                <i className="bi bi-arrow-right ms-2"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -626,236 +899,467 @@ export default function ProductClient({ product }) {
     </div>
   );
 
-  const renderStep2 = () => (
-    <div className={styles.stepContainer}>
-      <div className="container py-4">
-        <div className="row g-4">
-          <div className="col-lg-7">
-            <div className="card shadow-sm border-0">
-              <div className="card-body p-4">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h4 className="mb-0">Customize Your Portrait</h4>
-                  <button className="btn btn-outline-secondary" onClick={() => goToStep(1)} type="button">
-                    <i className="bi bi-arrow-left me-2"></i>
-                    Back
-                  </button>
+  const renderStep2 = () => {
+    const dims = frameDimensions[size] || { width: 200, height: 250 };
+
+    return (
+      <div className={styles.stepContainer}>
+        <div className="container">
+          <div className="row g-4">
+            <div className="col-lg-8">
+              <div className={styles.previewCard}>
+                <h4 className={styles.previewTitle}>
+                  <i className="bi bi-eye me-2"></i>
+                  Live Preview
+                </h4>
+
+                {renderBetterPreview(true)}
+
+                <div className={styles.previewLabels} style={{ marginTop: "14px" }}>
+                  <span className={styles.sizeLabel}>
+                    {size} ({Math.round(dims.width * 2.54)} x{" "}
+                    {Math.round(dims.height * 2.54)} cm)
+                  </span>
+                  <span className={styles.thicknessLabel}>{thickness}</span>
                 </div>
 
-                <div className="mb-4">
-                  <label className="form-label fw-bold">Select Size</label>
-                  <div className="row g-2">
-                    {sizeOptions.map((option) => (
-                      <div className="col-6 col-md-4" key={option}>
-                        <button
-                          type="button"
-                          className={`btn w-100 ${size === option ? "btn-primary" : "btn-outline-secondary"}`}
-                          onClick={() => setSize(option)}
-                          style={size === option ? { backgroundColor: themeColor, borderColor: themeColor } : {}}
-                        >
-                          {option}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                {renderEditorControls()}
+              </div>
+            </div>
 
-                <div className="mb-4">
-                  <label className="form-label fw-bold">Thickness</label>
-                  <div className="d-flex gap-2 flex-wrap">
-                    {thicknessOptions.map((option) => (
+            <div className="col-lg-4">
+              <div className={styles.optionsCard}>
+                <h4 className={styles.optionsTitle}>
+                  <i className="bi bi-sliders2 me-2"></i>
+                  Customize Your Print
+                </h4>
+
+                {!product?.sizeOptions && (
+                  <div className={styles.optionGroup}>
+                    <label className={styles.optionLabel}>Orientation</label>
+                    <div className={styles.buttonGroup}>
                       <button
-                        key={option}
+                        className={`${styles.optionButton} ${
+                          orientation === "portrait" ? styles.active : ""
+                        }`}
+                        onClick={() => setOrientation("portrait")}
                         type="button"
-                        className={`btn ${thickness === option ? "btn-primary" : "btn-outline-secondary"}`}
-                        onClick={() => setThickness(option)}
-                        style={thickness === option ? { backgroundColor: themeColor, borderColor: themeColor } : {}}
                       >
-                        {option}
+                        <i className="bi bi-phone-portrait"></i>
+                        Portrait
+                      </button>
+
+                      <button
+                        className={`${styles.optionButton} ${
+                          orientation === "landscape" ? styles.active : ""
+                        }`}
+                        onClick={() => setOrientation("landscape")}
+                        type="button"
+                      >
+                        <i className="bi bi-phone-landscape"></i>
+                        Landscape
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className={styles.optionGroup}>
+                  <label className={styles.optionLabel}>Size (inches)</label>
+                  <div className={styles.sizeGrid}>
+                    {(orientation === "portrait"
+                      ? sizeOptions.portrait
+                      : sizeOptions.landscape
+                    ).map((opt) => (
+                      <button
+                        key={opt}
+                        className={`${styles.sizeButton} ${
+                          size === opt ? styles.active : ""
+                        }`}
+                        onClick={() => setSize(opt)}
+                        type="button"
+                      >
+                        {opt}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="mb-4">
-                  <label className="form-label fw-bold">Quantity</label>
-                  <div className="d-flex align-items-center gap-3">
-                    <button
-                      className="btn btn-outline-secondary"
-                      type="button"
-                      onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-                    >
-                      <i className="bi bi-dash-lg"></i>
-                    </button>
-                    <span className="fw-bold fs-5">{quantity}</span>
-                    <button
-                      className="btn btn-outline-secondary"
-                      type="button"
-                      onClick={() => setQuantity((prev) => prev + 1)}
-                    >
-                      <i className="bi bi-plus-lg"></i>
-                    </button>
+                <div className={styles.optionGroup}>
+                  <label className={styles.optionLabel}>Thickness</label>
+                  <div className={styles.buttonGroup}>
+                    {thicknessOptions.map((opt) => (
+                      <button
+                        key={opt}
+                        className={`${styles.optionButton} ${
+                          thickness === opt ? styles.active : ""
+                        }`}
+                        onClick={() => setThickness(opt)}
+                        type="button"
+                      >
+                        {opt}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                <div className="d-flex gap-2 mt-4">
-                  <button className="btn btn-outline-secondary w-50 py-3 fw-bold" onClick={() => goToStep(1)} type="button">
-                    <i className="bi bi-arrow-left me-2"></i>
-                    Back
-                  </button>
-                  <button className="btn btn-success w-50 py-3 fw-bold" onClick={() => goToStep(3)} type="button">
-                    <i className="bi bi-cart-check me-2"></i>
-                    Buy Now
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+                <div className={styles.optionGroup}>
+                  <label className={styles.optionLabel}>Price</label>
 
-          <div className="col-lg-5">
-            <div className="card shadow-sm border-0">
-              <div className="card-body">
-                <h4 className="mb-3">Order Summary</h4>
-                <div className={styles.summaryDetails}>
-                  <div className={styles.summaryRow}>
-                    <span>Selected Size</span>
-                    <span className={styles.summaryValue}>{size}</span>
+                  {deliveryStatus.message && (
+                    <div
+                      className={`${styles.deliveryMessage} ${
+                        styles[deliveryStatus.type]
+                      }`}
+                    >
+                      <i
+                        className={`bi ${
+                          deliveryStatus.type === "success"
+                            ? "bi-check-circle"
+                            : "bi-exclamation-circle"
+                        }`}
+                      ></i>
+                      <span>{deliveryStatus.message}</span>
+                      {estimatedDeliveryDate &&
+                        deliveryStatus.type === "success" && (
+                          <small>Est. delivery: {estimatedDeliveryDate}</small>
+                        )}
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.priceBreakdown}>
+                  <div className={styles.priceRow}>
+                    <span>Base Price</span>
+                    <span>₹{basePrice}</span>
                   </div>
-                  <div className={styles.summaryRow}>
-                    <span>Thickness</span>
-                    <span className={styles.summaryValue}>{thickness}</span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span>Quantity</span>
-                    <span className={styles.summaryValue}>{quantity}</span>
-                  </div>
-                  <div className={styles.summaryTotal} style={{ marginTop: "12px" }}>
+
+                  {size !== (product?.defaultSize || (orientation === "portrait" ? "8x10" : "10x8")) && (
+                    <div className={styles.priceRow}>
+                      <span>Size Upgrade</span>
+                      <span>
+                        +₹
+                        {(orientation === "portrait"
+                          ? sizeOptions.portrait.indexOf(size)
+                          : sizeOptions.landscape.indexOf(size)) * priceIncrement}
+                      </span>
+                    </div>
+                  )}
+
+                  {thickness !== "3mm" && (
+                    <div className={styles.priceRow}>
+                      <span>Thickness Upgrade</span>
+                      <span>+₹{thickness === "5mm" ? "150" : "300"}</span>
+                    </div>
+                  )}
+
+                  <div className={styles.totalRow}>
                     <span>Total</span>
                     <span>₹{calculatePrice()}</span>
                   </div>
                 </div>
 
-                <div
+                <button
+                  className={styles.proceedButton}
+                  onClick={() => goToStep(3)}
+                  type="button"
                   style={{
-                    backgroundImage: `url(${roomWallBackground})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    minHeight: "360px",
-                    borderRadius: "12px",
-                    position: "relative",
-                    overflow: "hidden",
-                    marginTop: "20px",
+                    backgroundColor: themeColor,
+                    borderColor: themeColor,
                   }}
                 >
-                  {uploadedImage ? (
-                    <div
-                      style={{
-                        position: "absolute",
-                        inset: 0,
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: `${getSummaryFrameSize().width}px`,
-                          height: `${getSummaryFrameSize().height}px`,
-                          border: "10px solid #fff",
-                          boxShadow: "0 12px 30px rgba(0,0,0,0.25)",
-                          backgroundImage: `url(${uploadedImage})`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                          borderRadius: "6px",
-                        }}
-                      />
-                    </div>
-                  ) : null}
-                </div>
+                  Proceed to Payment
+                  <i className="bi bi-arrow-right ms-2"></i>
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderStep3 = () => (
     <div className={styles.stepContainer}>
-      <div className="container py-4">
+      <div className="container">
         <div className="row g-4">
-          <div className="col-lg-7">
-            <div className="card shadow-sm border-0">
-              <div className="card-body p-4">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h4 className="mb-0">Shipping & Payment</h4>
-                  <button className="btn btn-outline-secondary" onClick={() => goToStep(2)} type="button">
-                    <i className="bi bi-arrow-left me-2"></i>
-                    Back
-                  </button>
-                </div>
+          <div className="col-lg-4 order-lg-2">
+            <div className={styles.summaryCard}>
+              <h4 className={styles.summaryTitle}>
+                <i className="bi bi-bag-check me-2"></i>
+                Order Summary
+              </h4>
 
-                <form onSubmit={(e) => e.preventDefault()}>
+              {renderSummaryPreview()}
+
+              <div className={styles.summaryDetails}>
+                <div className={styles.summaryRow}>
+                  <span>Orientation</span>
+                  <span className={styles.summaryValue}>{orientation}</span>
+                </div>
+                <div className={styles.summaryRow}>
+                  <span>Size</span>
+                  <span className={styles.summaryValue}>{size}</span>
+                </div>
+                <div className={styles.summaryRow}>
+                  <span>Thickness</span>
+                  <span className={styles.summaryValue}>{thickness}</span>
+                </div>
+                <div className={styles.summaryRow}>
+                  <span>Quantity</span>
+                  <div className={styles.quantityWrapper}>
+                    <select
+                      className={styles.quantityDropdown}
+                      value={quantity}
+                      onChange={(e) => setQuantity(Number(e.target.value))}
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                        <option key={num} value={num}>
+                          {num}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.totalItems}>
+                <span>Total Items:</span>
+                <span className={styles.totalItemsValue}>{quantity}</span>
+              </div>
+
+              <div className={styles.summaryTotal}>
+                <span>Total Amount</span>
+                <span>₹{calculatePrice()}</span>
+              </div>
+
+              <div className={styles.progressBar}>
+                <div
+                  className={styles.progressFill}
+                  style={{ width: "66%" }}
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-lg-8 order-lg-1">
+            <div className={styles.formCard}>
+              <div className={styles.formHeader}>
+                <h4 className={styles.formTitle}>
+                  <i className="bi bi-truck me-2"></i>
+                  Shipping Details
+                </h4>
+                <button
+                  className={styles.backButton}
+                  onClick={() => setCurrentStep(2)}
+                  type="button"
+                >
+                  <i className="bi bi-arrow-left me-2"></i>
+                  Back
+                </button>
+              </div>
+
+              <form
+                onSubmit={handleSubmitOrder}
+                className={styles.shippingForm}
+              >
+                <div className={styles.formSection}>
+                  <h5 className={styles.sectionTitle}>Personal Information</h5>
+
                   <div className="row g-3">
                     <div className="col-md-6">
-                      <label className="form-label">Full Name</label>
-                      <input className="form-control" name="fullName" value={formData.fullName} onChange={handleInputChange} />
-                      {formErrors.fullName && <small className="text-danger">{formErrors.fullName}</small>}
+                      <label className={styles.fieldLabel}>Full Name *</label>
+                      <div className={styles.inputWrapper}>
+                        <i className={`bi bi-person ${styles.inputIcon}`}></i>
+                        <input
+                          type="text"
+                          name="fullName"
+                          className={`${styles.formInput} ${
+                            formErrors.fullName ? styles.error : ""
+                          }`}
+                          placeholder="Enter your full name"
+                          value={formData.fullName}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                      {formErrors.fullName && (
+                        <span className={styles.errorMessage}>
+                          {formErrors.fullName}
+                        </span>
+                      )}
                     </div>
+
                     <div className="col-md-6">
-                      <label className="form-label">Email</label>
-                      <input className="form-control" name="email" value={formData.email} onChange={handleInputChange} />
-                      {formErrors.email && <small className="text-danger">{formErrors.email}</small>}
+                      <label className={styles.fieldLabel}>Email *</label>
+                      <div className={styles.inputWrapper}>
+                        <i className={`bi bi-envelope ${styles.inputIcon}`}></i>
+                        <input
+                          type="email"
+                          name="email"
+                          className={`${styles.formInput} ${
+                            formErrors.email ? styles.error : ""
+                          }`}
+                          placeholder="Enter your email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                      {formErrors.email && (
+                        <span className={styles.errorMessage}>
+                          {formErrors.email}
+                        </span>
+                      )}
                     </div>
+
                     <div className="col-md-6">
-                      <label className="form-label">Phone</label>
-                      <input className="form-control" name="phone" value={formData.phone} onChange={handleInputChange} />
-                      {formErrors.phone && <small className="text-danger">{formErrors.phone}</small>}
+                      <label className={styles.fieldLabel}>Phone *</label>
+                      <div className={styles.inputWrapper}>
+                        <i className={`bi bi-phone ${styles.inputIcon}`}></i>
+                        <input
+                          type="tel"
+                          name="phone"
+                          className={`${styles.formInput} ${
+                            formErrors.phone ? styles.error : ""
+                          }`}
+                          placeholder="10-digit mobile number"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          maxLength="10"
+                        />
+                      </div>
+                      {formErrors.phone && (
+                        <span className={styles.errorMessage}>
+                          {formErrors.phone}
+                        </span>
+                      )}
                     </div>
+
                     <div className="col-md-6">
-                      <label className="form-label">Alternate Phone</label>
-                      <input className="form-control" name="alternatePhone" value={formData.alternatePhone} onChange={handleInputChange} />
-                    </div>
-                    <div className="col-12">
-                      <label className="form-label">Address</label>
-                      <textarea className="form-control" rows="3" name="address" value={formData.address} onChange={handleInputChange} />
-                      {formErrors.address && <small className="text-danger">{formErrors.address}</small>}
-                    </div>
-                    <div className="col-12">
-                      <label className="form-label">Alternate Address</label>
-                      <textarea className="form-control" rows="2" name="alternateAddress" value={formData.alternateAddress} onChange={handleInputChange} />
-                    </div>
-                    <div className="col-md-4">
-                      <label className="form-label">City</label>
-                      <input className="form-control" name="city" value={formData.city} onChange={handleInputChange} />
-                      {formErrors.city && <small className="text-danger">{formErrors.city}</small>}
-                    </div>
-                    <div className="col-md-4">
-                      <label className="form-label">State</label>
-                      <input className="form-control" name="state" value={formData.state} onChange={handleInputChange} />
-                      {formErrors.state && <small className="text-danger">{formErrors.state}</small>}
-                    </div>
-                    <div className="col-md-4">
-                      <label className="form-label">Pincode</label>
-                      <input className="form-control" value={pincode} onChange={handlePincodeChange} maxLength={6} />
-                      {formErrors.pincode && <small className="text-danger">{formErrors.pincode}</small>}
+                      <label className={styles.fieldLabel}>
+                        Alternate Phone
+                      </label>
+                      <div className={styles.inputWrapper}>
+                        <i className={`bi bi-phone ${styles.inputIcon}`}></i>
+                        <input
+                          type="tel"
+                          name="alternatePhone"
+                          className={styles.formInput}
+                          placeholder="Optional"
+                          value={formData.alternatePhone}
+                          onChange={handleInputChange}
+                          maxLength="10"
+                        />
+                      </div>
                     </div>
                   </div>
+                </div>
 
-                  <div className="d-flex gap-2 mt-3">
-                    <button className="btn btn-outline-primary" type="button" onClick={handleCheckDelivery}>
-                      {deliveryStatus.isChecking ? "Checking..." : "Check Delivery"}
-                    </button>
-                    {deliveryStatus.message && (
-                      <span className={`align-self-center ${deliveryStatus.type === "success" ? "text-success" : "text-danger"}`}>
-                        {deliveryStatus.message}
-                      </span>
-                    )}
+                <div className={styles.formSection}>
+                  <h5 className={styles.sectionTitle}>Shipping Address</h5>
+
+                  <div className="row g-3">
+                    <div className="col-12">
+                      <label className={styles.fieldLabel}>Address *</label>
+                      <div className={styles.inputWrapper}>
+                        <i className={`bi bi-geo-alt ${styles.inputIcon}`}></i>
+                        <textarea
+                          name="address"
+                          className={`${styles.formInput} ${styles.textarea} ${
+                            formErrors.address ? styles.error : ""
+                          }`}
+                          placeholder="Enter your complete address"
+                          value={formData.address}
+                          onChange={handleInputChange}
+                          rows="2"
+                        />
+                      </div>
+                      {formErrors.address && (
+                        <span className={styles.errorMessage}>
+                          {formErrors.address}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="col-12">
+                      <label className={styles.fieldLabel}>
+                        Alternate Address
+                      </label>
+                      <div className={styles.inputWrapper}>
+                        <i className={`bi bi-geo-alt ${styles.inputIcon}`}></i>
+                        <textarea
+                          name="alternateAddress"
+                          className={styles.formInput}
+                          placeholder="Optional"
+                          value={formData.alternateAddress}
+                          onChange={handleInputChange}
+                          rows="2"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="col-md-4">
+                      <label className={styles.fieldLabel}>City *</label>
+                      <input
+                        type="text"
+                        name="city"
+                        className={`${styles.formInput} ${
+                          formErrors.city ? styles.error : ""
+                        }`}
+                        placeholder="City"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                      />
+                      {formErrors.city && (
+                        <span className={styles.errorMessage}>
+                          {formErrors.city}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="col-md-4">
+                      <label className={styles.fieldLabel}>State *</label>
+                      <input
+                        type="text"
+                        name="state"
+                        className={`${styles.formInput} ${
+                          formErrors.state ? styles.error : ""
+                        }`}
+                        placeholder="State"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                      />
+                      {formErrors.state && (
+                        <span className={styles.errorMessage}>
+                          {formErrors.state}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="col-md-4">
+                      <label className={styles.fieldLabel}>Pincode *</label>
+                      <input
+                        type="text"
+                        name="pincode"
+                        className={`${styles.formInput} ${
+                          formErrors.pincode ? styles.error : ""
+                        }`}
+                        placeholder="6-digit pincode"
+                        value={formData.pincode}
+                        onChange={handleInputChange}
+                        maxLength="6"
+                      />
+                      {formErrors.pincode && (
+                        <span className={styles.errorMessage}>
+                          {formErrors.pincode}
+                        </span>
+                      )}
+                    </div>
                   </div>
+                </div>
 
-                  <hr className="my-4" />
+                <div className={styles.formSection}>
+                  <h5 className={styles.sectionTitle}>Payment Method</h5>
 
-                  <h5 className="mb-3">Payment Method</h5>
-                  <div className="d-flex gap-4 flex-wrap mb-3">
+                  <div className={styles.paymentOptions}>
                     <label className={styles.paymentOption}>
                       <input
                         type="radio"
@@ -894,153 +1398,94 @@ export default function ProductClient({ product }) {
                         themeColor={themeColor}
                         customerDetails={{
                           name: formData.fullName,
+                          fullName: formData.fullName,
                           email: formData.email,
                           phone: formData.phone,
+                          alternatePhone: formData.alternatePhone,
                           address: formData.address,
+                          alternateAddress: formData.alternateAddress,
+                          city: formData.city,
+                          state: formData.state,
+                          pincode: formData.pincode,
+                          orientation,
                           size,
                           thickness,
                           quantity,
                           imageZoom: zoom,
                           imageOffsetX: imageOffset.x,
                           imageOffsetY: imageOffset.y,
-                          productType: "portrait",
+                          productType: orientation,
                           productName: product?.name || "Portrait Print",
-                          orderId,
                         }}
                         onSuccess={() =>
-                          showNotification("Payment successful! Thank you for your order.", "success")
+                          showNotification(
+                            "Payment successful! Thank you for your order.",
+                            "success"
+                          )
                         }
                         onError={(msg) =>
-                          showNotification(msg || "Payment failed. Please try again.", "error")
+                          showNotification(
+                            msg || "Payment failed. Please try again.",
+                            "error"
+                          )
                         }
                       />
                     ) : (
-                      <GPayButton amount={calculatePrice()} />
+                      <GPayButton
+                        amount={calculatePrice()}
+                        onSuccess={() =>
+                          showNotification(
+                            "Payment successful! Thank you for your order.",
+                            "success"
+                          )
+                        }
+                        onError={() =>
+                          showNotification(
+                            "Payment failed. Please try again.",
+                            "error"
+                          )
+                        }
+                      />
                     )}
                   </div>
-                </form>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-lg-5">
-            <div className="card shadow-sm border-0">
-              <div className="card-body">
-                <h4 className="mb-3">Final Preview</h4>
-                <div
-                  style={{
-                    backgroundImage: `url(${roomWallBackground})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    minHeight: "420px",
-                    borderRadius: "12px",
-                    position: "relative",
-                    overflow: "hidden",
-                  }}
-                >
-                  {uploadedImage ? (
-                    <div
-                      style={{
-                        position: "absolute",
-                        inset: 0,
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: `${getSummaryFrameSize().width}px`,
-                          height: `${getSummaryFrameSize().height}px`,
-                          border: "10px solid #fff",
-                          boxShadow: "0 12px 30px rgba(0,0,0,0.25)",
-                          backgroundImage: `url(${uploadedImage})`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                          borderRadius: "6px",
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        height: "100%",
-                        minHeight: "420px",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        color: "#fff",
-                        fontWeight: 600,
-                        background: "rgba(0,0,0,0.25)",
-                      }}
-                    >
-                      No image uploaded
-                    </div>
-                  )}
                 </div>
-
-                <div className={styles.summaryDetails} style={{ marginTop: "16px" }}>
-                  <div className={styles.summaryRow}>
-                    <span>Selected Size</span>
-                    <span className={styles.summaryValue}>{size}</span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span>Thickness</span>
-                    <span className={styles.summaryValue}>{thickness}</span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span>Quantity</span>
-                    <span className={styles.summaryValue}>{quantity}</span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span>Estimated Delivery</span>
-                    <span className={styles.summaryValue}>{estimatedDeliveryDate || "3-5 business days"}</span>
-                  </div>
-                  <div className={styles.summaryTotal} style={{ marginTop: "12px" }}>
-                    <span>Total</span>
-                    <span>₹{calculatePrice()}</span>
-                  </div>
-                </div>
-              </div>
+              </form>
             </div>
           </div>
         </div>
-
-        {showToast.visible && (
-          <div
-            className={`toast show position-fixed bottom-0 end-0 m-3 text-bg-${
-              showToast.type === "success"
-                ? "success"
-                : showToast.type === "error"
-                ? "danger"
-                : showToast.type === "warning"
-                ? "warning"
-                : "primary"
-            }`}
-            role="alert"
-            style={{ zIndex: 9999 }}
-          >
-            <div className="toast-header">
-              <strong className="me-auto">{showToast.title}</strong>
-              <button
-                type="button"
-                className="btn-close"
-                onClick={() => setShowToast({ visible: false, type: "", title: "", message: "" })}
-              />
-            </div>
-            <div className="toast-body">{showToast.message}</div>
-          </div>
-        )}
       </div>
     </div>
   );
 
   return (
-    <div className={styles.productClient}>
-      {renderStepIndicator()}
-      {currentStep === 1 && renderStep1()}
-      {currentStep === 2 && renderStep2()}
-      {currentStep === 3 && renderStep3()}
-    </div>
+    <>
+      <div className={styles.productClient}>
+        {renderStepIndicator()}
+        {currentStep === 1 && renderStep1()}
+        {currentStep === 2 && renderStep2()}
+        {currentStep === 3 && renderStep3()}
+      </div>
+
+      <canvas ref={canvasRef} style={{ display: "none" }} />
+
+      {showToast.visible && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            background: "#fff",
+            borderRadius: "10px",
+            padding: "12px 16px",
+            boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
+            zIndex: 9999,
+            minWidth: "250px",
+          }}
+        >
+          <strong>{showToast.title}</strong>
+          <div>{showToast.message}</div>
+        </div>
+      )}
+    </>
   );
 }

@@ -9,14 +9,15 @@ import ContactForm from "../../Components/ContactForm";
 
 const OFFICE_CONFIG = {
   details: [
-    // {
-    //   id: "loc",
-    //   icon: "bi-geo-alt",
-    //   label: "Our Studio",
-    //   value:
-    //     "3/55 Matha Kovil street, Dhargas, Naduveerapattu, Kancheepuram, Chennai - 600132.",
-    //   theme: "blue",
-    // },
+    {
+      id: "loc",
+      icon: "bi-geo-alt",
+      label: "Our Studio",
+      value:
+        // "3/55 Matha Kovil street, Dhargas, Naduveerapattu, Kancheepuram, Chennai - 600132.",
+        "Chennai, Tamil Nadu.",
+      theme: "blue",
+    },
     {
       id: "tel",
       icon: "bi-telephone",
@@ -87,7 +88,7 @@ export default function Contact() {
 
                   <h2 className="display-6 fw-bold">
                     <span className="text-white">Get in touch</span> <br />
-                    <span className="text-highlight">MARE ENTERPRISES</span>.
+                    <span className="text-highlight">MARE Prints</span>.
                   </h2>
 
                   <p className="opacity-75 mt-3">
