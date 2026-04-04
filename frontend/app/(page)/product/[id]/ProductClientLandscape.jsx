@@ -70,7 +70,7 @@ export default function ProductClientLandscape() {
     "48×36": { width: 680, height: 510 },
   };
 
-  const basePrice = 899;
+  const basePrice = 1;
   const roomWallBackground =
     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
 
