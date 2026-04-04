@@ -55,6 +55,12 @@ export default function RazorpayPayment({
     try {
       setLoading(true);
 
+      const numericAmount = Number(amount);
+
+      if (!numericAmount || numericAmount <= 0) {
+        throw new Error("Invalid payment amount");
+      }
+
       const isLoaded = await loadRazorpayScript();
       if (!isLoaded) {
         throw new Error("Failed to load Razorpay SDK");
@@ -68,7 +74,8 @@ export default function RazorpayPayment({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            amount,
+            amount: numericAmount,
+            customerDetails,
           }),
         }
       );
@@ -80,17 +87,24 @@ export default function RazorpayPayment({
         orderData = JSON.parse(createOrderText);
       } catch (error) {
         console.error("Create order API returned non-JSON:", createOrderText);
-        throw new Error("Server returned HTML instead of JSON");
+        throw new Error("Server returned invalid response instead of JSON");
       }
 
       if (!createOrderResponse.ok) {
         throw new Error(orderData.error || "Failed to create payment order");
       }
 
+      const razorpayKey =
+        orderData.key || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+
+      if (!razorpayKey) {
+        throw new Error("Razorpay key is missing");
+      }
+
       const options = {
-        key: orderData.key,
+        key: razorpayKey,
         amount: orderData.amount,
-        currency: orderData.currency,
+        currency: orderData.currency || "INR",
         name: "Mare Prints",
         description: "Premium Acrylic Prints",
         image:
@@ -135,7 +149,8 @@ export default function RazorpayPayment({
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_signature: response.razorpay_signature,
-                amount,
+                amount: numericAmount,
+                customerDetails,
               });
             }
 
@@ -154,15 +169,19 @@ export default function RazorpayPayment({
         },
 
         prefill: {
-          name: customerDetails.name || "Customer",
-          email: customerDetails.email || "customer@example.com",
-          contact: customerDetails.phone || "9999999999",
+          name: customerDetails.name || customerDetails.fullName || "Customer",
+          email: customerDetails.email || "",
+          contact: customerDetails.phone || "",
         },
 
         notes: {
           address: customerDetails.address || "No address provided",
           size: customerDetails.size || "",
           thickness: customerDetails.thickness || "",
+          fullName: customerDetails.fullName || "",
+          city: customerDetails.city || "",
+          state: customerDetails.state || "",
+          pincode: customerDetails.pincode || "",
         },
 
         theme: {
