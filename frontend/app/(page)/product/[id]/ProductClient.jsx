@@ -7,7 +7,7 @@ import RazorpayPayment from "../../../Components/payment/Razorpay";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
-export default function ProductClient() {
+export default function ProductClient({ product }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [zoom, setZoom] = useState(1);
@@ -32,7 +32,7 @@ export default function ProductClient() {
   const dropZoneRef = useRef(null);
   const containerRef = useRef(null);
 
-  const [size, setSize] = useState("8×10");
+  const [size, setSize] = useState(product?.defaultSize || "8x10");
   const [thickness, setThickness] = useState("3mm");
   const [pincode, setPincode] = useState("");
   const [deliveryStatus, setDeliveryStatus] = useState({
@@ -57,30 +57,44 @@ export default function ProductClient() {
 
   const [formErrors, setFormErrors] = useState({});
 
-  const sizeOptions = ["8×10", "11×14", "16×20", "20×24", "24×36"];
-  const thicknessOptions = ["3mm", "5mm", "8mm"];
+  const sizeOptions = product?.sizeOptions || [
+    "8x10",
+    "11x14",
+    "16x20",
+    "20x24",
+    "24x36",
+  ];
 
-  const frameDimensions = {
-    "8×10": { width: 180, height: 220 },
-    "11×14": { width: 220, height: 280 },
-    "16×20": { width: 280, height: 340 },
-    "20×24": { width: 320, height: 380 },
-    "24×36": { width: 360, height: 500 },
+  const thicknessOptions = product?.thicknessOptions || ["3mm", "5mm", "8mm"];
+
+  const frameDimensions = product?.frameDimensions || {
+    "8x10": { width: 180, height: 220 },
+    "11x14": { width: 220, height: 280 },
+    "16x20": { width: 280, height: 340 },
+    "20x24": { width: 320, height: 380 },
+    "24x36": { width: 360, height: 480 },
   };
 
-  const basePrice = 799;
+  const basePrice = product?.basePrice || 799;
+  const priceIncrement = product?.priceIncrement || 150;
+  const themeColor = product?.themeColor || "#3496cb";
   const roomWallBackground =
+    product?.backgroundImage ||
     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
 
   useEffect(() => {
-    import("bootstrap/dist/js/bootstrap.bundle.min.js")
-      .then(() => console.log("Bootstrap JS loaded"))
-      .catch((err) => console.error("Failed to load Bootstrap JS:", err));
+    import("bootstrap/dist/js/bootstrap.bundle.min.js").catch((err) =>
+      console.error("Failed to load Bootstrap JS:", err)
+    );
   }, []);
 
   useEffect(() => {
     setOrderId(`#ORD${Math.floor(Math.random() * 10000)}`);
   }, []);
+
+  useEffect(() => {
+    setSize(product?.defaultSize || "8x10");
+  }, [product]);
 
   useEffect(() => {
     if (!uploadedImage || !canvasRef.current) return;
@@ -172,12 +186,12 @@ export default function ProductClient() {
     let price = basePrice;
     const sizeIndex = sizeOptions.indexOf(size);
 
-    if (sizeIndex > 0) price += sizeIndex * 150;
+    if (sizeIndex > 0) price += sizeIndex * priceIncrement;
     if (thickness === "5mm") price += 150;
     if (thickness === "8mm") price += 300;
 
     return price * quantity;
-  }, [size, thickness, quantity]);
+  }, [basePrice, size, sizeOptions, thickness, quantity, priceIncrement]);
 
   const handleDragEnter = (e) => {
     e.preventDefault();
@@ -262,6 +276,7 @@ export default function ProductClient() {
     setZoom(1);
     setImageOffset({ x: 0, y: 0 });
     if (fileInputRef.current) fileInputRef.current.value = "";
+    setCurrentStep(1);
     showNotification("Image removed successfully", "warning");
   };
 
@@ -277,6 +292,7 @@ export default function ProductClient() {
   const handlePincodeChange = (e) => {
     const value = e.target.value.replace(/\D/g, "").slice(0, 6);
     setPincode(value);
+    setFormData((prev) => ({ ...prev, pincode: value }));
     setDeliveryStatus({ message: "", type: "", isChecking: false });
   };
 
@@ -289,7 +305,13 @@ export default function ProductClient() {
     setDeliveryStatus({ message: "", type: "", isChecking: true });
 
     setTimeout(() => {
-      const servicable = ["110001", "400001", "700001", "560001", "600001"].includes(pincode);
+      const servicable = [
+        "110001",
+        "400001",
+        "700001",
+        "560001",
+        "600001",
+      ].includes(pincode);
 
       if (servicable) {
         setDeliveryStatus({
@@ -325,17 +347,20 @@ export default function ProductClient() {
 
     if (!formData.fullName.trim()) errors.fullName = "Full name is required";
     if (!formData.email.trim()) errors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = "Invalid email format";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      errors.email = "Invalid email format";
 
     if (!formData.phone.trim()) errors.phone = "Phone number is required";
-    else if (!/^\d{10}$/.test(formData.phone)) errors.phone = "Phone must be 10 digits";
+    else if (!/^\d{10}$/.test(formData.phone))
+      errors.phone = "Phone must be 10 digits";
 
     if (!formData.address.trim()) errors.address = "Address is required";
     if (!formData.city.trim()) errors.city = "City is required";
     if (!formData.state.trim()) errors.state = "State is required";
 
     if (!formData.pincode.trim()) errors.pincode = "Pincode is required";
-    else if (!/^\d{6}$/.test(formData.pincode)) errors.pincode = "Pincode must be 6 digits";
+    else if (!/^\d{6}$/.test(formData.pincode))
+      errors.pincode = "Pincode must be 6 digits";
 
     return errors;
   };
@@ -350,15 +375,7 @@ export default function ProductClient() {
       return;
     }
 
-    showNotification("Order submitted successfully!", "success");
-
-    if (typeof window !== "undefined" && window.bootstrap) {
-      const modalEl = document.getElementById("successModal");
-      if (modalEl) {
-        const modal = new window.bootstrap.Modal(modalEl);
-        modal.show();
-      }
-    }
+    showNotification("Details saved successfully!", "success");
   };
 
   const goToStep = (step) => {
@@ -366,24 +383,32 @@ export default function ProductClient() {
       showNotification("Please upload an image first", "warning");
       return;
     }
+
+    if (step === 3) {
+      const errors = validateForm();
+      if (!uploadedImage) {
+        showNotification("Please upload an image first", "warning");
+        return;
+      }
+      if (Object.keys(errors).length > 0) {
+        setFormErrors(errors);
+        showNotification("Please fill all required fields correctly", "error");
+        return;
+      }
+    }
+
     setCurrentStep(step);
   };
 
   const getSummaryFrameSize = () => {
-    switch (size) {
-      case "8×10":
-        return { width: 90, height: 112 };
-      case "11×14":
-        return { width: 100, height: 127 };
-      case "16×20":
-        return { width: 110, height: 138 };
-      case "20×24":
-        return { width: 120, height: 145 };
-      case "24×36":
-        return { width: 130, height: 180 };
-      default:
-        return { width: 90, height: 112 };
-    }
+    const dim = frameDimensions[size];
+    if (!dim) return { width: 90, height: 112 };
+
+    const scale = 0.5;
+    return {
+      width: Math.max(80, dim.width * scale),
+      height: Math.max(100, dim.height * scale),
+    };
   };
 
   const renderStepIndicator = () => (
@@ -393,24 +418,29 @@ export default function ProductClient() {
           {[1, 2, 3].map((step) => (
             <div key={step} className={styles.stepItem}>
               <button
-                className={`${styles.stepButton} ${currentStep === step ? styles.active : ""} ${
-                  currentStep > step ? styles.completed : ""
-                }`}
+                className={`${styles.stepButton} ${
+                  currentStep === step ? styles.active : ""
+                } ${currentStep > step ? styles.completed : ""}`}
                 onClick={() => goToStep(step)}
-                disabled={step > 1 && !uploadedImage}
                 type="button"
               >
                 <span className={styles.stepNumber}>
                   {currentStep > step ? <i className="bi bi-check-lg"></i> : step}
                 </span>
                 <span className={styles.stepLabel}>
-                  {step === 1 ? "Upload & Edit" : step === 2 ? "Customize" : "Payment"}
+                  {step === 1
+                    ? "Upload & Edit"
+                    : step === 2
+                    ? "Customize"
+                    : "Payment"}
                 </span>
               </button>
 
               {step < 3 && (
                 <div
-                  className={`${styles.stepConnector} ${currentStep > step ? styles.completed : ""}`}
+                  className={`${styles.stepConnector} ${
+                    currentStep > step ? styles.completed : ""
+                  }`}
                 />
               )}
             </div>
@@ -449,16 +479,19 @@ export default function ProductClient() {
 
   const renderStep1 = () => (
     <div className={styles.stepContainer}>
-      <div className="container">
+      <div className="container py-4">
         <div className="row g-4">
-          <div className="col-sm-12 col-md-8">
+          <div className="col-lg-7">
             <div className={styles.uploadCard}>
+              <h2 className="mb-3">{product?.name || "Product Customization"}</h2>
+              <p className="text-muted">{product?.description || "Upload and customize your photo."}</p>
+
               <div
                 ref={dropZoneRef}
                 className={`${styles.uploadZone} ${isDragging ? styles.dragging : ""}`}
                 onDragEnter={handleDragEnter}
-                onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
                 onDrop={handleDrop}
               >
                 {uploadedImage ? (
@@ -475,6 +508,7 @@ export default function ProductClient() {
                         backgroundColor: "#f5f5f5",
                         borderRadius: "8px",
                         position: "relative",
+                        padding: "20px",
                       }}
                     >
                       <canvas
@@ -495,25 +529,28 @@ export default function ProductClient() {
 
                     {renderEditorControls()}
 
-                    <div className={styles.imageControls}>
+                    <div className="d-flex gap-2 mt-3">
                       <button
-                        className={`${styles.controlButton} ${styles.dangerButton}`}
+                        className="btn btn-outline-danger"
                         onClick={handleRemoveImage}
-                        title="Remove Image"
                         type="button"
                       >
-                        <i className="bi bi-trash"></i>
+                        Remove Image
+                      </button>
+
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => goToStep(2)}
+                        type="button"
+                      >
+                        Go to Customize Step
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div className={styles.uploadPrompt}>
                     <div className={styles.uploadIcon}>
-                      <i
-                        className={`bi ${
-                          isDragging ? "bi-file-earmark-arrow-up" : "bi-cloud-upload"
-                        }`}
-                      ></i>
+                      <i className={`bi ${isDragging ? "bi-file-earmark-arrow-up" : "bi-cloud-upload"}`}></i>
                     </div>
 
                     <h3 className={styles.uploadTitle}>
@@ -546,57 +583,79 @@ export default function ProductClient() {
                 )}
 
                 <input
-                  type="file"
                   ref={fileInputRef}
-                  onChange={handleFileUpload}
+                  type="file"
                   accept="image/*"
-                  className="d-none"
+                  onChange={handleFileUpload}
+                  style={{ display: "none" }}
                 />
               </div>
             </div>
           </div>
 
-          <div className="col-sm-12 col-md-4">
-            <div className={styles.guideCard}>
-              <h4 className={styles.guideTitle}>
-                <i className="bi bi-info-circle me-2"></i>
-                Print Quality Guide
-              </h4>
+          <div className="col-lg-5">
+            <div className="card shadow-sm border-0 h-100">
+              <div className="card-body">
+                <h4 className="mb-3">Live Preview</h4>
+                <div
+                  style={{
+                    backgroundImage: `url(${roomWallBackground})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    minHeight: "420px",
+                    borderRadius: "12px",
+                    position: "relative",
+                    overflow: "hidden",
+                  }}
+                >
+                  {uploadedImage ? (
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: `${getSummaryFrameSize().width}px`,
+                          height: `${getSummaryFrameSize().height}px`,
+                          border: "10px solid #fff",
+                          boxShadow: "0 12px 30px rgba(0,0,0,0.25)",
+                          backgroundImage: `url(${uploadedImage})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          borderRadius: "6px",
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        height: "100%",
+                        minHeight: "420px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        color: "#fff",
+                        fontWeight: 600,
+                        background: "rgba(0,0,0,0.25)",
+                      }}
+                    >
+                      Upload an image to preview
+                    </div>
+                  )}
+                </div>
 
-              <img
-                src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png"
-                alt="Print quality guide"
-                className={styles.guideImage}
-              />
-
-              <ul className={styles.guideList}>
-                <li>
-                  <i className="bi bi-check-circle-fill"></i>
-                  Upload high-resolution images
-                </li>
-                <li>
-                  <i className="bi bi-check-circle-fill"></i>
-                  Ensure image is sharp and clear
-                </li>
-                <li>
-                  <i className="bi bi-check-circle-fill"></i>
-                  Avoid screenshots or low-quality images
-                </li>
-                <li className={styles.warning}>
-                  <i className="bi bi-exclamation-triangle-fill"></i>
-                  Poor quality images affect final print
-                </li>
-              </ul>
-
-              <button
-                className={styles.nextButton}
-                onClick={() => goToStep(2)}
-                disabled={!uploadedImage}
-                type="button"
-              >
-                Continue to Customize
-                <i className="bi bi-arrow-right ms-2"></i>
-              </button>
+                <div className="mt-3">
+                  <h5 className="mb-2">Product</h5>
+                  <p className="mb-1"><strong>Name:</strong> {product?.name}</p>
+                  <p className="mb-1"><strong>Base Price:</strong> ₹{basePrice}</p>
+                  <p className="mb-0"><strong>Order ID:</strong> {orderId}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -606,200 +665,248 @@ export default function ProductClient() {
 
   const renderStep2 = () => (
     <div className={styles.stepContainer}>
-      <div className="container">
+      <div className="container py-4">
         <div className="row g-4">
-          <div className="col-lg-8">
-            <div className={styles.previewCard}>
-              <h4 className={styles.previewTitle}>
-                <i className="bi bi-eye me-2"></i>
-                Live Preview
-              </h4>
+          <div className="col-lg-7">
+            <div className="card shadow-sm border-0">
+              <div className="card-body">
+                <h3 className="mb-4">Customize Your Order</h3>
 
-              <div
-                style={{
-                  position: "relative",
-                  width: "100%",
-                  minHeight: "480px",
-                  borderRadius: "20px",
-                  overflow: "hidden",
-                  backgroundImage: `url(${roomWallBackground})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <div
-                  style={{
-                    width: `${frameDimensions[size]?.width || 180}px`,
-                    height: `${frameDimensions[size]?.height || 220}px`,
-                    border: `${thickness === "3mm" ? 6 : thickness === "5mm" ? 10 : 14}px solid #fff`,
-                    borderRadius: "8px",
-                    overflow: "hidden",
-                    background: "#fff",
-                    boxShadow: "0 18px 40px rgba(0,0,0,0.22), 0 4px 10px rgba(0,0,0,0.10)",
-                    position: "relative",
-                  }}
-                >
-                  {uploadedImage ? (
-                    <img
-                      src={uploadedImage}
-                      alt="Frame preview"
-                      onMouseDown={handleImageMouseDown}
-                      draggable={false}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        transform: `translate(${imageOffset.x}px, ${imageOffset.y}px) scale(${zoom})`,
-                        transformOrigin: "center center",
-                        transition: isImageDragging ? "none" : "transform 0.18s ease",
-                        userSelect: "none",
-                        cursor: isImageDragging ? "grabbing" : "grab",
-                      }}
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label className="form-label">Size</label>
+                    <select
+                      className="form-select"
+                      value={size}
+                      onChange={(e) => setSize(e.target.value)}
+                    >
+                      {sizeOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label">Thickness</label>
+                    <select
+                      className="form-select"
+                      value={thickness}
+                      onChange={(e) => setThickness(e.target.value)}
+                    >
+                      {thicknessOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label">Quantity</label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      min="1"
+                      value={quantity}
+                      onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
                     />
-                  ) : null}
-                </div>
-              </div>
+                  </div>
 
-              {renderEditorControls()}
+                  <div className="col-md-6">
+                    <label className="form-label">Pincode</label>
+                    <div className="d-flex gap-2">
+                      <input
+                        className="form-control"
+                        type="text"
+                        value={pincode}
+                        onChange={handlePincodeChange}
+                        placeholder="Enter pincode"
+                        maxLength={6}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-outline-primary"
+                        onClick={handleCheckDelivery}
+                        disabled={deliveryStatus.isChecking}
+                      >
+                        {deliveryStatus.isChecking ? "Checking..." : "Check"}
+                      </button>
+                    </div>
+                    {deliveryStatus.message && (
+                      <div
+                        className={`mt-2 small ${
+                          deliveryStatus.type === "success"
+                            ? "text-success"
+                            : "text-danger"
+                        }`}
+                      >
+                        {deliveryStatus.message}
+                      </div>
+                    )}
+                    {estimatedDeliveryDate && (
+                      <div className="small text-muted mt-1">
+                        Estimated delivery: {estimatedDeliveryDate}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <hr className="my-4" />
+
+                <h4 className="mb-3">Customer Details</h4>
+                <form onSubmit={handleSubmitOrder}>
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <input
+                        className="form-control"
+                        placeholder="Full Name"
+                        name="fullName"
+                        value={formData.fullName}
+                        onChange={handleInputChange}
+                      />
+                      {formErrors.fullName && (
+                        <div className="text-danger small mt-1">{formErrors.fullName}</div>
+                      )}
+                    </div>
+
+                    <div className="col-md-6">
+                      <input
+                        className="form-control"
+                        placeholder="Email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                      />
+                      {formErrors.email && (
+                        <div className="text-danger small mt-1">{formErrors.email}</div>
+                      )}
+                    </div>
+
+                    <div className="col-md-6">
+                      <input
+                        className="form-control"
+                        placeholder="Phone"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                      />
+                      {formErrors.phone && (
+                        <div className="text-danger small mt-1">{formErrors.phone}</div>
+                      )}
+                    </div>
+
+                    <div className="col-md-6">
+                      <input
+                        className="form-control"
+                        placeholder="Alternate Phone"
+                        name="alternatePhone"
+                        value={formData.alternatePhone}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+
+                    <div className="col-12">
+                      <textarea
+                        className="form-control"
+                        rows="3"
+                        placeholder="Address"
+                        name="address"
+                        value={formData.address}
+                        onChange={handleInputChange}
+                      />
+                      {formErrors.address && (
+                        <div className="text-danger small mt-1">{formErrors.address}</div>
+                      )}
+                    </div>
+
+                    <div className="col-12">
+                      <textarea
+                        className="form-control"
+                        rows="2"
+                        placeholder="Alternate Address"
+                        name="alternateAddress"
+                        value={formData.alternateAddress}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+
+                    <div className="col-md-4">
+                      <input
+                        className="form-control"
+                        placeholder="City"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                      />
+                      {formErrors.city && (
+                        <div className="text-danger small mt-1">{formErrors.city}</div>
+                      )}
+                    </div>
+
+                    <div className="col-md-4">
+                      <input
+                        className="form-control"
+                        placeholder="State"
+                        name="state"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                      />
+                      {formErrors.state && (
+                        <div className="text-danger small mt-1">{formErrors.state}</div>
+                      )}
+                    </div>
+
+                    <div className="col-md-4">
+                      <input
+                        className="form-control"
+                        placeholder="Pincode"
+                        name="pincode"
+                        value={formData.pincode}
+                        onChange={handleInputChange}
+                      />
+                      {formErrors.pincode && (
+                        <div className="text-danger small mt-1">{formErrors.pincode}</div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="d-flex gap-2 mt-4">
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => goToStep(1)}
+                    >
+                      Back
+                    </button>
+
+                    <button type="submit" className="btn btn-outline-primary">
+                      Save Details
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => goToStep(3)}
+                    >
+                      Go to Payment Step
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
 
-          <div className="col-lg-4">
-            <div className={styles.optionsCard}>
-              <h4 className={styles.optionsTitle}>
-                <i className="bi bi-sliders2 me-2"></i>
-                Customize Your Print
-              </h4>
-
-              <div className={styles.optionGroup}>
-                <label className={styles.optionLabel}>Orientation</label>
-                <div className={styles.buttonGroup}>
-                  <button className={`${styles.optionButton} ${styles.active}`} type="button">
-                    Portrait
-                  </button>
-                </div>
-              </div>
-
-              <div className={styles.optionGroup}>
-                <label className={styles.optionLabel}>Size (inches)</label>
-                <div className={styles.sizeGrid}>
-                  {sizeOptions.map((opt) => (
-                    <button
-                      key={opt}
-                      className={`${styles.sizeButton} ${size === opt ? styles.active : ""}`}
-                      onClick={() => setSize(opt)}
-                      type="button"
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className={styles.optionGroup}>
-                <label className={styles.optionLabel}>Thickness</label>
-                <div className={styles.buttonGroup}>
-                  {thicknessOptions.map((opt) => (
-                    <button
-                      key={opt}
-                      className={`${styles.optionButton} ${thickness === opt ? styles.active : ""}`}
-                      onClick={() => setThickness(opt)}
-                      type="button"
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className={styles.optionGroup}>
-                <label className={styles.optionLabel}>Check Delivery</label>
-                <div className="d-flex gap-2">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Enter pincode"
-                    value={pincode}
-                    onChange={handlePincodeChange}
-                    maxLength={6}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-outline-primary"
-                    onClick={handleCheckDelivery}
-                    disabled={deliveryStatus.isChecking}
-                  >
-                    {deliveryStatus.isChecking ? "Checking..." : "Check"}
-                  </button>
-                </div>
-
-                {deliveryStatus.message && (
-                  <div className={`mt-2 small ${deliveryStatus.type === "success" ? "text-success" : "text-danger"}`}>
-                    {deliveryStatus.message}
-                    {estimatedDeliveryDate && deliveryStatus.type === "success" && (
-                      <div>Est. delivery: {estimatedDeliveryDate}</div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className={styles.optionGroup}>
-                <label className={styles.optionLabel}>Price</label>
-              </div>
-
-              <div className={styles.priceBreakdown}>
-                <div className={styles.priceRow}>
-                  <span>Base Price</span>
-                  <span>₹{basePrice}</span>
-                </div>
-
-                {size !== "8×10" && (
-                  <div className={styles.priceRow}>
-                    <span>Size Upgrade</span>
-                    <span>+₹{sizeOptions.indexOf(size) * 150}</span>
-                  </div>
-                )}
-
-                {thickness !== "3mm" && (
-                  <div className={styles.priceRow}>
-                    <span>Thickness Upgrade</span>
-                    <span>+₹{thickness === "5mm" ? "150" : "300"}</span>
-                  </div>
-                )}
-
-                <div className={styles.priceRow}>
-                  <span>Quantity</span>
-                  <span>{quantity}</span>
-                </div>
-
-                <div className={styles.totalRow}>
-                  <span>Total</span>
-                  <span>₹{calculatePrice()}</span>
-                </div>
-              </div>
-
-              <div className="d-flex gap-2 mt-4">
-                <button
-                  className="btn btn-outline-secondary w-50 py-3 fw-bold"
-                  onClick={() => goToStep(1)}
-                  type="button"
-                >
-                  <i className="bi bi-arrow-left me-2"></i>
-                  Back
-                </button>
-
-                <button
-                  className="btn btn-success w-50 py-3 fw-bold"
-                  onClick={() => goToStep(3)}
-                  type="button"
-                >
-                  <i className="bi bi-cart-check me-2"></i>
-                  Buy Now
-                </button>
+          <div className="col-lg-5">
+            <div className="card shadow-sm border-0">
+              <div className="card-body">
+                <h4 className="mb-3">Order Summary</h4>
+                <p className="mb-2"><strong>Product:</strong> {product?.name}</p>
+                <p className="mb-2"><strong>Size:</strong> {size}</p>
+                <p className="mb-2"><strong>Thickness:</strong> {thickness}</p>
+                <p className="mb-2"><strong>Quantity:</strong> {quantity}</p>
+                <p className="mb-0"><strong>Total:</strong> ₹{calculatePrice()}</p>
               </div>
             </div>
           </div>
@@ -808,453 +915,187 @@ export default function ProductClient() {
     </div>
   );
 
-  const renderStep3 = () => {
-    const totalAmount = calculatePrice();
-    const summaryDims = getSummaryFrameSize();
+  const renderStep3 = () => (
+    <div className={styles.stepContainer}>
+      <div className="container py-4">
+        <div className="row g-4">
+          <div className="col-lg-7">
+            <div className="card shadow-sm border-0">
+              <div className="card-body">
+                <h3 className="mb-4">Payment</h3>
 
-    return (
-      <div className={styles.stepContainer}>
-        <div className="container">
-          <div className="row g-4">
-            <div className="col-lg-4 order-lg-2">
-              <div className={styles.summaryCard}>
-                <h4 className={styles.summaryTitle}>
-                  <i className="bi bi-bag-check me-2"></i>
-                  Order Summary
-                </h4>
+                <div className="mb-4">
+                  <p className="mb-2"><strong>Product:</strong> {product?.name}</p>
+                  <p className="mb-2"><strong>Size:</strong> {size}</p>
+                  <p className="mb-2"><strong>Thickness:</strong> {thickness}</p>
+                  <p className="mb-2"><strong>Quantity:</strong> {quantity}</p>
+                  <p className="mb-2"><strong>Name:</strong> {formData.fullName}</p>
+                  <p className="mb-2"><strong>Phone:</strong> {formData.phone}</p>
+                  <p className="mb-2"><strong>Address:</strong> {formData.address}</p>
+                  <h4 className="mt-3">Total: ₹{calculatePrice()}</h4>
+                </div>
 
-                {uploadedImage && (
-                  <div
-                    className={styles.summaryImage}
-                    style={{
-                      position: "relative",
-                      width: "100%",
-                      height: "220px",
-                      borderRadius: "14px",
-                      overflow: "hidden",
-                      background: "#f3f4f6",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
-                    }}
+                <div className="mb-3">
+                  <label className="form-label">Select Payment Method</label>
+                  <select
+                    className="form-select"
+                    value={formData.paymentMethod}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        paymentMethod: e.target.value,
+                      }))
+                    }
                   >
-                    <div
-                      style={{
-                        width: `${summaryDims.width}px`,
-                        height: `${summaryDims.height}px`,
-                        border: `${thickness === "3mm" ? 5 : thickness === "5mm" ? 8 : 11}px solid #fff`,
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                        background: "#fff",
-                        boxShadow: "0 10px 24px rgba(0,0,0,0.16)",
-                        position: "relative",
-                      }}
-                    >
-                      <img
-                        src={uploadedImage}
-                        alt="Product preview"
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                          transform: `translate(${imageOffset.x * 0.35}px, ${imageOffset.y * 0.35}px) scale(${zoom})`,
-                          transformOrigin: "center center",
-                          userSelect: "none",
-                          pointerEvents: "none",
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className={styles.summaryDetails}>
-                  <div className={styles.summaryRow}>
-                    <span>Orientation</span>
-                    <span className={styles.summaryValue}>Portrait</span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span>Size</span>
-                    <span className={styles.summaryValue}>{size}</span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span>Thickness</span>
-                    <span className={styles.summaryValue}>{thickness}</span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span>Quantity</span>
-                    <div className={styles.quantityWrapper}>
-                      <select
-                        className={styles.quantityDropdown}
-                        value={quantity}
-                        onChange={(e) => setQuantity(Number(e.target.value))}
-                      >
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                          <option key={num} value={num}>
-                            {num}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
+                    <option value="razorpay">Razorpay</option>
+                    <option value="gpay">Google Pay</option>
+                  </select>
                 </div>
 
-                <div className={styles.summaryTotal}>
-                  <span>Total Amount</span>
-                  <span>₹{totalAmount}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="col-lg-8 order-lg-1">
-              <div className={styles.formCard}>
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h4>
-                    <i className="bi bi-credit-card me-2"></i>
-                    Shipping & Payment
-                  </h4>
-
+                <div className="d-flex gap-2 mt-4">
                   <button
+                    type="button"
                     className="btn btn-outline-secondary"
                     onClick={() => goToStep(2)}
-                    type="button"
                   >
-                    <i className="bi bi-arrow-left me-2"></i>
                     Back
                   </button>
                 </div>
 
-                <form onSubmit={handleSubmitOrder}>
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className="form-label">Full Name *</label>
-                      <input
-                        type="text"
-                        name="fullName"
-                        className={`form-control ${formErrors.fullName ? "is-invalid" : ""}`}
-                        value={formData.fullName}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.fullName && (
-                        <div className="invalid-feedback">{formErrors.fullName}</div>
-                      )}
-                    </div>
+                <div className="mt-4">
+                  {formData.paymentMethod === "razorpay" ? (
+                    <RazorpayPayment
+                      amount={calculatePrice()}
+                      buttonText={`Pay ₹${calculatePrice()}`}
+                      themeColor={themeColor}
+                      customerDetails={{
+                        name: formData.fullName,
+                        fullName: formData.fullName,
+                        email: formData.email,
+                        phone: formData.phone,
+                        address: formData.address,
+                        city: formData.city,
+                        state: formData.state,
+                        pincode: formData.pincode,
+                        size,
+                        thickness,
+                        quantity,
+                        productType: "portrait",
+                        productName: product?.name || "Portrait Print",
+                      }}
+                      onSuccess={() => alert("Payment Success")}
+                      onError={(msg) => alert(msg || "Payment Failed")}
+                    />
+                  ) : (
+                    <GPayButton amount={calculatePrice()} />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
 
-                    <div className="col-md-6">
-                      <label className="form-label">Email *</label>
-                      <input
-                        type="email"
-                        name="email"
-                        className={`form-control ${formErrors.email ? "is-invalid" : ""}`}
-                        value={formData.email}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.email && (
-                        <div className="invalid-feedback">{formErrors.email}</div>
-                      )}
-                    </div>
-
-                    <div className="col-md-6">
-                      <label className="form-label">Phone *</label>
-                      <input
-                        type="text"
-                        name="phone"
-                        className={`form-control ${formErrors.phone ? "is-invalid" : ""}`}
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        maxLength="10"
-                      />
-                      {formErrors.phone && (
-                        <div className="invalid-feedback">{formErrors.phone}</div>
-                      )}
-                    </div>
-
-                    <div className="col-md-6">
-                      <label className="form-label">Alternate Phone</label>
-                      <input
-                        type="text"
-                        name="alternatePhone"
-                        className="form-control"
-                        value={formData.alternatePhone}
-                        onChange={handleInputChange}
-                        maxLength="10"
-                      />
-                    </div>
-
-                    <div className="col-12">
-                      <label className="form-label">Address *</label>
-                      <textarea
-                        name="address"
-                        className={`form-control ${formErrors.address ? "is-invalid" : ""}`}
-                        rows="2"
-                        value={formData.address}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.address && (
-                        <div className="invalid-feedback">{formErrors.address}</div>
-                      )}
-                    </div>
-
-                    <div className="col-12">
-                      <label className="form-label">Alternate Address</label>
-                      <textarea
-                        name="alternateAddress"
-                        className="form-control"
-                        rows="2"
-                        value={formData.alternateAddress}
-                        onChange={handleInputChange}
+          <div className="col-lg-5">
+            <div className="card shadow-sm border-0">
+              <div className="card-body">
+                <h4 className="mb-3">Final Preview</h4>
+                <div
+                  style={{
+                    backgroundImage: `url(${roomWallBackground})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    minHeight: "420px",
+                    borderRadius: "12px",
+                    position: "relative",
+                    overflow: "hidden",
+                  }}
+                >
+                  {uploadedImage ? (
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: `${getSummaryFrameSize().width}px`,
+                          height: `${getSummaryFrameSize().height}px`,
+                          border: "10px solid #fff",
+                          boxShadow: "0 12px 30px rgba(0,0,0,0.25)",
+                          backgroundImage: `url(${uploadedImage})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          borderRadius: "6px",
+                        }}
                       />
                     </div>
-
-                    <div className="col-md-4">
-                      <label className="form-label">City *</label>
-                      <input
-                        type="text"
-                        name="city"
-                        className={`form-control ${formErrors.city ? "is-invalid" : ""}`}
-                        value={formData.city}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.city && (
-                        <div className="invalid-feedback">{formErrors.city}</div>
-                      )}
+                  ) : (
+                    <div
+                      style={{
+                        height: "100%",
+                        minHeight: "420px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        color: "#fff",
+                        fontWeight: 600,
+                        background: "rgba(0,0,0,0.25)",
+                      }}
+                    >
+                      No image uploaded
                     </div>
-
-                    <div className="col-md-4">
-                      <label className="form-label">State *</label>
-                      <input
-                        type="text"
-                        name="state"
-                        className={`form-control ${formErrors.state ? "is-invalid" : ""}`}
-                        value={formData.state}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.state && (
-                        <div className="invalid-feedback">{formErrors.state}</div>
-                      )}
-                    </div>
-
-                    <div className="col-md-4">
-                      <label className="form-label">Pincode *</label>
-                      <input
-                        type="text"
-                        name="pincode"
-                        className={`form-control ${formErrors.pincode ? "is-invalid" : ""}`}
-                        value={formData.pincode}
-                        onChange={handleInputChange}
-                        maxLength="6"
-                      />
-                      {formErrors.pincode && (
-                        <div className="invalid-feedback">{formErrors.pincode}</div>
-                      )}
-                    </div>
-
-                    <div className="col-12">
-                      <label className="form-label">Payment Method</label>
-                      <div className="d-flex gap-3 mt-2">
-                        <div className="form-check">
-                          <input
-                            type="radio"
-                            className="form-check-input"
-                            name="paymentMethod"
-                            value="razorpay"
-                            checked={formData.paymentMethod === "razorpay"}
-                            onChange={handleInputChange}
-                          />
-                          <label className="form-check-label">Razorpay</label>
-                        </div>
-
-                        <div className="form-check">
-                          <input
-                            type="radio"
-                            className="form-check-input"
-                            name="paymentMethod"
-                            value="gpay"
-                            checked={formData.paymentMethod === "gpay"}
-                            onChange={handleInputChange}
-                          />
-                          <label className="form-check-label">Google Pay</label>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="col-12">
-                      <div className="bg-light rounded p-3 mt-2">
-                        <div className="d-flex justify-content-between py-1">
-                          <span>Selected Size</span>
-                          <span>{size}</span>
-                        </div>
-                        <div className="d-flex justify-content-between py-1">
-                          <span>Thickness</span>
-                          <span>{thickness}</span>
-                        </div>
-                        <div className="d-flex justify-content-between py-1">
-                          <span>Quantity</span>
-                          <span>{quantity}</span>
-                        </div>
-                        <div className="d-flex justify-content-between py-1">
-                          <span>Estimated Delivery</span>
-                          <span>{estimatedDeliveryDate || "3-5 business days"}</span>
-                        </div>
-                        <hr />
-                        <div className="d-flex justify-content-between fw-bold fs-5">
-                          <span>Total</span>
-                          <span className="text-primary">₹{totalAmount}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="col-12 mt-4">
-                      {formData.paymentMethod === "razorpay" ? (
-                        <RazorpayPayment
-                          amount={totalAmount}
-                          buttonText={`Pay ₹${totalAmount}`}
-                          themeColor="#3496cb"
-                          customerDetails={{
-                            name: formData.fullName,
-                            email: formData.email,
-                            phone: formData.phone,
-                            address: formData.address,
-                            size,
-                            thickness,
-                            quantity,
-                            imageZoom: zoom,
-                            imageOffsetX: imageOffset.x,
-                            imageOffsetY: imageOffset.y,
-                            productType: "portrait",
-                            productName: "Portrait Print",
-                          }}
-                          onSuccess={() => {
-                            showNotification(
-                              "Payment successful! Thank you for your order.",
-                              "success"
-                            );
-
-                            if (typeof window !== "undefined" && window.bootstrap) {
-                              const modalEl = document.getElementById("successModal");
-                              if (modalEl) {
-                                const modal = new window.bootstrap.Modal(modalEl);
-                                modal.show();
-                              }
-                            }
-                          }}
-                          onError={() =>
-                            showNotification("Payment failed. Please try again.", "error")
-                          }
-                        />
-                      ) : (
-                        <GPayButton
-                          amount={totalAmount}
-                          onSuccess={() => {
-                            showNotification(
-                              "Payment successful! Thank you for your order.",
-                              "success"
-                            );
-
-                            if (typeof window !== "undefined" && window.bootstrap) {
-                              const modalEl = document.getElementById("successModal");
-                              if (modalEl) {
-                                const modal = new window.bootstrap.Modal(modalEl);
-                                modal.show();
-                              }
-                            }
-                          }}
-                          onError={() =>
-                            showNotification("Payment failed. Please try again.", "error")
-                          }
-                        />
-                      )}
-                    </div>
-                  </div>
-                </form>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    );
-  };
 
-  return (
-    <>
-      <div className={styles.productClient}>
-        {renderStepIndicator()}
-
-        {currentStep === 1 && renderStep1()}
-        {currentStep === 2 && renderStep2()}
-        {currentStep === 3 && renderStep3()}
-      </div>
-
-      {showToast.visible && (
-        <div
-          className={`toast show position-fixed top-0 end-0 m-3 text-bg-${
-            showToast.type === "success"
-              ? "success"
-              : showToast.type === "error"
-              ? "danger"
-              : showToast.type === "warning"
-              ? "warning"
-              : "primary"
-          }`}
-          role="alert"
-          style={{ zIndex: 9999, minWidth: "280px" }}
-        >
-          <div className="toast-header">
-            <strong className="me-auto">{showToast.title}</strong>
-            <button
-              type="button"
-              className="btn-close"
-              onClick={() =>
-                setShowToast({
-                  visible: false,
-                  type: "",
-                  title: "",
-                  message: "",
-                })
-              }
-            ></button>
-          </div>
-          <div className="toast-body">{showToast.message}</div>
-        </div>
-      )}
-
-      <div className="modal fade" id="successModal" tabIndex="-1" aria-hidden="true">
-        <div className="modal-dialog modal-dialog-centered">
-          <div className={styles.modalContent}>
-            <div className={styles.modalHeader}>
-              <h5 className={styles.modalTitle}>Order Confirmed</h5>
+        {showToast.visible && (
+          <div
+            className={`toast show position-fixed bottom-0 end-0 m-3 text-bg-${
+              showToast.type === "success"
+                ? "success"
+                : showToast.type === "error"
+                ? "danger"
+                : showToast.type === "warning"
+                ? "warning"
+                : "primary"
+            }`}
+            role="alert"
+            style={{ zIndex: 9999 }}
+          >
+            <div className="toast-header">
+              <strong className="me-auto">{showToast.title}</strong>
               <button
                 type="button"
                 className="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
+                onClick={() =>
+                  setShowToast({
+                    visible: false,
+                    type: "",
+                    title: "",
+                    message: "",
+                  })
+                }
+              />
             </div>
-
-            <div className={styles.modalBody}>
-              <div className="text-center py-3">
-                <i
-                  className="bi bi-check-circle-fill text-success"
-                  style={{ fontSize: "64px" }}
-                ></i>
-                <h4 className="mt-3">Thank you for your order!</h4>
-                <p className="mb-1">Your order has been placed successfully.</p>
-                <p className="fw-semibold mb-0">Order ID: {orderId}</p>
-              </div>
-            </div>
-
-            <div className={styles.modalFooter}>
-              <button
-                type="button"
-                className="btn btn-primary"
-                data-bs-dismiss="modal"
-              >
-                Continue Shopping
-              </button>
-            </div>
+            <div className="toast-body">{showToast.message}</div>
           </div>
-        </div>
+        )}
       </div>
-    </>
+    </div>
+  );
+
+  return (
+    <div className={styles.productClient}>
+      {renderStepIndicator()}
+      {currentStep === 1 && renderStep1()}
+      {currentStep === 2 && renderStep2()}
+      {currentStep === 3 && renderStep3()}
+    </div>
   );
 }
