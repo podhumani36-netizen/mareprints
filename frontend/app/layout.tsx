@@ -23,6 +23,9 @@ const inter = Inter({
 export const metadata = {
   title: "Mare Prints",
   description: "Premium Prints & Posters",
+    icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 interface RootLayoutProps {

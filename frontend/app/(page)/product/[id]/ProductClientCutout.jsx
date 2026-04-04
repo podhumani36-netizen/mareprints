@@ -650,25 +650,7 @@ export default function ProductClientCutout({ product }) {
             </div>
 
             <div className="mb-4">
-             <label className="form-label fw-bold">Price</label>
-              {/*  <div className="d-flex gap-2 mt-2">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Enter pincode"
-                  value={pincode}
-                  onChange={handlePincodeChange}
-                  maxLength="6"
-                />
-                <button
-                  className="btn btn-outline-primary"
-                  onClick={handleCheckDelivery}
-                  disabled={deliveryStatus.isChecking}
-                  type="button"
-                >
-                  {deliveryStatus.isChecking ? "Checking..." : "Check"}
-                </button>
-              </div> */}
+              <label className="form-label fw-bold">Price</label>
 
               {deliveryStatus.message && (
                 <div
@@ -965,7 +947,7 @@ export default function ProductClientCutout({ product }) {
                         size,
                         thickness,
                         quantity,
-                        productType: product?.type || "photo",
+                        productType: product?.type || "cutout",
                         productName: product?.name || "Cutout Print",
                       }}
                       onSuccess={() => {

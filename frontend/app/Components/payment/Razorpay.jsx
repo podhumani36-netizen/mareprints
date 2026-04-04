@@ -17,21 +17,36 @@ export default function RazorpayPayment({
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
-      if (window.Razorpay) {
+      if (typeof window !== "undefined" && window.Razorpay) {
+        setScriptLoaded(true);
+        resolve(true);
+        return;
+      }
+
+      const existingScript = document.querySelector(
+        'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
+      );
+
+      if (existingScript && typeof window !== "undefined" && window.Razorpay) {
+        setScriptLoaded(true);
         resolve(true);
         return;
       }
 
       const script = document.createElement("script");
       script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+
       script.onload = () => {
         setScriptLoaded(true);
         resolve(true);
       };
+
       script.onerror = () => {
         setScriptLoaded(false);
         resolve(false);
       };
+
       document.body.appendChild(script);
     });
   };
@@ -42,52 +57,100 @@ export default function RazorpayPayment({
 
       const isLoaded = await loadRazorpayScript();
       if (!isLoaded) {
-        throw new Error(
-          "Failed to load Razorpay SDK. Please check your internet connection.",
-        );
+        throw new Error("Failed to load Razorpay SDK");
       }
 
-      const response = await fetch("/api/payment", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          amount,
-          customerDetails,
-        }),
-      });
+      const createOrderResponse = await fetch(
+        "https://mareprints.com/api/payments/create-order/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount,
+          }),
+        }
+      );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create payment order");
+      const createOrderText = await createOrderResponse.text();
+
+      let orderData;
+      try {
+        orderData = JSON.parse(createOrderText);
+      } catch (error) {
+        console.error("Create order API returned non-JSON:", createOrderText);
+        throw new Error("Server returned HTML instead of JSON");
       }
 
-      const order = await response.json();
+      if (!createOrderResponse.ok) {
+        throw new Error(orderData.error || "Failed to create payment order");
+      }
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency,
-        name: "FrameMaster",
+        key: orderData.key,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "Mare Prints",
         description: "Premium Acrylic Prints",
         image:
           "https://res.cloudinary.com/dsprfys3x/image/upload/v1771497121/logo.png",
-        order_id: order.id,
+        order_id: orderData.id,
 
-        handler: function (response) {
-          console.log("Payment Success:", response);
+        handler: async function (response) {
+          try {
+            const verifyResponse = await fetch(
+              "https://mareprints.com/api/payments/verify/",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  order_id: response.razorpay_order_id,
+                  payment_id: response.razorpay_payment_id,
+                  signature: response.razorpay_signature,
+                }),
+              }
+            );
 
-          if (onSuccess) {
-            onSuccess({
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_signature: response.razorpay_signature,
-              amount: amount,
-            });
+            const verifyText = await verifyResponse.text();
+
+            let verifyData;
+            try {
+              verifyData = JSON.parse(verifyText);
+            } catch (error) {
+              console.error("Verify API returned non-JSON:", verifyText);
+              throw new Error("Verification API returned invalid response");
+            }
+
+            if (!verifyResponse.ok) {
+              throw new Error(
+                verifyData.error || "Payment verification failed"
+              );
+            }
+
+            if (onSuccess) {
+              onSuccess({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                amount,
+              });
+            }
+
+            alert("Payment Successful! Your order has been confirmed.");
+          } catch (error) {
+            console.error("Verification Error:", error);
+
+            if (onError) {
+              onError(error.message);
+            }
+
+            alert(error.message || "Payment succeeded, but verification failed.");
+          } finally {
+            setLoading(false);
           }
-
-          alert("Payment Successful! Your order has been confirmed.");
         },
 
         prefill: {
@@ -109,6 +172,7 @@ export default function RazorpayPayment({
         modal: {
           ondismiss: function () {
             setLoading(false);
+
             if (onError) {
               onError("Payment cancelled by user");
             }
@@ -127,9 +191,11 @@ export default function RazorpayPayment({
       razorpay.on("payment.failed", function (response) {
         console.error("Payment Failed:", response.error);
         setLoading(false);
+
         if (onError) {
           onError(response.error.description || "Payment failed");
         }
+
         alert(`Payment failed: ${response.error.description}`);
       });
 
@@ -137,11 +203,13 @@ export default function RazorpayPayment({
     } catch (error) {
       console.error("Payment Error:", error);
       setLoading(false);
+
       if (onError) {
         onError(error.message);
       }
+
       alert(
-        error.message || "An error occurred during payment. Please try again.",
+        error.message || "An error occurred during payment. Please try again."
       );
     }
   };
@@ -159,6 +227,7 @@ export default function RazorpayPayment({
       />
 
       <button
+        type="button"
         onClick={handlePayment}
         disabled={loading || !scriptLoaded}
         className={`${buttonClassName} ${loading ? "loading" : ""}`}
@@ -177,6 +246,7 @@ export default function RazorpayPayment({
           alignItems: "center",
           justifyContent: "center",
           gap: "8px",
+          width: "100%",
         }}
       >
         {loading ? (
@@ -191,7 +261,7 @@ export default function RazorpayPayment({
                 borderTopColor: "white",
                 animation: "spin 1s ease-in-out infinite",
               }}
-            ></span>
+            />
             Processing...
           </>
         ) : !scriptLoaded ? (
@@ -202,7 +272,7 @@ export default function RazorpayPayment({
         ) : (
           <>
             <i className="bi bi-shield-check"></i>
-            {buttonText} ₹{amount}
+            {buttonText}
           </>
         )}
       </button>
