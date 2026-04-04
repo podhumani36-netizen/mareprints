@@ -14,7 +14,6 @@ export default function ProductClient({ product }) {
   const [imageOffset, setImageOffset] = useState({ x: 0, y: 0 });
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isImageDragging, setIsImageDragging] = useState(false);
-
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [orderId, setOrderId] = useState("");
@@ -211,38 +210,6 @@ export default function ProductClient({ product }) {
     if (!isDragging) setIsDragging(true);
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith("image/")) {
-      if (file.size > 10 * 1024 * 1024) {
-        showNotification("File size must be less than 10MB", "error");
-        return;
-      }
-      processFile(file);
-    } else {
-      showNotification("Please upload an image file", "error");
-    }
-  };
-
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        showNotification("File size must be less than 10MB", "error");
-        return;
-      }
-      if (!file.type.startsWith("image/")) {
-        showNotification("Please upload an image file", "error");
-        return;
-      }
-      processFile(file);
-    }
-  };
-
   const processFile = (file) => {
     setIsProcessing(true);
     const reader = new FileReader();
@@ -263,13 +230,42 @@ export default function ProductClient({ product }) {
     reader.readAsDataURL(file);
   };
 
-  const handleZoomIn = () => {
-    setZoom((prev) => Math.min(prev + 0.1, 3));
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) {
+      if (file.size > 10 * 1024 * 1024) {
+        showNotification("File size must be less than 10MB", "error");
+        return;
+      }
+      processFile(file);
+    } else {
+      showNotification("Please upload an image file", "error");
+    }
   };
 
-  const handleZoomOut = () => {
-    setZoom((prev) => Math.max(prev - 0.1, 1));
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      showNotification("File size must be less than 10MB", "error");
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      showNotification("Please upload an image file", "error");
+      return;
+    }
+
+    processFile(file);
   };
+
+  const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.1, 3));
+  const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.1, 1));
 
   const handleRemoveImage = () => {
     setUploadedImage(null);
@@ -296,7 +292,7 @@ export default function ProductClient({ product }) {
     setDeliveryStatus({ message: "", type: "", isChecking: false });
   };
 
-  const handleCheckDelivery = async () => {
+  const handleCheckDelivery = () => {
     if (pincode.length !== 6) {
       showNotification("Please enter a valid 6-digit pincode", "warning");
       return;
@@ -305,13 +301,7 @@ export default function ProductClient({ product }) {
     setDeliveryStatus({ message: "", type: "", isChecking: true });
 
     setTimeout(() => {
-      const servicable = [
-        "110001",
-        "400001",
-        "700001",
-        "560001",
-        "600001",
-      ].includes(pincode);
+      const servicable = ["110001", "400001", "700001", "560001", "600001"].includes(pincode);
 
       if (servicable) {
         setDeliveryStatus({
@@ -347,35 +337,19 @@ export default function ProductClient({ product }) {
 
     if (!formData.fullName.trim()) errors.fullName = "Full name is required";
     if (!formData.email.trim()) errors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(formData.email))
-      errors.email = "Invalid email format";
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = "Invalid email format";
 
     if (!formData.phone.trim()) errors.phone = "Phone number is required";
-    else if (!/^\d{10}$/.test(formData.phone))
-      errors.phone = "Phone must be 10 digits";
+    else if (!/^\d{10}$/.test(formData.phone)) errors.phone = "Phone must be 10 digits";
 
     if (!formData.address.trim()) errors.address = "Address is required";
     if (!formData.city.trim()) errors.city = "City is required";
     if (!formData.state.trim()) errors.state = "State is required";
 
     if (!formData.pincode.trim()) errors.pincode = "Pincode is required";
-    else if (!/^\d{6}$/.test(formData.pincode))
-      errors.pincode = "Pincode must be 6 digits";
+    else if (!/^\d{6}$/.test(formData.pincode)) errors.pincode = "Pincode must be 6 digits";
 
     return errors;
-  };
-
-  const handleSubmitOrder = (e) => {
-    e.preventDefault();
-    const errors = validateForm();
-
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      showNotification("Please fill all required fields correctly", "error");
-      return;
-    }
-
-    showNotification("Details saved successfully!", "success");
   };
 
   const goToStep = (step) => {
@@ -385,11 +359,12 @@ export default function ProductClient({ product }) {
     }
 
     if (step === 3) {
-      const errors = validateForm();
       if (!uploadedImage) {
         showNotification("Please upload an image first", "warning");
         return;
       }
+
+      const errors = validateForm();
       if (Object.keys(errors).length > 0) {
         setFormErrors(errors);
         showNotification("Please fill all required fields correctly", "error");
@@ -418,9 +393,9 @@ export default function ProductClient({ product }) {
           {[1, 2, 3].map((step) => (
             <div key={step} className={styles.stepItem}>
               <button
-                className={`${styles.stepButton} ${
-                  currentStep === step ? styles.active : ""
-                } ${currentStep > step ? styles.completed : ""}`}
+                className={`${styles.stepButton} ${currentStep === step ? styles.active : ""} ${
+                  currentStep > step ? styles.completed : ""
+                }`}
                 onClick={() => goToStep(step)}
                 type="button"
               >
@@ -428,11 +403,7 @@ export default function ProductClient({ product }) {
                   {currentStep > step ? <i className="bi bi-check-lg"></i> : step}
                 </span>
                 <span className={styles.stepLabel}>
-                  {step === 1
-                    ? "Upload & Edit"
-                    : step === 2
-                    ? "Customize"
-                    : "Payment"}
+                  {step === 1 ? "Upload & Edit" : step === 2 ? "Customize" : "Payment"}
                 </span>
               </button>
 
@@ -481,10 +452,12 @@ export default function ProductClient({ product }) {
     <div className={styles.stepContainer}>
       <div className="container py-4">
         <div className="row g-4">
-          <div className="col-lg-7">
+          <div className="col-lg-8">
             <div className={styles.uploadCard}>
-              <h2 className="mb-3">{product?.name || "Product Customization"}</h2>
-              <p className="text-muted">{product?.description || "Upload and customize your photo."}</p>
+              <h2 className="mb-3">{product?.name || "Portrait Customization"}</h2>
+              <p className="text-muted mb-4">
+                {product?.description || "Upload and edit your portrait image."}
+              </p>
 
               <div
                 ref={dropZoneRef}
@@ -529,12 +502,13 @@ export default function ProductClient({ product }) {
 
                     {renderEditorControls()}
 
-                    <div className="d-flex gap-2 mt-3">
+                    <div className="d-flex gap-2 mt-3 flex-wrap">
                       <button
                         className="btn btn-outline-danger"
                         onClick={handleRemoveImage}
                         type="button"
                       >
+                        <i className="bi bi-trash me-2"></i>
                         Remove Image
                       </button>
 
@@ -542,8 +516,10 @@ export default function ProductClient({ product }) {
                         className="btn btn-primary"
                         onClick={() => goToStep(2)}
                         type="button"
+                        style={{ backgroundColor: themeColor, borderColor: themeColor }}
                       >
-                        Go to Customize Step
+                        Continue
+                        <i className="bi bi-arrow-right ms-2"></i>
                       </button>
                     </div>
                   </div>
@@ -554,7 +530,7 @@ export default function ProductClient({ product }) {
                     </div>
 
                     <h3 className={styles.uploadTitle}>
-                      {isDragging ? "Drop your image here" : "Upload your image"}
+                      {isDragging ? "Drop your image here" : "Upload your portrait image"}
                     </h3>
 
                     <p className={styles.uploadSubtitle}>
@@ -570,30 +546,24 @@ export default function ProductClient({ product }) {
                       Browse Files
                     </button>
 
-                    <p className={styles.uploadHint}>
-                      Supported formats: JPG, PNG, GIF (Max 10MB)
-                    </p>
+                    <p className={styles.uploadHint}>Supported formats: JPG, PNG, GIF (Max 10MB)</p>
 
-                    {isProcessing && (
-                      <p style={{ marginTop: "10px", fontWeight: 600 }}>
-                        Processing image...
-                      </p>
-                    )}
+                    {isProcessing && <p style={{ marginTop: "10px", fontWeight: 600 }}>Processing image...</p>}
                   </div>
                 )}
 
                 <input
-                  ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  ref={fileInputRef}
                   onChange={handleFileUpload}
-                  style={{ display: "none" }}
+                  accept="image/*"
+                  className="d-none"
                 />
               </div>
             </div>
           </div>
 
-          <div className="col-lg-5">
+          <div className="col-lg-4">
             <div className="card shadow-sm border-0 h-100">
               <div className="card-body">
                 <h4 className="mb-3">Live Preview</h4>
@@ -644,16 +614,9 @@ export default function ProductClient({ product }) {
                         background: "rgba(0,0,0,0.25)",
                       }}
                     >
-                      Upload an image to preview
+                      No image uploaded
                     </div>
                   )}
-                </div>
-
-                <div className="mt-3">
-                  <h5 className="mb-2">Product</h5>
-                  <p className="mb-1"><strong>Name:</strong> {product?.name}</p>
-                  <p className="mb-1"><strong>Base Price:</strong> ₹{basePrice}</p>
-                  <p className="mb-0"><strong>Order ID:</strong> {orderId}</p>
                 </div>
               </div>
             </div>
@@ -669,231 +632,81 @@ export default function ProductClient({ product }) {
         <div className="row g-4">
           <div className="col-lg-7">
             <div className="card shadow-sm border-0">
-              <div className="card-body">
-                <h3 className="mb-4">Customize Your Order</h3>
+              <div className="card-body p-4">
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                  <h4 className="mb-0">Customize Your Portrait</h4>
+                  <button className="btn btn-outline-secondary" onClick={() => goToStep(1)} type="button">
+                    <i className="bi bi-arrow-left me-2"></i>
+                    Back
+                  </button>
+                </div>
 
-                <div className="row g-3">
-                  <div className="col-md-6">
-                    <label className="form-label">Size</label>
-                    <select
-                      className="form-select"
-                      value={size}
-                      onChange={(e) => setSize(e.target.value)}
-                    >
-                      {sizeOptions.map((option) => (
-                        <option key={option} value={option}>
+                <div className="mb-4">
+                  <label className="form-label fw-bold">Select Size</label>
+                  <div className="row g-2">
+                    {sizeOptions.map((option) => (
+                      <div className="col-6 col-md-4" key={option}>
+                        <button
+                          type="button"
+                          className={`btn w-100 ${size === option ? "btn-primary" : "btn-outline-secondary"}`}
+                          onClick={() => setSize(option)}
+                          style={size === option ? { backgroundColor: themeColor, borderColor: themeColor } : {}}
+                        >
                           {option}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="form-label">Thickness</label>
-                    <select
-                      className="form-select"
-                      value={thickness}
-                      onChange={(e) => setThickness(e.target.value)}
-                    >
-                      {thicknessOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="form-label">Quantity</label>
-                    <input
-                      className="form-control"
-                      type="number"
-                      min="1"
-                      value={quantity}
-                      onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
-                    />
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="form-label">Pincode</label>
-                    <div className="d-flex gap-2">
-                      <input
-                        className="form-control"
-                        type="text"
-                        value={pincode}
-                        onChange={handlePincodeChange}
-                        placeholder="Enter pincode"
-                        maxLength={6}
-                      />
-                      <button
-                        type="button"
-                        className="btn btn-outline-primary"
-                        onClick={handleCheckDelivery}
-                        disabled={deliveryStatus.isChecking}
-                      >
-                        {deliveryStatus.isChecking ? "Checking..." : "Check"}
-                      </button>
-                    </div>
-                    {deliveryStatus.message && (
-                      <div
-                        className={`mt-2 small ${
-                          deliveryStatus.type === "success"
-                            ? "text-success"
-                            : "text-danger"
-                        }`}
-                      >
-                        {deliveryStatus.message}
+                        </button>
                       </div>
-                    )}
-                    {estimatedDeliveryDate && (
-                      <div className="small text-muted mt-1">
-                        Estimated delivery: {estimatedDeliveryDate}
-                      </div>
-                    )}
+                    ))}
                   </div>
                 </div>
 
-                <hr className="my-4" />
-
-                <h4 className="mb-3">Customer Details</h4>
-                <form onSubmit={handleSubmitOrder}>
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        placeholder="Full Name"
-                        name="fullName"
-                        value={formData.fullName}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.fullName && (
-                        <div className="text-danger small mt-1">{formErrors.fullName}</div>
-                      )}
-                    </div>
-
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        placeholder="Email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.email && (
-                        <div className="text-danger small mt-1">{formErrors.email}</div>
-                      )}
-                    </div>
-
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        placeholder="Phone"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.phone && (
-                        <div className="text-danger small mt-1">{formErrors.phone}</div>
-                      )}
-                    </div>
-
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        placeholder="Alternate Phone"
-                        name="alternatePhone"
-                        value={formData.alternatePhone}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-
-                    <div className="col-12">
-                      <textarea
-                        className="form-control"
-                        rows="3"
-                        placeholder="Address"
-                        name="address"
-                        value={formData.address}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.address && (
-                        <div className="text-danger small mt-1">{formErrors.address}</div>
-                      )}
-                    </div>
-
-                    <div className="col-12">
-                      <textarea
-                        className="form-control"
-                        rows="2"
-                        placeholder="Alternate Address"
-                        name="alternateAddress"
-                        value={formData.alternateAddress}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-
-                    <div className="col-md-4">
-                      <input
-                        className="form-control"
-                        placeholder="City"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.city && (
-                        <div className="text-danger small mt-1">{formErrors.city}</div>
-                      )}
-                    </div>
-
-                    <div className="col-md-4">
-                      <input
-                        className="form-control"
-                        placeholder="State"
-                        name="state"
-                        value={formData.state}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.state && (
-                        <div className="text-danger small mt-1">{formErrors.state}</div>
-                      )}
-                    </div>
-
-                    <div className="col-md-4">
-                      <input
-                        className="form-control"
-                        placeholder="Pincode"
-                        name="pincode"
-                        value={formData.pincode}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.pincode && (
-                        <div className="text-danger small mt-1">{formErrors.pincode}</div>
-                      )}
-                    </div>
+                <div className="mb-4">
+                  <label className="form-label fw-bold">Thickness</label>
+                  <div className="d-flex gap-2 flex-wrap">
+                    {thicknessOptions.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        className={`btn ${thickness === option ? "btn-primary" : "btn-outline-secondary"}`}
+                        onClick={() => setThickness(option)}
+                        style={thickness === option ? { backgroundColor: themeColor, borderColor: themeColor } : {}}
+                      >
+                        {option}
+                      </button>
+                    ))}
                   </div>
+                </div>
 
-                  <div className="d-flex gap-2 mt-4">
+                <div className="mb-4">
+                  <label className="form-label fw-bold">Quantity</label>
+                  <div className="d-flex align-items-center gap-3">
                     <button
-                      type="button"
                       className="btn btn-outline-secondary"
-                      onClick={() => goToStep(1)}
-                    >
-                      Back
-                    </button>
-
-                    <button type="submit" className="btn btn-outline-primary">
-                      Save Details
-                    </button>
-
-                    <button
                       type="button"
-                      className="btn btn-primary"
-                      onClick={() => goToStep(3)}
+                      onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
                     >
-                      Go to Payment Step
+                      <i className="bi bi-dash-lg"></i>
+                    </button>
+                    <span className="fw-bold fs-5">{quantity}</span>
+                    <button
+                      className="btn btn-outline-secondary"
+                      type="button"
+                      onClick={() => setQuantity((prev) => prev + 1)}
+                    >
+                      <i className="bi bi-plus-lg"></i>
                     </button>
                   </div>
-                </form>
+                </div>
+
+                <div className="d-flex gap-2 mt-4">
+                  <button className="btn btn-outline-secondary w-50 py-3 fw-bold" onClick={() => goToStep(1)} type="button">
+                    <i className="bi bi-arrow-left me-2"></i>
+                    Back
+                  </button>
+                  <button className="btn btn-success w-50 py-3 fw-bold" onClick={() => goToStep(3)} type="button">
+                    <i className="bi bi-cart-check me-2"></i>
+                    Buy Now
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -902,11 +715,62 @@ export default function ProductClient({ product }) {
             <div className="card shadow-sm border-0">
               <div className="card-body">
                 <h4 className="mb-3">Order Summary</h4>
-                <p className="mb-2"><strong>Product:</strong> {product?.name}</p>
-                <p className="mb-2"><strong>Size:</strong> {size}</p>
-                <p className="mb-2"><strong>Thickness:</strong> {thickness}</p>
-                <p className="mb-2"><strong>Quantity:</strong> {quantity}</p>
-                <p className="mb-0"><strong>Total:</strong> ₹{calculatePrice()}</p>
+                <div className={styles.summaryDetails}>
+                  <div className={styles.summaryRow}>
+                    <span>Selected Size</span>
+                    <span className={styles.summaryValue}>{size}</span>
+                  </div>
+                  <div className={styles.summaryRow}>
+                    <span>Thickness</span>
+                    <span className={styles.summaryValue}>{thickness}</span>
+                  </div>
+                  <div className={styles.summaryRow}>
+                    <span>Quantity</span>
+                    <span className={styles.summaryValue}>{quantity}</span>
+                  </div>
+                  <div className={styles.summaryTotal} style={{ marginTop: "12px" }}>
+                    <span>Total</span>
+                    <span>₹{calculatePrice()}</span>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    backgroundImage: `url(${roomWallBackground})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    minHeight: "360px",
+                    borderRadius: "12px",
+                    position: "relative",
+                    overflow: "hidden",
+                    marginTop: "20px",
+                  }}
+                >
+                  {uploadedImage ? (
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: `${getSummaryFrameSize().width}px`,
+                          height: `${getSummaryFrameSize().height}px`,
+                          border: "10px solid #fff",
+                          boxShadow: "0 12px 30px rgba(0,0,0,0.25)",
+                          backgroundImage: `url(${uploadedImage})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          borderRadius: "6px",
+                        }}
+                      />
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </div>
           </div>
@@ -921,75 +785,140 @@ export default function ProductClient({ product }) {
         <div className="row g-4">
           <div className="col-lg-7">
             <div className="card shadow-sm border-0">
-              <div className="card-body">
-                <h3 className="mb-4">Payment</h3>
-
-                <div className="mb-4">
-                  <p className="mb-2"><strong>Product:</strong> {product?.name}</p>
-                  <p className="mb-2"><strong>Size:</strong> {size}</p>
-                  <p className="mb-2"><strong>Thickness:</strong> {thickness}</p>
-                  <p className="mb-2"><strong>Quantity:</strong> {quantity}</p>
-                  <p className="mb-2"><strong>Name:</strong> {formData.fullName}</p>
-                  <p className="mb-2"><strong>Phone:</strong> {formData.phone}</p>
-                  <p className="mb-2"><strong>Address:</strong> {formData.address}</p>
-                  <h4 className="mt-3">Total: ₹{calculatePrice()}</h4>
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Select Payment Method</label>
-                  <select
-                    className="form-select"
-                    value={formData.paymentMethod}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        paymentMethod: e.target.value,
-                      }))
-                    }
-                  >
-                    <option value="razorpay">Razorpay</option>
-                    <option value="gpay">Google Pay</option>
-                  </select>
-                </div>
-
-                <div className="d-flex gap-2 mt-4">
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    onClick={() => goToStep(2)}
-                  >
+              <div className="card-body p-4">
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                  <h4 className="mb-0">Shipping & Payment</h4>
+                  <button className="btn btn-outline-secondary" onClick={() => goToStep(2)} type="button">
+                    <i className="bi bi-arrow-left me-2"></i>
                     Back
                   </button>
                 </div>
 
-                <div className="mt-4">
-                  {formData.paymentMethod === "razorpay" ? (
-                    <RazorpayPayment
-                      amount={calculatePrice()}
-                      buttonText={`Pay ₹${calculatePrice()}`}
-                      themeColor={themeColor}
-                      customerDetails={{
-                        name: formData.fullName,
-                        fullName: formData.fullName,
-                        email: formData.email,
-                        phone: formData.phone,
-                        address: formData.address,
-                        city: formData.city,
-                        state: formData.state,
-                        pincode: formData.pincode,
-                        size,
-                        thickness,
-                        quantity,
-                        productType: "portrait",
-                        productName: product?.name || "Portrait Print",
-                      }}
-                      onSuccess={() => alert("Payment Success")}
-                      onError={(msg) => alert(msg || "Payment Failed")}
-                    />
-                  ) : (
-                    <GPayButton amount={calculatePrice()} />
-                  )}
-                </div>
+                <form onSubmit={(e) => e.preventDefault()}>
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <label className="form-label">Full Name</label>
+                      <input className="form-control" name="fullName" value={formData.fullName} onChange={handleInputChange} />
+                      {formErrors.fullName && <small className="text-danger">{formErrors.fullName}</small>}
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Email</label>
+                      <input className="form-control" name="email" value={formData.email} onChange={handleInputChange} />
+                      {formErrors.email && <small className="text-danger">{formErrors.email}</small>}
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Phone</label>
+                      <input className="form-control" name="phone" value={formData.phone} onChange={handleInputChange} />
+                      {formErrors.phone && <small className="text-danger">{formErrors.phone}</small>}
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Alternate Phone</label>
+                      <input className="form-control" name="alternatePhone" value={formData.alternatePhone} onChange={handleInputChange} />
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label">Address</label>
+                      <textarea className="form-control" rows="3" name="address" value={formData.address} onChange={handleInputChange} />
+                      {formErrors.address && <small className="text-danger">{formErrors.address}</small>}
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label">Alternate Address</label>
+                      <textarea className="form-control" rows="2" name="alternateAddress" value={formData.alternateAddress} onChange={handleInputChange} />
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label">City</label>
+                      <input className="form-control" name="city" value={formData.city} onChange={handleInputChange} />
+                      {formErrors.city && <small className="text-danger">{formErrors.city}</small>}
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label">State</label>
+                      <input className="form-control" name="state" value={formData.state} onChange={handleInputChange} />
+                      {formErrors.state && <small className="text-danger">{formErrors.state}</small>}
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label">Pincode</label>
+                      <input className="form-control" value={pincode} onChange={handlePincodeChange} maxLength={6} />
+                      {formErrors.pincode && <small className="text-danger">{formErrors.pincode}</small>}
+                    </div>
+                  </div>
+
+                  <div className="d-flex gap-2 mt-3">
+                    <button className="btn btn-outline-primary" type="button" onClick={handleCheckDelivery}>
+                      {deliveryStatus.isChecking ? "Checking..." : "Check Delivery"}
+                    </button>
+                    {deliveryStatus.message && (
+                      <span className={`align-self-center ${deliveryStatus.type === "success" ? "text-success" : "text-danger"}`}>
+                        {deliveryStatus.message}
+                      </span>
+                    )}
+                  </div>
+
+                  <hr className="my-4" />
+
+                  <h5 className="mb-3">Payment Method</h5>
+                  <div className="d-flex gap-4 flex-wrap mb-3">
+                    <label className={styles.paymentOption}>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="razorpay"
+                        checked={formData.paymentMethod === "razorpay"}
+                        onChange={handleInputChange}
+                      />
+                      <span className={styles.radioCustom}></span>
+                      <img
+                        src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773377507/razorpay_chzbwv.svg"
+                        alt="Razorpay"
+                      />
+                      <span>Razorpay</span>
+                    </label>
+
+                    <label className={styles.paymentOption}>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="gpay"
+                        checked={formData.paymentMethod === "gpay"}
+                        onChange={handleInputChange}
+                      />
+                      <span className={styles.radioCustom}></span>
+                      <i className="bi bi-google"></i>
+                      <span>Google Pay</span>
+                    </label>
+                  </div>
+
+                  <div className={styles.paymentButton}>
+                    {formData.paymentMethod === "razorpay" ? (
+                      <RazorpayPayment
+                        amount={calculatePrice()}
+                        buttonText={`Pay ₹${calculatePrice()}`}
+                        themeColor={themeColor}
+                        customerDetails={{
+                          name: formData.fullName,
+                          email: formData.email,
+                          phone: formData.phone,
+                          address: formData.address,
+                          size,
+                          thickness,
+                          quantity,
+                          imageZoom: zoom,
+                          imageOffsetX: imageOffset.x,
+                          imageOffsetY: imageOffset.y,
+                          productType: "portrait",
+                          productName: product?.name || "Portrait Print",
+                          orderId,
+                        }}
+                        onSuccess={() =>
+                          showNotification("Payment successful! Thank you for your order.", "success")
+                        }
+                        onError={(msg) =>
+                          showNotification(msg || "Payment failed. Please try again.", "error")
+                        }
+                      />
+                    ) : (
+                      <GPayButton amount={calculatePrice()} />
+                    )}
+                  </div>
+                </form>
               </div>
             </div>
           </div>
@@ -1049,6 +978,29 @@ export default function ProductClient({ product }) {
                     </div>
                   )}
                 </div>
+
+                <div className={styles.summaryDetails} style={{ marginTop: "16px" }}>
+                  <div className={styles.summaryRow}>
+                    <span>Selected Size</span>
+                    <span className={styles.summaryValue}>{size}</span>
+                  </div>
+                  <div className={styles.summaryRow}>
+                    <span>Thickness</span>
+                    <span className={styles.summaryValue}>{thickness}</span>
+                  </div>
+                  <div className={styles.summaryRow}>
+                    <span>Quantity</span>
+                    <span className={styles.summaryValue}>{quantity}</span>
+                  </div>
+                  <div className={styles.summaryRow}>
+                    <span>Estimated Delivery</span>
+                    <span className={styles.summaryValue}>{estimatedDeliveryDate || "3-5 business days"}</span>
+                  </div>
+                  <div className={styles.summaryTotal} style={{ marginTop: "12px" }}>
+                    <span>Total</span>
+                    <span>₹{calculatePrice()}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1073,14 +1025,7 @@ export default function ProductClient({ product }) {
               <button
                 type="button"
                 className="btn-close"
-                onClick={() =>
-                  setShowToast({
-                    visible: false,
-                    type: "",
-                    title: "",
-                    message: "",
-                  })
-                }
+                onClick={() => setShowToast({ visible: false, type: "", title: "", message: "" })}
               />
             </div>
             <div className="toast-body">{showToast.message}</div>
