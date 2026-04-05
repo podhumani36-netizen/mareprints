@@ -1401,7 +1401,7 @@ export default function ProductClient() {
                 <div className={styles.formSection}>
                   <h5 className={styles.sectionTitle}>Payment Method</h5>
 
-                  <div className={styles.paymentOptions}>
+                  {/* <div className={styles.paymentOptions}>
                     <label className={styles.paymentOption}>
                       <input
                         type="radio"
@@ -1430,7 +1430,7 @@ export default function ProductClient() {
                       <i className="bi bi-google"></i>
                       <span>Google Pay</span>
                     </label>
-                  </div>
+                  </div> */}
 
                   {!isPaymentReady ? (
                     <button

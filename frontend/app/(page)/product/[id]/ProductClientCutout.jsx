@@ -880,7 +880,7 @@ export default function ProductClientCutout({ product }) {
 
                 <div className="col-12">
                   <label className="form-label">Payment Method</label>
-                  <div className="d-flex gap-3 mt-2">
+                  {/* <div className="d-flex gap-3 mt-2">
                     <div className="form-check">
                       <input
                         type="radio"
@@ -904,7 +904,7 @@ export default function ProductClientCutout({ product }) {
                       />
                       <label className="form-check-label">Google Pay</label>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
 
                 <div className="col-12">
