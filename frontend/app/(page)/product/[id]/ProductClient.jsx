@@ -7,7 +7,7 @@ import RazorpayPayment from "../../../Components/payment/Razorpay";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
-export default function ProductClient({ product }) {
+export default function ProductClient() {
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [zoom, setZoom] = useState(1);
@@ -19,6 +19,7 @@ export default function ProductClient({ product }) {
   const [isDragging, setIsDragging] = useState(false);
   const [orderId, setOrderId] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [isPaymentReady, setIsPaymentReady] = useState(false);
 
   const [showToast, setShowToast] = useState({
     visible: false,
@@ -31,14 +32,8 @@ export default function ProductClient({ product }) {
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
 
-  const [orientation, setOrientation] = useState(
-    product?.productType?.toLowerCase() === "landscape" ? "landscape" : "portrait"
-  );
-
-  const portraitSizes = ["8x10", "11x14", "16x20", "20x24", "24x36"];
-  const landscapeSizes = ["10x8", "14x11", "20x16", "24x20", "36x24"];
-
-  const [size, setSize] = useState(product?.defaultSize || "8x10");
+  const [orientation, setOrientation] = useState("portrait");
+  const [size, setSize] = useState("8x10");
   const [thickness, setThickness] = useState("3mm");
   const [pincode, setPincode] = useState("");
   const [deliveryStatus, setDeliveryStatus] = useState({
@@ -63,19 +58,14 @@ export default function ProductClient({ product }) {
 
   const [formErrors, setFormErrors] = useState({});
 
-  const sizeOptions = product?.sizeOptions
-    ? {
-        portrait: product.sizeOptions,
-        landscape: product.sizeOptions,
-      }
-    : {
-        portrait: portraitSizes,
-        landscape: landscapeSizes,
-      };
+  const sizeOptions = {
+    portrait: ["8x10", "11x14", "16x20", "20x24", "24x36"],
+    landscape: ["10x8", "14x11", "20x16", "24x20", "36x24"],
+  };
 
-  const thicknessOptions = product?.thicknessOptions || ["3mm", "5mm", "8mm"];
+  const thicknessOptions = ["3mm", "5mm", "8mm"];
 
-  const frameDimensions = product?.frameDimensions || {
+  const frameDimensions = {
     "8x10": { width: 180, height: 220 },
     "11x14": { width: 220, height: 280 },
     "16x20": { width: 280, height: 340 },
@@ -88,11 +78,8 @@ export default function ProductClient({ product }) {
     "36x24": { width: 480, height: 360 },
   };
 
-  const basePrice = product?.basePrice || 799;
-  const priceIncrement = product?.priceIncrement || 150;
-  const themeColor = product?.themeColor || "#3496cb";
+  const basePrice = 799;
   const roomWallBackground =
-    product?.backgroundImage ||
     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
 
   useEffect(() => {
@@ -104,24 +91,6 @@ export default function ProductClient({ product }) {
   useEffect(() => {
     setOrderId(`#ORD${Math.floor(Math.random() * 10000)}`);
   }, []);
-
-  useEffect(() => {
-    if (product?.productType?.toLowerCase() === "landscape") {
-      setOrientation("landscape");
-    } else if (product?.productType?.toLowerCase() === "portrait") {
-      setOrientation("portrait");
-    }
-  }, [product]);
-
-  useEffect(() => {
-    if (product?.defaultSize) {
-      setSize(product.defaultSize);
-    } else {
-      setSize(orientation === "portrait" ? "8x10" : "10x8");
-    }
-    setZoom(1);
-    setImageOffset({ x: 0, y: 0 });
-  }, [orientation, product]);
 
   useEffect(() => {
     if (!uploadedImage || !canvasRef.current) return;
@@ -145,6 +114,12 @@ export default function ProductClient({ product }) {
       showNotification("Failed to load image. Please try again.", "error");
     };
   }, [uploadedImage]);
+
+  useEffect(() => {
+    setSize(orientation === "portrait" ? "8x10" : "10x8");
+    setZoom(1);
+    setImageOffset({ x: 0, y: 0 });
+  }, [orientation]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -205,22 +180,30 @@ export default function ProductClient({ product }) {
     }, 3000);
   };
 
+  const openSuccessModal = () => {
+    if (typeof window !== "undefined" && window.bootstrap) {
+      const modalEl = document.getElementById("successModal");
+      if (modalEl) {
+        const modal = new window.bootstrap.Modal(modalEl);
+        modal.show();
+      }
+    }
+  };
+
   const calculatePrice = useCallback(() => {
     let price = basePrice;
 
-    const currentSizeOptions =
+    const sizeIndex =
       orientation === "portrait"
-        ? sizeOptions.portrait
-        : sizeOptions.landscape;
+        ? sizeOptions.portrait.indexOf(size)
+        : sizeOptions.landscape.indexOf(size);
 
-    const sizeIndex = currentSizeOptions.indexOf(size);
-
-    if (sizeIndex > 0) price += sizeIndex * priceIncrement;
+    if (sizeIndex > 0) price += sizeIndex * 150;
     if (thickness === "5mm") price += 150;
     if (thickness === "8mm") price += 300;
 
     return price * quantity;
-  }, [basePrice, orientation, size, sizeOptions, thickness, quantity, priceIncrement]);
+  }, [orientation, size, thickness, quantity]);
 
   const handleDragEnter = (e) => {
     e.preventDefault();
@@ -308,6 +291,7 @@ export default function ProductClient({ product }) {
     setUploadedImage(null);
     setZoom(1);
     setImageOffset({ x: 0, y: 0 });
+    setCurrentStep(1);
     if (fileInputRef.current) fileInputRef.current.value = "";
     showNotification("Image removed successfully", "warning");
   };
@@ -324,7 +308,6 @@ export default function ProductClient({ product }) {
   const handlePincodeChange = (e) => {
     const value = e.target.value.replace(/\D/g, "").slice(0, 6);
     setPincode(value);
-    setFormData((prev) => ({ ...prev, pincode: value }));
     setDeliveryStatus({ message: "", type: "", isChecking: false });
   };
 
@@ -368,10 +351,24 @@ export default function ProductClient({ product }) {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    let sanitizedValue = value;
+
+    if (name === "phone" || name === "alternatePhone") {
+      sanitizedValue = value.replace(/\D/g, "").slice(0, 10);
+    }
+
+    if (name === "pincode") {
+      sanitizedValue = value.replace(/\D/g, "").slice(0, 6);
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
 
     if (formErrors[name]) {
       setFormErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+
+    if (name !== "paymentMethod") {
+      setIsPaymentReady(false);
     }
   };
 
@@ -379,6 +376,7 @@ export default function ProductClient({ product }) {
     const errors = {};
 
     if (!formData.fullName.trim()) errors.fullName = "Full name is required";
+
     if (!formData.email.trim()) errors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       errors.email = "Invalid email format";
@@ -389,9 +387,17 @@ export default function ProductClient({ product }) {
       errors.phone = "Phone must be 10 digits";
     }
 
+    if (
+      formData.alternatePhone.trim() &&
+      !/^\d{10}$/.test(formData.alternatePhone)
+    ) {
+      errors.alternatePhone = "Alternate phone must be 10 digits";
+    }
+
     if (!formData.address.trim()) errors.address = "Address is required";
     if (!formData.city.trim()) errors.city = "City is required";
     if (!formData.state.trim()) errors.state = "State is required";
+
     if (!formData.pincode.trim()) errors.pincode = "Pincode is required";
     else if (!/^\d{6}$/.test(formData.pincode)) {
       errors.pincode = "Pincode must be 6 digits";
@@ -400,17 +406,34 @@ export default function ProductClient({ product }) {
     return errors;
   };
 
-  const handleSubmitOrder = (e) => {
-    e.preventDefault();
+  const validateBeforePayment = () => {
     const errors = validateForm();
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
+      setIsPaymentReady(false);
       showNotification("Please fill all required fields correctly", "error");
       return;
     }
 
-    showNotification("Details saved successfully!", "success");
+    setFormErrors({});
+    setIsPaymentReady(true);
+    showNotification("Details verified. You can continue payment now.", "success");
+  };
+
+  const handleSubmitOrder = (e) => {
+    e.preventDefault();
+    validateBeforePayment();
+  };
+
+  const handlePaymentSuccess = () => {
+    showNotification("Payment successful! Thank you for your order.", "success");
+    openSuccessModal();
+    setIsPaymentReady(false);
+  };
+
+  const handlePaymentError = () => {
+    showNotification("Payment failed. Please try again.", "error");
   };
 
   const goToStep = (step) => {
@@ -419,19 +442,9 @@ export default function ProductClient({ product }) {
       return;
     }
 
-    if (step === 3) {
-      const errors = validateForm();
-
-      if (!uploadedImage) {
-        showNotification("Please upload an image first", "warning");
-        return;
-      }
-
-      if (Object.keys(errors).length > 0) {
-        setFormErrors(errors);
-        showNotification("Please fill all required fields correctly", "error");
-        return;
-      }
+    if (step === 3 && !uploadedImage) {
+      showNotification("Please upload an image first", "warning");
+      return;
     }
 
     setCurrentStep(step);
@@ -934,34 +947,32 @@ export default function ProductClient({ product }) {
                   Customize Your Print
                 </h4>
 
-                {!product?.sizeOptions && (
-                  <div className={styles.optionGroup}>
-                    <label className={styles.optionLabel}>Orientation</label>
-                    <div className={styles.buttonGroup}>
-                      <button
-                        className={`${styles.optionButton} ${
-                          orientation === "portrait" ? styles.active : ""
-                        }`}
-                        onClick={() => setOrientation("portrait")}
-                        type="button"
-                      >
-                        <i className="bi bi-phone-portrait"></i>
-                        Portrait
-                      </button>
+                <div className={styles.optionGroup}>
+                  <label className={styles.optionLabel}>Orientation</label>
+                  <div className={styles.buttonGroup}>
+                    <button
+                      className={`${styles.optionButton} ${
+                        orientation === "portrait" ? styles.active : ""
+                      }`}
+                      onClick={() => setOrientation("portrait")}
+                      type="button"
+                    >
+                      <i className="bi bi-phone-portrait"></i>
+                      Portrait
+                    </button>
 
-                      <button
-                        className={`${styles.optionButton} ${
-                          orientation === "landscape" ? styles.active : ""
-                        }`}
-                        onClick={() => setOrientation("landscape")}
-                        type="button"
-                      >
-                        <i className="bi bi-phone-landscape"></i>
-                        Landscape
-                      </button>
-                    </div>
+                    <button
+                      className={`${styles.optionButton} ${
+                        orientation === "landscape" ? styles.active : ""
+                      }`}
+                      onClick={() => setOrientation("landscape")}
+                      type="button"
+                    >
+                      <i className="bi bi-phone-landscape"></i>
+                      Landscape
+                    </button>
                   </div>
-                )}
+                </div>
 
                 <div className={styles.optionGroup}>
                   <label className={styles.optionLabel}>Size (inches)</label>
@@ -1005,6 +1016,31 @@ export default function ProductClient({ product }) {
                 <div className={styles.optionGroup}>
                   <label className={styles.optionLabel}>Price</label>
 
+                  {/* Optional pincode checker
+                  <div className={styles.pincodeInput}>
+                    <input
+                      type="text"
+                      className={styles.pincodeField}
+                      placeholder="Enter 6-digit pincode"
+                      value={pincode}
+                      onChange={handlePincodeChange}
+                      maxLength="6"
+                    />
+                    <button
+                      className={styles.checkButton}
+                      onClick={handleCheckDelivery}
+                      disabled={pincode.length !== 6 || deliveryStatus.isChecking}
+                      type="button"
+                    >
+                      {deliveryStatus.isChecking ? (
+                        <span className={styles.spinner}></span>
+                      ) : (
+                        "Check"
+                      )}
+                    </button>
+                  </div>
+                  */}
+
                   {deliveryStatus.message && (
                     <div
                       className={`${styles.deliveryMessage} ${
@@ -1033,14 +1069,14 @@ export default function ProductClient({ product }) {
                     <span>₹{basePrice}</span>
                   </div>
 
-                  {size !== (product?.defaultSize || (orientation === "portrait" ? "8x10" : "10x8")) && (
+                  {size !== (orientation === "portrait" ? "8x10" : "10x8") && (
                     <div className={styles.priceRow}>
                       <span>Size Upgrade</span>
                       <span>
                         +₹
                         {(orientation === "portrait"
                           ? sizeOptions.portrait.indexOf(size)
-                          : sizeOptions.landscape.indexOf(size)) * priceIncrement}
+                          : sizeOptions.landscape.indexOf(size)) * 150}
                       </span>
                     </div>
                   )}
@@ -1062,10 +1098,6 @@ export default function ProductClient({ product }) {
                   className={styles.proceedButton}
                   onClick={() => goToStep(3)}
                   type="button"
-                  style={{
-                    backgroundColor: themeColor,
-                    borderColor: themeColor,
-                  }}
                 >
                   Proceed to Payment
                   <i className="bi bi-arrow-right ms-2"></i>
@@ -1110,7 +1142,10 @@ export default function ProductClient({ product }) {
                     <select
                       className={styles.quantityDropdown}
                       value={quantity}
-                      onChange={(e) => setQuantity(Number(e.target.value))}
+                      onChange={(e) => {
+                        setQuantity(Number(e.target.value));
+                        setIsPaymentReady(false);
+                      }}
                     >
                       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
                         <option key={num} value={num}>
@@ -1135,7 +1170,7 @@ export default function ProductClient({ product }) {
               <div className={styles.progressBar}>
                 <div
                   className={styles.progressFill}
-                  style={{ width: "66%" }}
+                  style={{ width: "100%" }}
                 ></div>
               </div>
             </div>
@@ -1242,13 +1277,20 @@ export default function ProductClient({ product }) {
                         <input
                           type="tel"
                           name="alternatePhone"
-                          className={styles.formInput}
+                          className={`${styles.formInput} ${
+                            formErrors.alternatePhone ? styles.error : ""
+                          }`}
                           placeholder="Optional"
                           value={formData.alternatePhone}
                           onChange={handleInputChange}
                           maxLength="10"
                         />
                       </div>
+                      {formErrors.alternatePhone && (
+                        <span className={styles.errorMessage}>
+                          {formErrors.alternatePhone}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1390,64 +1432,75 @@ export default function ProductClient({ product }) {
                     </label>
                   </div>
 
-                  <div className={styles.paymentButton}>
-                    {formData.paymentMethod === "razorpay" ? (
-                      <RazorpayPayment
-                        amount={calculatePrice()}
-                        buttonText={`Pay ₹${calculatePrice()}`}
-                        themeColor={themeColor}
-                        customerDetails={{
-                          name: formData.fullName,
-                          fullName: formData.fullName,
-                          email: formData.email,
-                          phone: formData.phone,
-                          alternatePhone: formData.alternatePhone,
-                          address: formData.address,
-                          alternateAddress: formData.alternateAddress,
-                          city: formData.city,
-                          state: formData.state,
-                          pincode: formData.pincode,
-                          orientation,
-                          size,
-                          thickness,
-                          quantity,
-                          imageZoom: zoom,
-                          imageOffsetX: imageOffset.x,
-                          imageOffsetY: imageOffset.y,
-                          productType: orientation,
-                          productName: product?.name || "Portrait Print",
-                        }}
-                        onSuccess={() =>
-                          showNotification(
-                            "Payment successful! Thank you for your order.",
-                            "success"
-                          )
-                        }
-                        onError={(msg) =>
-                          showNotification(
-                            msg || "Payment failed. Please try again.",
-                            "error"
-                          )
-                        }
-                      />
-                    ) : (
-                      <GPayButton
-                        amount={calculatePrice()}
-                        onSuccess={() =>
-                          showNotification(
-                            "Payment successful! Thank you for your order.",
-                            "success"
-                          )
-                        }
-                        onError={() =>
-                          showNotification(
-                            "Payment failed. Please try again.",
-                            "error"
-                          )
-                        }
-                      />
-                    )}
-                  </div>
+                  {!isPaymentReady ? (
+                    <button
+                      type="submit"
+                      className={styles.proceedButton}
+                      style={{ marginTop: "14px" }}
+                    >
+                      Verify Details & Continue
+                      <i className="bi bi-shield-check ms-2"></i>
+                    </button>
+                  ) : (
+                    <div className={styles.paymentButton}>
+                      {formData.paymentMethod === "razorpay" ? (
+                        <RazorpayPayment
+                          amount={calculatePrice()}
+                          buttonText={`Pay ₹${calculatePrice()}`}
+                          themeColor="#3496cb"
+                          customerDetails={{
+                            orderId,
+                            productType: "portrait",
+                            productName: "Custom Portrait Print",
+                            name: formData.fullName,
+                            email: formData.email,
+                            phone: formData.phone,
+                            alternatePhone: formData.alternatePhone,
+                            address: formData.address,
+                            alternateAddress: formData.alternateAddress,
+                            city: formData.city,
+                            state: formData.state,
+                            pincode: formData.pincode,
+                            orientation,
+                            size,
+                            thickness,
+                            quantity,
+                            amount: calculatePrice(),
+                            imageZoom: zoom,
+                            imageOffsetX: imageOffset.x,
+                            imageOffsetY: imageOffset.y,
+                          }}
+                          onSuccess={handlePaymentSuccess}
+                          onError={handlePaymentError}
+                        />
+                      ) : (
+                        <GPayButton
+                          amount={calculatePrice()}
+                          customerDetails={{
+                            orderId,
+                            productType: "portrait",
+                            productName: "Custom Portrait Print",
+                            name: formData.fullName,
+                            email: formData.email,
+                            phone: formData.phone,
+                            alternatePhone: formData.alternatePhone,
+                            address: formData.address,
+                            alternateAddress: formData.alternateAddress,
+                            city: formData.city,
+                            state: formData.state,
+                            pincode: formData.pincode,
+                            orientation,
+                            size,
+                            thickness,
+                            quantity,
+                            amount: calculatePrice(),
+                          }}
+                          onSuccess={handlePaymentSuccess}
+                          onError={handlePaymentError}
+                        />
+                      )}
+                    </div>
+                  )}
                 </div>
               </form>
             </div>
@@ -1486,6 +1539,36 @@ export default function ProductClient({ product }) {
           <div>{showToast.message}</div>
         </div>
       )}
+
+      <div
+        className="modal fade"
+        id="successModal"
+        tabIndex="-1"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Order Submitted</h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              <p>Your order has been placed successfully.</p>
+              <p>
+                <strong>Order ID:</strong> {orderId}
+              </p>
+              <p>
+                <strong>Amount Paid:</strong> ₹{calculatePrice()}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
