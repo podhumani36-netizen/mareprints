@@ -1,6 +1,6 @@
 """
 payments/views.py
-Razorpay Create Order + Verify Payment + Email Notification with Preview Attachment
+Razorpay Create Order + Verify Payment + Email Notification with Preview Image
 """
 
 import base64
@@ -23,99 +23,109 @@ client = razorpay.Client(
 )
 
 
-def build_customer_email_message(customer_details, razorpay_order_id, payment_id):
+def build_customer_email_message(customer_details, razorpay_order_id, payment_id, preview_image):
     return f"""
-Dear {customer_details.get('name', 'Customer')},
+    <html>
+    <body style="font-family: Arial, sans-serif; color: #222; line-height: 1.6;">
+        <h2 style="color:#2C7FB8;">Payment Successful 🎉</h2>
 
-Your payment was successful.
+        <p>Dear {customer_details.get('name', 'Customer')},</p>
 
-Order Details:
---------------------------------
-Website Order ID: {customer_details.get('orderId', '')}
-Razorpay Order ID: {razorpay_order_id}
-Payment ID: {payment_id}
+        <p>Your payment was successful.</p>
 
-Product Details:
---------------------------------
-Product Name: {customer_details.get('productName', '')}
-Product Type: {customer_details.get('productType', '')}
-Orientation: {customer_details.get('orientation', '')}
-Size: {customer_details.get('size', '')}
-Thickness: {customer_details.get('thickness', '')}
-Quantity: {customer_details.get('quantity', '')}
-Amount Paid: ₹{customer_details.get('amount', '')}
+        <h3>Order Details</h3>
+        <p><b>Website Order ID:</b> {customer_details.get('orderId', '')}</p>
+        <p><b>Razorpay Order ID:</b> {razorpay_order_id}</p>
+        <p><b>Payment ID:</b> {payment_id}</p>
 
-Customer Details:
---------------------------------
-Name: {customer_details.get('name', '')}
-Email: {customer_details.get('email', '')}
-Phone: {customer_details.get('phone', '')}
-Alternate Phone: {customer_details.get('alternatePhone', '')}
+        <h3>Product Details</h3>
+        <p><b>Product Name:</b> {customer_details.get('productName', '')}</p>
+        <p><b>Product Type:</b> {customer_details.get('productType', '')}</p>
+        <p><b>Orientation:</b> {customer_details.get('orientation', '')}</p>
+        <p><b>Size:</b> {customer_details.get('size', '')}</p>
+        <p><b>Thickness:</b> {customer_details.get('thickness', '')}</p>
+        <p><b>Quantity:</b> {customer_details.get('quantity', '')}</p>
+        <p><b>Amount Paid:</b> ₹{customer_details.get('amount', '')}</p>
 
-Address:
---------------------------------
-Address: {customer_details.get('address', '')}
-Alternate Address: {customer_details.get('alternateAddress', '')}
-City: {customer_details.get('city', '')}
-State: {customer_details.get('state', '')}
-Pincode: {customer_details.get('pincode', '')}
+        <h3>Customer Details</h3>
+        <p><b>Name:</b> {customer_details.get('name', '')}</p>
+        <p><b>Email:</b> {customer_details.get('email', '')}</p>
+        <p><b>Phone:</b> {customer_details.get('phone', '')}</p>
+        <p><b>Alternate Phone:</b> {customer_details.get('alternatePhone', '')}</p>
 
-Customization:
---------------------------------
-Zoom: {customer_details.get('imageZoom', '')}
-Image Offset X: {customer_details.get('imageOffsetX', '')}
-Image Offset Y: {customer_details.get('imageOffsetY', '')}
+        <h3>Address</h3>
+        <p><b>Address:</b> {customer_details.get('address', '')}</p>
+        <p><b>Alternate Address:</b> {customer_details.get('alternateAddress', '')}</p>
+        <p><b>City:</b> {customer_details.get('city', '')}</p>
+        <p><b>State:</b> {customer_details.get('state', '')}</p>
+        <p><b>Pincode:</b> {customer_details.get('pincode', '')}</p>
 
-Your customized preview image is attached with this email.
+        <h3>Customization</h3>
+        <p><b>Zoom:</b> {customer_details.get('imageZoom', '')}</p>
+        <p><b>Image Offset X:</b> {customer_details.get('imageOffsetX', '')}</p>
+        <p><b>Image Offset Y:</b> {customer_details.get('imageOffsetY', '')}</p>
 
-Regards,
-Mare Prints
-""".strip()
+        <h3>Preview Image</h3>
+        <img src="{preview_image}" style="max-width:300px; border:1px solid #ccc; border-radius:8px;" />
+
+        <p style="margin-top:20px;">
+            Your customized preview image is also attached with this email, so you can download it anytime.
+        </p>
+
+        <p>Regards,<br><b>Mare Prints</b></p>
+    </body>
+    </html>
+    """.strip()
 
 
-def build_admin_email_message(customer_details, razorpay_order_id, payment_id):
+def build_admin_email_message(customer_details, razorpay_order_id, payment_id, preview_image):
     return f"""
-New payment received on Mare Prints.
+    <html>
+    <body style="font-family: Arial, sans-serif; color: #222; line-height: 1.6;">
+        <h2 style="color:#2C7FB8;">New Order Payment Received</h2>
 
-Payment Details:
---------------------------------
-Website Order ID: {customer_details.get('orderId', '')}
-Razorpay Order ID: {razorpay_order_id}
-Payment ID: {payment_id}
-Amount Paid: ₹{customer_details.get('amount', '')}
+        <p><b>Website Order ID:</b> {customer_details.get('orderId', '')}</p>
+        <p><b>Razorpay Order ID:</b> {razorpay_order_id}</p>
+        <p><b>Payment ID:</b> {payment_id}</p>
+        <p><b>Amount Paid:</b> ₹{customer_details.get('amount', '')}</p>
 
-Product Details:
---------------------------------
-Product Name: {customer_details.get('productName', '')}
-Product Type: {customer_details.get('productType', '')}
-Orientation: {customer_details.get('orientation', '')}
-Size: {customer_details.get('size', '')}
-Thickness: {customer_details.get('thickness', '')}
-Quantity: {customer_details.get('quantity', '')}
+        <h3>Product Details</h3>
+        <p><b>Product Name:</b> {customer_details.get('productName', '')}</p>
+        <p><b>Product Type:</b> {customer_details.get('productType', '')}</p>
+        <p><b>Orientation:</b> {customer_details.get('orientation', '')}</p>
+        <p><b>Size:</b> {customer_details.get('size', '')}</p>
+        <p><b>Thickness:</b> {customer_details.get('thickness', '')}</p>
+        <p><b>Quantity:</b> {customer_details.get('quantity', '')}</p>
 
-Customer Details:
---------------------------------
-Name: {customer_details.get('name', '')}
-Email: {customer_details.get('email', '')}
-Phone: {customer_details.get('phone', '')}
-Alternate Phone: {customer_details.get('alternatePhone', '')}
+        <h3>Customer Details</h3>
+        <p><b>Name:</b> {customer_details.get('name', '')}</p>
+        <p><b>Email:</b> {customer_details.get('email', '')}</p>
+        <p><b>Phone:</b> {customer_details.get('phone', '')}</p>
+        <p><b>Alternate Phone:</b> {customer_details.get('alternatePhone', '')}</p>
 
-Address:
---------------------------------
-Address: {customer_details.get('address', '')}
-Alternate Address: {customer_details.get('alternateAddress', '')}
-City: {customer_details.get('city', '')}
-State: {customer_details.get('state', '')}
-Pincode: {customer_details.get('pincode', '')}
+        <h3>Address</h3>
+        <p><b>Address:</b> {customer_details.get('address', '')}</p>
+        <p><b>Alternate Address:</b> {customer_details.get('alternateAddress', '')}</p>
+        <p><b>City:</b> {customer_details.get('city', '')}</p>
+        <p><b>State:</b> {customer_details.get('state', '')}</p>
+        <p><b>Pincode:</b> {customer_details.get('pincode', '')}</p>
 
-Customization:
---------------------------------
-Zoom: {customer_details.get('imageZoom', '')}
-Image Offset X: {customer_details.get('imageOffsetX', '')}
-Image Offset Y: {customer_details.get('imageOffsetY', '')}
+        <h3>Customization</h3>
+        <p><b>Zoom:</b> {customer_details.get('imageZoom', '')}</p>
+        <p><b>Image Offset X:</b> {customer_details.get('imageOffsetX', '')}</p>
+        <p><b>Image Offset Y:</b> {customer_details.get('imageOffsetY', '')}</p>
 
-Customized preview image attached.
-""".strip()
+        <h3>Preview Image</h3>
+        <img src="{preview_image}" style="max-width:300px; border:1px solid #ccc; border-radius:8px;" />
+
+        <p style="margin-top:20px;">
+            Preview image attachment also included. Admin can directly download from email attachment.
+        </p>
+
+        <p><b>Mare Prints Admin Notification</b></p>
+    </body>
+    </html>
+    """.strip()
 
 
 def get_attachment_from_base64(preview_image):
@@ -146,8 +156,8 @@ def get_attachment_from_base64(preview_image):
 
 
 def send_payment_emails(customer_details, razorpay_order_id, payment_id, preview_image=None):
-    customer_email = customer_details.get("email")
-    admin_email = getattr(settings, "ADMIN_EMAIL", settings.EMAIL_HOST_USER)
+    customer_email = (customer_details.get("email") or "").strip()
+    admin_email = (getattr(settings, "ADMIN_EMAIL", settings.EMAIL_HOST_USER) or "").strip()
 
     customer_subject = "Payment Successful - Mare Prints"
     admin_subject = f"New Order Payment Received - {customer_details.get('orderId', 'Mare Prints')}"
@@ -156,12 +166,14 @@ def send_payment_emails(customer_details, razorpay_order_id, payment_id, preview
         customer_details,
         razorpay_order_id,
         payment_id,
+        preview_image,
     )
 
     admin_message = build_admin_email_message(
         customer_details,
         razorpay_order_id,
         payment_id,
+        preview_image,
     )
 
     attachment = get_attachment_from_base64(preview_image)
@@ -173,6 +185,7 @@ def send_payment_emails(customer_details, razorpay_order_id, payment_id, preview
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[customer_email],
         )
+        customer_mail.content_subtype = "html"
 
         if attachment:
             customer_mail.attach(*attachment)
@@ -186,6 +199,7 @@ def send_payment_emails(customer_details, razorpay_order_id, payment_id, preview
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[admin_email],
         )
+        admin_mail.content_subtype = "html"
 
         if attachment:
             admin_mail.attach(*attachment)
@@ -200,7 +214,7 @@ class CreateOrderView(APIView):
         try:
             amount = request.data.get("amount")
 
-            if not amount:
+            if amount is None or amount == "":
                 return Response(
                     {"error": "Amount is required"},
                     status=status.HTTP_400_BAD_REQUEST
@@ -263,14 +277,17 @@ class PaymentVerifyView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            try:
-                order = Order.objects.get(id=order_id)
-                order.is_paid = True
-                order.payment_id = payment_id
-                order.status = "confirmed"
-                order.save()
-            except Order.DoesNotExist:
-                pass
+            website_order_id = customer_details.get("orderId")
+
+            if website_order_id:
+                try:
+                    order = Order.objects.get(id=website_order_id)
+                    order.is_paid = True
+                    order.payment_id = payment_id
+                    order.status = "confirmed"
+                    order.save()
+                except Order.DoesNotExist:
+                    pass
 
             send_payment_emails(
                 customer_details=customer_details,
