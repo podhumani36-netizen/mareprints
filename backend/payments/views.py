@@ -6,6 +6,7 @@ Razorpay Create Order + Verify Payment + Email Notification with Preview Image
 import base64
 import hashlib
 import hmac
+import logging
 import re
 
 import razorpay
@@ -17,6 +18,7 @@ from rest_framework.views import APIView
 
 from orders.models import Order
 
+logger = logging.getLogger(__name__)
 
 client = razorpay.Client(
     auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
@@ -29,7 +31,7 @@ def build_customer_email_message(customer_details, razorpay_order_id, payment_id
     <body style="font-family: Arial, sans-serif; color: #222; line-height: 1.6;">
         <h2 style="color:#2C7FB8;">Payment Successful 🎉</h2>
 
-        <p>Dear {customer_details.get('name', 'Customer')},</p>
+        <p>Dear {customer_details.get('name') or customer_details.get('fullName', 'Customer')},</p>
         <p>Your payment was successful.</p>
 
         <h3>Order Details</h3>
@@ -47,7 +49,7 @@ def build_customer_email_message(customer_details, razorpay_order_id, payment_id
         <p><b>Amount Paid:</b> ₹{customer_details.get('amount', '')}</p>
 
         <h3>Customer Details</h3>
-        <p><b>Name:</b> {customer_details.get('name', '')}</p>
+        <p><b>Name:</b> {customer_details.get('name') or customer_details.get('fullName', '')}</p>
         <p><b>Email:</b> {customer_details.get('email', '')}</p>
         <p><b>Phone:</b> {customer_details.get('phone', '')}</p>
         <p><b>Alternate Phone:</b> {customer_details.get('alternatePhone', '')}</p>
@@ -94,7 +96,7 @@ def build_admin_email_message(customer_details, razorpay_order_id, payment_id, p
         <p><b>Quantity:</b> {customer_details.get('quantity', '')}</p>
 
         <h3>Customer Details</h3>
-        <p><b>Name:</b> {customer_details.get('name', '')}</p>
+        <p><b>Name:</b> {customer_details.get('name') or customer_details.get('fullName', '')}</p>
         <p><b>Email:</b> {customer_details.get('email', '')}</p>
         <p><b>Phone:</b> {customer_details.get('phone', '')}</p>
         <p><b>Alternate Phone:</b> {customer_details.get('alternatePhone', '')}</p>
@@ -144,13 +146,21 @@ def get_attachment_from_base64(preview_image):
         file_data = base64.b64decode(base64_data)
         filename = f"customized_preview.{extension}"
         return (filename, file_data, mime_type)
-    except Exception:
+    except Exception as e:
+        logger.exception("Failed to decode preview image")
         return None
 
 
 def send_payment_emails(customer_details, razorpay_order_id, payment_id, preview_image=None):
     customer_email = (customer_details.get("email") or "").strip()
     admin_email = (getattr(settings, "ADMIN_EMAIL", settings.EMAIL_HOST_USER) or "").strip()
+
+    logger.info("=== EMAIL SEND STARTED ===")
+    logger.info(f"Customer email: {customer_email}")
+    logger.info(f"Admin email: {admin_email}")
+    logger.info(f"Razorpay Order ID: {razorpay_order_id}")
+    logger.info(f"Payment ID: {payment_id}")
+    logger.info(f"Preview image present: {bool(preview_image)}")
 
     customer_subject = "Payment Successful - Mare Prints"
     admin_subject = f"New Order Payment Received - {customer_details.get('orderId', 'Mare Prints')}"
@@ -170,34 +180,78 @@ def send_payment_emails(customer_details, razorpay_order_id, payment_id, preview
     )
 
     attachment = get_attachment_from_base64(preview_image)
+    logger.info(f"Attachment created: {bool(attachment)}")
 
-    if customer_email:
-        customer_mail = EmailMessage(
-            subject=customer_subject,
-            body=customer_message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[customer_email],
-        )
-        customer_mail.content_subtype = "html"
+    customer_sent = False
+    admin_sent = False
+    errors = []
 
-        if attachment:
-            customer_mail.attach(*attachment)
+    try:
+        if customer_email:
+            customer_mail = EmailMessage(
+                subject=customer_subject,
+                body=customer_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[customer_email],
+            )
+            customer_mail.content_subtype = "html"
 
-        customer_mail.send(fail_silently=False)
+            if attachment:
+                try:
+                    customer_mail.attach(*attachment)
+                    logger.info("Customer attachment attached successfully")
+                except Exception as attach_error:
+                    logger.exception("Customer attachment error")
+                    errors.append(f"Customer attachment error: {str(attach_error)}")
 
-    if admin_email:
-        admin_mail = EmailMessage(
-            subject=admin_subject,
-            body=admin_message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[admin_email],
-        )
-        admin_mail.content_subtype = "html"
+            customer_mail.send(fail_silently=False)
+            customer_sent = True
+            logger.info("Customer mail sent successfully")
+        else:
+            logger.warning("Customer email missing")
+            errors.append("Customer email missing")
 
-        if attachment:
-            admin_mail.attach(*attachment)
+    except Exception as e:
+        logger.exception("Customer mail send failed")
+        errors.append(f"Customer mail send failed: {str(e)}")
 
-        admin_mail.send(fail_silently=False)
+    try:
+        if admin_email:
+            admin_mail = EmailMessage(
+                subject=admin_subject,
+                body=admin_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[admin_email],
+            )
+            admin_mail.content_subtype = "html"
+
+            if attachment:
+                try:
+                    admin_mail.attach(*attachment)
+                    logger.info("Admin attachment attached successfully")
+                except Exception as attach_error:
+                    logger.exception("Admin attachment error")
+                    errors.append(f"Admin attachment error: {str(attach_error)}")
+
+            admin_mail.send(fail_silently=False)
+            admin_sent = True
+            logger.info("Admin mail sent successfully")
+        else:
+            logger.warning("Admin email missing")
+            errors.append("Admin email missing")
+
+    except Exception as e:
+        logger.exception("Admin mail send failed")
+        errors.append(f"Admin mail send failed: {str(e)}")
+
+    logger.info(f"=== EMAIL SEND FINISHED | customer_sent={customer_sent} | admin_sent={admin_sent} ===")
+
+    return {
+        "customer_sent": customer_sent,
+        "admin_sent": admin_sent,
+        "email_sent": customer_sent or admin_sent,
+        "email_error": " | ".join(errors) if errors else None,
+    }
 
 
 class CreateOrderView(APIView):
@@ -210,7 +264,7 @@ class CreateOrderView(APIView):
             if amount is None or amount == "":
                 return Response(
                     {"error": "Amount is required"},
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             amount = float(amount)
@@ -218,7 +272,7 @@ class CreateOrderView(APIView):
             if amount <= 0:
                 return Response(
                     {"error": "Invalid amount"},
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             razorpay_order = client.order.create({
@@ -235,9 +289,10 @@ class CreateOrderView(APIView):
             }, status=status.HTTP_200_OK)
 
         except Exception as e:
+            logger.exception("CreateOrderView failed")
             return Response(
                 {"error": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -279,34 +334,29 @@ class PaymentVerifyView(APIView):
                     order.status = "confirmed"
                     order.save()
                 except Order.DoesNotExist:
-                    pass
+                    logger.warning(f"Order not found for website_order_id={website_order_id}")
 
-            email_sent = True
-            email_error = None
-
-            try:
-                send_payment_emails(
-                    customer_details=customer_details,
-                    razorpay_order_id=order_id,
-                    payment_id=payment_id,
-                    preview_image=preview_image,
-                )
-            except Exception as mail_error:
-                email_sent = False
-                email_error = str(mail_error)
-                print("MAIL SEND ERROR:", mail_error)
+            email_result = send_payment_emails(
+                customer_details=customer_details,
+                razorpay_order_id=order_id,
+                payment_id=payment_id,
+                preview_image=preview_image,
+            )
 
             return Response(
                 {
                     "success": True,
                     "message": "Payment verified successfully",
-                    "email_sent": email_sent,
-                    "email_error": email_error,
+                    "email_sent": email_result["email_sent"],
+                    "customer_sent": email_result["customer_sent"],
+                    "admin_sent": email_result["admin_sent"],
+                    "email_error": email_result["email_error"],
                 },
                 status=status.HTTP_200_OK,
             )
 
         except Exception as e:
+            logger.exception("PaymentVerifyView failed")
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
