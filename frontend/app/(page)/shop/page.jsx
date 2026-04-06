@@ -444,7 +444,7 @@ export default function Shop() {
     <main className={styles.luxuryShop}>
       <section className={styles.luxuryHero}>
         <div className={styles.heroContent}>
-          <span className={styles.heroTag}>Since 2026</span>
+          <span className={styles.heroTag}>Since 2013</span>
 
           <h1 className={styles.heroTitle}>
             The Art of <br />

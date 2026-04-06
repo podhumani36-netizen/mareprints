@@ -10,6 +10,7 @@ export default function RazorpayPayment({
   buttonText = "Pay Now",
   buttonClassName = "",
   customerDetails = {},
+  previewImage = "",
   themeColor = "#2C7FB8",
 }) {
   const [loading, setLoading] = useState(false);
@@ -124,6 +125,8 @@ export default function RazorpayPayment({
                   order_id: response.razorpay_order_id,
                   payment_id: response.razorpay_payment_id,
                   signature: response.razorpay_signature,
+                  customerDetails,
+                  previewImage,
                 }),
               }
             );
@@ -154,7 +157,7 @@ export default function RazorpayPayment({
               });
             }
 
-            alert("Payment Successful! Your order has been confirmed.");
+            alert("Payment Successful! Confirmation email sent.");
           } catch (error) {
             console.error("Verification Error:", error);
 
@@ -182,6 +185,10 @@ export default function RazorpayPayment({
           city: customerDetails.city || "",
           state: customerDetails.state || "",
           pincode: customerDetails.pincode || "",
+          quantity: customerDetails.quantity || "",
+          orderId: customerDetails.orderId || "",
+          productType: customerDetails.productType || "",
+          productName: customerDetails.productName || "",
         },
 
         theme: {
@@ -260,49 +267,11 @@ export default function RazorpayPayment({
           fontWeight: "600",
           cursor: loading || !scriptLoaded ? "not-allowed" : "pointer",
           opacity: loading || !scriptLoaded ? 0.7 : 1,
-          transition: "all 0.3s ease",
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "8px",
           width: "100%",
         }}
       >
-        {loading ? (
-          <>
-            <span
-              className="spinner"
-              style={{
-                width: "20px",
-                height: "20px",
-                border: "3px solid rgba(255,255,255,0.3)",
-                borderRadius: "50%",
-                borderTopColor: "white",
-                animation: "spin 1s ease-in-out infinite",
-              }}
-            />
-            Processing...
-          </>
-        ) : !scriptLoaded ? (
-          <>
-            <i className="bi bi-hourglass-split"></i>
-            Loading Payment...
-          </>
-        ) : (
-          <>
-            <i className="bi bi-shield-check"></i>
-            {buttonText}
-          </>
-        )}
+        {loading ? "Processing..." : buttonText}
       </button>
-
-      <style jsx>{`
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
     </>
   );
 }

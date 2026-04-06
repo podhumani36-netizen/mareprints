@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import html2canvas from "html2canvas";
 import styles from "../../../assest/style/ProductClient.module.css";
 import GPayButton from "../../../Components/GPayButton";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
@@ -20,6 +21,7 @@ export default function ProductClient() {
   const [orderId, setOrderId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isPaymentReady, setIsPaymentReady] = useState(false);
+  const [mailPreviewImage, setMailPreviewImage] = useState("");
 
   const [showToast, setShowToast] = useState({
     visible: false,
@@ -31,6 +33,7 @@ export default function ProductClient() {
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
+  const mailPreviewRef = useRef(null);
 
   const [orientation, setOrientation] = useState("portrait");
   const [size, setSize] = useState("8x10");
@@ -204,6 +207,24 @@ export default function ProductClient() {
 
     return price * quantity;
   }, [orientation, size, thickness, quantity]);
+
+  const generateMailPreviewImage = async () => {
+    try {
+      if (!mailPreviewRef.current) return "";
+
+      const canvas = await html2canvas(mailPreviewRef.current, {
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        scale: 2,
+        logging: false,
+      });
+
+      return canvas.toDataURL("image/jpeg", 0.8);
+    } catch (error) {
+      console.error("Preview capture failed:", error);
+      return "";
+    }
+  };
 
   const handleDragEnter = (e) => {
     e.preventDefault();
@@ -406,7 +427,7 @@ export default function ProductClient() {
     return errors;
   };
 
-  const validateBeforePayment = () => {
+  const validateBeforePayment = async () => {
     const errors = validateForm();
 
     if (Object.keys(errors).length > 0) {
@@ -417,13 +438,16 @@ export default function ProductClient() {
     }
 
     setFormErrors({});
+
+    const previewBase64 = await generateMailPreviewImage();
+    setMailPreviewImage(previewBase64);
     setIsPaymentReady(true);
     showNotification("Details verified. You can continue payment now.", "success");
   };
 
-  const handleSubmitOrder = (e) => {
+  const handleSubmitOrder = async (e) => {
     e.preventDefault();
-    validateBeforePayment();
+    await validateBeforePayment();
   };
 
   const handlePaymentSuccess = () => {
@@ -713,6 +737,7 @@ export default function ProductClient() {
 
     return (
       <div
+        ref={mailPreviewRef}
         className={styles.summaryImage}
         style={{
           position: "relative",
@@ -1448,6 +1473,7 @@ export default function ProductClient() {
                           amount={calculatePrice()}
                           buttonText={`Pay ₹${calculatePrice()}`}
                           themeColor="#3496cb"
+                          previewImage={mailPreviewImage}
                           customerDetails={{
                             orderId,
                             productType: "portrait",
