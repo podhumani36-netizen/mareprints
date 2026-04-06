@@ -146,7 +146,7 @@ def get_attachment_from_base64(preview_image):
         file_data = base64.b64decode(base64_data)
         filename = f"customized_preview.{extension}"
         return (filename, file_data, mime_type)
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to decode preview image")
         return None
 
@@ -326,15 +326,24 @@ class PaymentVerifyView(APIView):
                 )
 
             website_order_id = customer_details.get("orderId")
+
             if website_order_id:
                 try:
-                    order = Order.objects.get(id=website_order_id)
-                    order.is_paid = True
-                    order.payment_id = payment_id
-                    order.status = "confirmed"
-                    order.save()
+                    clean_id = str(website_order_id).replace("#ORD", "").strip()
+
+                    if clean_id.isdigit():
+                        order = Order.objects.get(id=int(clean_id))
+                        order.is_paid = True
+                        order.payment_id = payment_id
+                        order.status = "confirmed"
+                        order.save()
+                    else:
+                        logger.warning(f"Invalid order ID format: {website_order_id}")
+
                 except Order.DoesNotExist:
-                    logger.warning(f"Order not found for website_order_id={website_order_id}")
+                    logger.warning(f"Order not found: {website_order_id}")
+                except Exception as e:
+                    logger.exception(f"Order update failed: {e}")
 
             email_result = send_payment_emails(
                 customer_details=customer_details,
