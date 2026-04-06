@@ -11,7 +11,7 @@ export const shopData = [
     themeColor: "#3496cb",
     description: "Elegant wooden frame perfect for family photos",
     productType: "portrait",
-    basePrice: 799,
+    basePrice: 1,
     priceIncrement: 150,
     defaultSize: "8x10",
     sizeOptions: ["8x10", "11x14", "16x20", "20x24", "24x36"],
