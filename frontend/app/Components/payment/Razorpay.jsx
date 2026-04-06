@@ -122,12 +122,12 @@ export default function RazorpayPayment({
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                  order_id: response.razorpay_order_id,
-                  payment_id: response.razorpay_payment_id,
-                  signature: response.razorpay_signature,
-                  customerDetails,
-                  previewImage,
-                }),
+  order_id: response.razorpay_order_id,
+  payment_id: response.razorpay_payment_id,
+  signature: response.razorpay_signature,
+  customerDetails: customerDetails,
+  previewImage: previewImage,
+}),
               }
             );
 
