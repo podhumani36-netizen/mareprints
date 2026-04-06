@@ -23,14 +23,13 @@ client = razorpay.Client(
 )
 
 
-def build_customer_email_message(customer_details, razorpay_order_id, payment_id, preview_image):
+def build_customer_email_message(customer_details, razorpay_order_id, payment_id, preview_image=None):
     return f"""
     <html>
     <body style="font-family: Arial, sans-serif; color: #222; line-height: 1.6;">
         <h2 style="color:#2C7FB8;">Payment Successful 🎉</h2>
 
         <p>Dear {customer_details.get('name', 'Customer')},</p>
-
         <p>Your payment was successful.</p>
 
         <h3>Order Details</h3>
@@ -65,11 +64,8 @@ def build_customer_email_message(customer_details, razorpay_order_id, payment_id
         <p><b>Image Offset X:</b> {customer_details.get('imageOffsetX', '')}</p>
         <p><b>Image Offset Y:</b> {customer_details.get('imageOffsetY', '')}</p>
 
-        <h3>Preview Image</h3>
-        <img src="{preview_image}" style="max-width:300px; border:1px solid #ccc; border-radius:8px;" />
-
         <p style="margin-top:20px;">
-            Your customized preview image is also attached with this email, so you can download it anytime.
+            Your customized preview image is attached with this email.
         </p>
 
         <p>Regards,<br><b>Mare Prints</b></p>
@@ -78,7 +74,7 @@ def build_customer_email_message(customer_details, razorpay_order_id, payment_id
     """.strip()
 
 
-def build_admin_email_message(customer_details, razorpay_order_id, payment_id, preview_image):
+def build_admin_email_message(customer_details, razorpay_order_id, payment_id, preview_image=None):
     return f"""
     <html>
     <body style="font-family: Arial, sans-serif; color: #222; line-height: 1.6;">
@@ -115,11 +111,8 @@ def build_admin_email_message(customer_details, razorpay_order_id, payment_id, p
         <p><b>Image Offset X:</b> {customer_details.get('imageOffsetX', '')}</p>
         <p><b>Image Offset Y:</b> {customer_details.get('imageOffsetY', '')}</p>
 
-        <h3>Preview Image</h3>
-        <img src="{preview_image}" style="max-width:300px; border:1px solid #ccc; border-radius:8px;" />
-
         <p style="margin-top:20px;">
-            Preview image attachment also included. Admin can directly download from email attachment.
+            Preview image attachment is included with this email.
         </p>
 
         <p><b>Mare Prints Admin Notification</b></p>
@@ -261,24 +254,23 @@ class PaymentVerifyView(APIView):
         if not order_id or not payment_id or not signature:
             return Response(
                 {"error": "order_id, payment_id and signature are required"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
             generated_signature = hmac.new(
                 settings.RAZORPAY_KEY_SECRET.encode("utf-8"),
                 f"{order_id}|{payment_id}".encode("utf-8"),
-                hashlib.sha256
+                hashlib.sha256,
             ).hexdigest()
 
             if generated_signature != signature:
                 return Response(
                     {"error": "Invalid payment signature"},
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             website_order_id = customer_details.get("orderId")
-
             if website_order_id:
                 try:
                     order = Order.objects.get(id=website_order_id)
@@ -289,20 +281,33 @@ class PaymentVerifyView(APIView):
                 except Order.DoesNotExist:
                     pass
 
-            send_payment_emails(
-                customer_details=customer_details,
-                razorpay_order_id=order_id,
-                payment_id=payment_id,
-                preview_image=preview_image,
-            )
+            email_sent = True
+            email_error = None
 
-            return Response({
-                "success": True,
-                "message": "Payment verified successfully and emails sent"
-            }, status=status.HTTP_200_OK)
+            try:
+                send_payment_emails(
+                    customer_details=customer_details,
+                    razorpay_order_id=order_id,
+                    payment_id=payment_id,
+                    preview_image=preview_image,
+                )
+            except Exception as mail_error:
+                email_sent = False
+                email_error = str(mail_error)
+                print("MAIL SEND ERROR:", mail_error)
+
+            return Response(
+                {
+                    "success": True,
+                    "message": "Payment verified successfully",
+                    "email_sent": email_sent,
+                    "email_error": email_error,
+                },
+                status=status.HTTP_200_OK,
+            )
 
         except Exception as e:
             return Response(
                 {"error": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

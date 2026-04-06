@@ -122,12 +122,12 @@ export default function RazorpayPayment({
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-  order_id: response.razorpay_order_id,
-  payment_id: response.razorpay_payment_id,
-  signature: response.razorpay_signature,
-  customerDetails: customerDetails,
-  previewImage: previewImage,
-}),
+                  order_id: response.razorpay_order_id,
+                  payment_id: response.razorpay_payment_id,
+                  signature: response.razorpay_signature,
+                  customerDetails: customerDetails,
+                  previewImage: previewImage,
+                }),
               }
             );
 
@@ -154,10 +154,16 @@ export default function RazorpayPayment({
                 razorpay_signature: response.razorpay_signature,
                 amount: numericAmount,
                 customerDetails,
+                email_sent: verifyData.email_sent,
+                email_error: verifyData.email_error,
               });
             }
 
-            alert("Payment Successful! Confirmation email sent.");
+            if (verifyData.email_sent) {
+              alert("Payment Successful! Confirmation email sent.");
+            } else {
+              alert("Payment successful, but email was not sent.");
+            }
           } catch (error) {
             console.error("Verification Error:", error);
 
