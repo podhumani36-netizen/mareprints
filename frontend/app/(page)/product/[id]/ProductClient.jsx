@@ -1501,36 +1501,37 @@ export default function ProductClient() {
                   ) : (
                     <div className={styles.paymentButton}>
                       {formData.paymentMethod === "razorpay" ? (
-                        <RazorpayPayment
-                          amount={calculatePrice()}
-                          buttonText={`Pay ₹${calculatePrice()}`}
-                          themeColor="#3496cb"
-                          previewImage={mailPreviewImage}
-                          customerDetails={{
-                            orderId,
-                            productType: "portrait",
-                            productName: "Custom Portrait Print",
-                            name: formData.fullName,
-                            email: formData.email,
-                            phone: formData.phone,
-                            alternatePhone: formData.alternatePhone,
-                            address: formData.address,
-                            alternateAddress: formData.alternateAddress,
-                            city: formData.city,
-                            state: formData.state,
-                            pincode: formData.pincode,
-                            orientation,
-                            size,
-                            thickness,
-                            quantity,
-                            amount: calculatePrice(),
-                            imageZoom: zoom,
-                            imageOffsetX: imageOffset.x,
-                            imageOffsetY: imageOffset.y,
-                          }}
-                          onSuccess={handlePaymentSuccess}
-                          onError={handlePaymentError}
-                        />
+                       <RazorpayPayment
+  amount={calculatePrice()}
+  buttonText={`Pay ₹${calculatePrice()}`}
+  themeColor="#3496cb"
+  previewImage={mailPreviewImage}
+  disabled={!isPaymentReady}
+  customerDetails={{
+    orderId,
+    productType: "portrait",
+    productName: "Custom Portrait Print",
+    name: formData.fullName,
+    email: formData.email,
+    phone: formData.phone,
+    alternatePhone: formData.alternatePhone,
+    address: formData.address,
+    alternateAddress: formData.alternateAddress,
+    city: formData.city,
+    state: formData.state,
+    pincode: formData.pincode,
+    orientation,
+    size,
+    thickness,
+    quantity,
+    amount: calculatePrice(),
+    imageZoom: zoom,
+    imageOffsetX: imageOffset.x,
+    imageOffsetY: imageOffset.y,
+  }}
+  onSuccess={handlePaymentSuccess}
+  onError={handlePaymentError}
+/>
                       ) : (
                         <GPayButton
                           amount={calculatePrice()}

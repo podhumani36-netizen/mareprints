@@ -12,6 +12,7 @@ export default function RazorpayPayment({
   customerDetails = {},
   previewImage = "",
   themeColor = "#2C7FB8",
+  disabled = false,
 }) {
   const [loading, setLoading] = useState(false);
   const [scriptLoaded, setScriptLoaded] = useState(false);
@@ -56,6 +57,14 @@ export default function RazorpayPayment({
     try {
       setLoading(true);
 
+      if (disabled) {
+        throw new Error("Please verify details before payment");
+      }
+
+      if (!previewImage) {
+        throw new Error("Please click 'Verify Details & Continue' first");
+      }
+
       const numericAmount = Number(amount);
 
       if (!numericAmount || numericAmount <= 0) {
@@ -82,6 +91,7 @@ export default function RazorpayPayment({
       );
 
       const createOrderText = await createOrderResponse.text();
+      console.log("CREATE ORDER RESPONSE TEXT:", createOrderText);
 
       let orderData;
       try {
@@ -114,6 +124,12 @@ export default function RazorpayPayment({
 
         handler: async function (response) {
           try {
+            console.log("RAZORPAY SUCCESS RESPONSE:", response);
+            console.log("VERIFY API CALL STARTED");
+            console.log("customerDetails:", customerDetails);
+            console.log("previewImage exists:", !!previewImage);
+            console.log("previewImage length:", previewImage?.length || 0);
+
             const verifyResponse = await fetch(
               "https://mareprints.com/api/payments/verify/",
               {
@@ -131,7 +147,10 @@ export default function RazorpayPayment({
               }
             );
 
+            console.log("VERIFY RESPONSE STATUS:", verifyResponse.status);
+
             const verifyText = await verifyResponse.text();
+            console.log("VERIFY RESPONSE TEXT:", verifyText);
 
             let verifyData;
             try {
@@ -146,6 +165,8 @@ export default function RazorpayPayment({
                 verifyData.error || "Payment verification failed"
               );
             }
+
+            console.log("VERIFY SUCCESS DATA:", verifyData);
 
             if (onSuccess) {
               onSuccess({
@@ -162,7 +183,10 @@ export default function RazorpayPayment({
             if (verifyData.email_sent) {
               alert("Payment Successful! Confirmation email sent.");
             } else {
-              alert("Payment successful, but email was not sent.");
+              alert(
+                verifyData.email_error ||
+                  "Payment successful, but email was not sent."
+              );
             }
           } catch (error) {
             console.error("Verification Error:", error);
@@ -261,7 +285,7 @@ export default function RazorpayPayment({
       <button
         type="button"
         onClick={handlePayment}
-        disabled={loading || !scriptLoaded}
+        disabled={disabled || loading || !scriptLoaded}
         className={`${buttonClassName} ${loading ? "loading" : ""}`}
         style={{
           backgroundColor: themeColor,
@@ -271,12 +295,17 @@ export default function RazorpayPayment({
           borderRadius: "8px",
           fontSize: "16px",
           fontWeight: "600",
-          cursor: loading || !scriptLoaded ? "not-allowed" : "pointer",
-          opacity: loading || !scriptLoaded ? 0.7 : 1,
+          cursor:
+            disabled || loading || !scriptLoaded ? "not-allowed" : "pointer",
+          opacity: disabled || loading || !scriptLoaded ? 0.7 : 1,
           width: "100%",
         }}
       >
-        {loading ? "Processing..." : buttonText}
+        {loading
+          ? "Processing..."
+          : disabled
+          ? "Verify Details First"
+          : buttonText}
       </button>
     </>
   );
