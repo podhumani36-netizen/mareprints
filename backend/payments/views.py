@@ -162,8 +162,8 @@ def send_payment_emails(customer_details, razorpay_order_id, payment_id, preview
     logger.info(f"Payment ID: {payment_id}")
     logger.info(f"Preview image present: {bool(preview_image)}")
 
-    customer_subject = "Payment Successful - Mare Prints"
-    admin_subject = f"New Order Payment Received - {customer_details.get('orderId', 'Mare Prints')}"
+    customer_subject = f"Payment Successful - Mare Prints - {payment_id}"
+    admin_subject = f"New Order Payment Received - {payment_id}"
 
     customer_message = build_customer_email_message(
         customer_details,
