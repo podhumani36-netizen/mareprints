@@ -29,11 +29,11 @@ def build_customer_email_message(customer_details, razorpay_order_id, payment_id
     return f"""
     <html>
     <body style="font-family: Arial, sans-serif; color: #222; line-height: 1.6;">
-        <h2 style="color:#2C7FB8;">Payment Successful 🎉</h2>
+        <h2 style="color:#2C7FB8;"Order placed Successful 🎉</h2>
 
         <p>Dear {customer_details.get('name') or customer_details.get('fullName', 'Customer')},</p>
-        <p>Your payment was successful.</p>
-
+        <p>Thank you for your order with MARE Prints!</p>
+        <p>Your order has been confirmed and is now under processing. </p>
         <h3>Order Details</h3>
         <p><b>Website Order ID:</b> {customer_details.get('orderId', '')}</p>
         <p><b>Razorpay Order ID:</b> {razorpay_order_id}</p>
@@ -48,29 +48,13 @@ def build_customer_email_message(customer_details, razorpay_order_id, payment_id
         <p><b>Quantity:</b> {customer_details.get('quantity', '')}</p>
         <p><b>Amount Paid:</b> ₹{customer_details.get('amount', '')}</p>
 
-        <h3>Customer Details</h3>
-        <p><b>Name:</b> {customer_details.get('name') or customer_details.get('fullName', '')}</p>
-        <p><b>Email:</b> {customer_details.get('email', '')}</p>
-        <p><b>Phone:</b> {customer_details.get('phone', '')}</p>
-        <p><b>Alternate Phone:</b> {customer_details.get('alternatePhone', '')}</p>
-
-        <h3>Address</h3>
-        <p><b>Address:</b> {customer_details.get('address', '')}</p>
-        <p><b>Alternate Address:</b> {customer_details.get('alternateAddress', '')}</p>
-        <p><b>City:</b> {customer_details.get('city', '')}</p>
-        <p><b>State:</b> {customer_details.get('state', '')}</p>
-        <p><b>Pincode:</b> {customer_details.get('pincode', '')}</p>
-
-        <h3>Customization</h3>
-        <p><b>Zoom:</b> {customer_details.get('imageZoom', '')}</p>
-        <p><b>Image Offset X:</b> {customer_details.get('imageOffsetX', '')}</p>
-        <p><b>Image Offset Y:</b> {customer_details.get('imageOffsetY', '')}</p>
-
+        <p>Processing Time: 2–5 business days  </p>
+        <p>Delivery Time: Based on location</p>
         <p style="margin-top:20px;">
-            Your customized preview image is attached with this email.
+            We will share tracking details once your order is shipped. 
         </p>
 
-        <p>Regards,<br><b>Mare Prints</b></p>
+        <p>Thank you for trusting us to create your custom product    </p>
     </body>
     </html>
     """.strip()
@@ -108,11 +92,7 @@ def build_admin_email_message(customer_details, razorpay_order_id, payment_id, p
         <p><b>State:</b> {customer_details.get('state', '')}</p>
         <p><b>Pincode:</b> {customer_details.get('pincode', '')}</p>
 
-        <h3>Customization</h3>
-        <p><b>Zoom:</b> {customer_details.get('imageZoom', '')}</p>
-        <p><b>Image Offset X:</b> {customer_details.get('imageOffsetX', '')}</p>
-        <p><b>Image Offset Y:</b> {customer_details.get('imageOffsetY', '')}</p>
-
+       
         <p style="margin-top:20px;">
             Preview image attachment is included with this email.
         </p>

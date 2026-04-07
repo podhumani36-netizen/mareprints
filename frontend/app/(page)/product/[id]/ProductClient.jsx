@@ -66,19 +66,18 @@ export default function ProductClient() {
 
   const thicknessOptions = ["3mm", "5mm", "8mm"];
 
-  const frameDimensions = {
-    "8x10": { width: 180, height: 220 },
-    "11x14": { width: 220, height: 280 },
-    "16x20": { width: 280, height: 340 },
-    "20x24": { width: 320, height: 380 },
-    "24x36": { width: 360, height: 480 },
-    "10x8": { width: 220, height: 180 },
-    "14x11": { width: 280, height: 220 },
-    "20x16": { width: 340, height: 280 },
-    "24x20": { width: 380, height: 320 },
-    "36x24": { width: 480, height: 360 },
+   const frameDimensions = {
+    "8x10": { width: 80, height: 100 },
+    "11x14": { width: 110, height: 140 },
+    "16x20": { width: 160, height: 200 },
+    "20x24": { width: 200, height: 240 },
+    "24x36": { width: 240, height: 360 },
+    "10x8": { width: 100, height: 80 },
+    "14x11": { width: 140, height: 110 },
+    "20x16": { width: 200, height: 160 },
+    "24x20": { width: 240, height: 200 },
+    "36x24": { width: 360, height: 240 },
   };
-
   const basePrice = 1;
   const roomWallBackground =
     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
@@ -617,7 +616,7 @@ export default function ProductClient() {
 
   const renderBetterPreview = (useWall = false) => {
     const dims = frameDimensions[size] || { width: 220, height: 280 };
-
+     const [widthInch, heightInch] = size.split("x").map(Number);
     const borderSize =
       thickness === "3mm" ? "6px" : thickness === "5mm" ? "10px" : "14px";
 
@@ -655,7 +654,7 @@ export default function ProductClient() {
           style={{
             position: "absolute",
             left: "50%",
-            top: "50%",
+            top: "35%",
             width: `${dims.width}px`,
             height: `${dims.height}px`,
             transform: "translate(-50%, -50%)",
@@ -689,7 +688,7 @@ export default function ProductClient() {
               style={{
                 width: "100%",
                 height: "100%",
-                objectFit: "cover",
+                objectFit: "contain",
                 transform: `translate(${imageOffset.x}px, ${imageOffset.y}px) scale(${zoom})`,
                 transformOrigin: "center center",
                 transition: isImageDragging ? "none" : "transform 0.18s ease",
@@ -711,13 +710,13 @@ export default function ProductClient() {
               <div
                 style={{
                   position: "absolute",
-                  top: "10px",
+                  top: "5px",
                   right: "10px",
                   background: "rgba(17,24,39,0.72)",
                   color: "#fff",
                   padding: "4px 10px",
                   borderRadius: "999px",
-                  fontSize: "12px",
+                  fontSize: "8px",
                   fontWeight: 600,
                   pointerEvents: "none",
                 }}
@@ -750,7 +749,7 @@ export default function ProductClient() {
               boxShadow: "0 6px 18px rgba(0,0,0,0.10)",
             }}
           >
-            {size}
+            {size} ({(widthInch * 2.54).toFixed(2)} x {(heightInch * 2.54).toFixed(2)} cm)
           </span>
 
           <span
@@ -774,7 +773,8 @@ export default function ProductClient() {
     if (!uploadedImage) return null;
 
     const summaryDims = getSummaryFrameSize();
-
+ const borderSize =
+      thickness === "3mm" ? "5px" : thickness === "5mm" ? "8px" : "11px";
     return (
       <div
         className={styles.summaryImage}
@@ -963,7 +963,7 @@ export default function ProductClient() {
   );
 
   const renderStep2 = () => {
-    const dims = frameDimensions[size] || { width: 200, height: 250 };
+    const dims = frameDimensions[size] || { width: 100, height: 150 };
 
     return (
       <div className={styles.stepContainer}>
@@ -978,13 +978,7 @@ export default function ProductClient() {
 
                 {renderBetterPreview(true)}
 
-                <div className={styles.previewLabels} style={{ marginTop: "14px" }}>
-                  <span className={styles.sizeLabel}>
-                    {size} ({Math.round(dims.width * 2.54)} x{" "}
-                    {Math.round(dims.height * 2.54)} cm)
-                  </span>
-                  <span className={styles.thicknessLabel}>{thickness}</span>
-                </div>
+                
 
                 {renderEditorControls()}
               </div>
