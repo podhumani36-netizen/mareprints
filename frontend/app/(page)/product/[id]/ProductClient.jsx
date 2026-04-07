@@ -573,8 +573,9 @@ export default function ProductClient() {
     </div>
   );
 
-  const renderEditorControls = () => (
-    <div className="d-flex gap-2 mt-3 flex-wrap align-items-center">
+const renderEditorControls = () => (
+  <div className="mt-3">
+    <div className="d-flex gap-2 flex-wrap align-items-center">
       <button
         type="button"
         className="btn btn-outline-secondary"
@@ -583,15 +584,16 @@ export default function ProductClient() {
         <i className="bi bi-dash-lg"></i>
       </button>
 
-      <span
+      <div
         style={{
-          minWidth: "64px",
+          minWidth: "70px",
           textAlign: "center",
-          fontWeight: 600,
+          fontWeight: 700,
+          fontSize: "15px",
         }}
       >
-        {zoom.toFixed(1)}x
-      </span>
+        {Math.round(zoom * 100)}%
+      </div>
 
       <button
         type="button"
@@ -612,8 +614,21 @@ export default function ProductClient() {
         Reset
       </button>
     </div>
-  );
 
+    {/* 🔥 Slider */}
+    <div className="mt-3">
+      <input
+        type="range"
+        min="0.5"
+        max="3"
+        step="0.05"
+        value={zoom}
+        onChange={(e) => setZoom(Number(e.target.value))}
+        style={{ width: "100%", cursor: "pointer" }}
+      />
+    </div>
+  </div>
+);
   const renderBetterPreview = (useWall = false) => {
     const dims = frameDimensions[size] || { width: 220, height: 280 };
      const [widthInch, heightInch] = size.split("x").map(Number);
@@ -693,6 +708,7 @@ export default function ProductClient() {
                 transformOrigin: "center center",
                 transition: isImageDragging ? "none" : "transform 0.18s ease",
                 userSelect: "none",
+                 filter: "drop-shadow(0 8px 18px rgba(0,0,0,0.25))",
               }}
             />
 
