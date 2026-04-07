@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import html2canvas from "html2canvas";
 import styles from "../../../assest/style/ProductClient.module.css";
 import GPayButton from "../../../Components/GPayButton";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
@@ -33,7 +32,6 @@ export default function ProductClient() {
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
-  const mailPreviewRef = useRef(null);
 
   const [orientation, setOrientation] = useState("portrait");
   const [size, setSize] = useState("8x10");
@@ -210,16 +208,60 @@ export default function ProductClient() {
 
   const generateMailPreviewImage = async () => {
     try {
-      if (!mailPreviewRef.current) return "";
+      if (!uploadedImage) return "";
 
-      const canvas = await html2canvas(mailPreviewRef.current, {
-        backgroundColor: "#ffffff",
-        useCORS: true,
-        scale: 2,
-        logging: false,
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = uploadedImage;
+
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
       });
 
-      return canvas.toDataURL("image/jpeg", 0.8);
+      const isPortrait = orientation === "portrait";
+
+      const exportWidth = isPortrait ? 1600 : 2000;
+      const exportHeight = isPortrait ? 2000 : 1600;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = exportWidth;
+      canvas.height = exportHeight;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return "";
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, exportWidth, exportHeight);
+
+      const baseScale = Math.max(
+        exportWidth / img.width,
+        exportHeight / img.height
+      );
+
+      const finalScale = baseScale * zoom;
+
+      const drawWidth = img.width * finalScale;
+      const drawHeight = img.height * finalScale;
+
+      const previewDims =
+        frameDimensions[size] ||
+        (isPortrait
+          ? { width: 180, height: 220 }
+          : { width: 220, height: 180 });
+
+      const offsetScaleX = exportWidth / previewDims.width;
+      const offsetScaleY = exportHeight / previewDims.height;
+
+      const dx = (exportWidth - drawWidth) / 2 + imageOffset.x * offsetScaleX;
+      const dy = (exportHeight - drawHeight) / 2 + imageOffset.y * offsetScaleY;
+
+      ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
+
+      return canvas.toDataURL("image/png");
     } catch (error) {
       console.error("Preview capture failed:", error);
       return "";
@@ -732,12 +774,9 @@ export default function ProductClient() {
     if (!uploadedImage) return null;
 
     const summaryDims = getSummaryFrameSize();
-    const borderSize =
-      thickness === "3mm" ? "5px" : thickness === "5mm" ? "8px" : "11px";
 
     return (
       <div
-        ref={mailPreviewRef}
         className={styles.summaryImage}
         style={{
           position: "relative",
@@ -745,7 +784,7 @@ export default function ProductClient() {
           height: "220px",
           borderRadius: "14px",
           overflow: "hidden",
-          background: "#f3f4f6",
+          background: "#ffffff",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -756,11 +795,9 @@ export default function ProductClient() {
           style={{
             width: `${summaryDims.width}px`,
             height: `${summaryDims.height}px`,
-            border: `${borderSize} solid #fff`,
-            borderRadius: "8px",
             overflow: "hidden",
+            borderRadius: "8px",
             background: "#fff",
-            boxShadow: "0 10px 24px rgba(0,0,0,0.16)",
             position: "relative",
           }}
         >
@@ -771,21 +808,9 @@ export default function ProductClient() {
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              transform: `translate(${imageOffset.x * 0.35}px, ${
-                imageOffset.y * 0.35
-              }px) scale(${zoom})`,
+              transform: `translate(${imageOffset.x * 0.6}px, ${imageOffset.y * 0.6}px) scale(${zoom})`,
               transformOrigin: "center center",
               userSelect: "none",
-              pointerEvents: "none",
-            }}
-          />
-
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background:
-                "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.05) 40%, rgba(255,255,255,0) 60%)",
               pointerEvents: "none",
             }}
           />
@@ -1283,7 +1308,6 @@ export default function ProductClient() {
                           placeholder="10-digit mobile number"
                           value={formData.phone}
                           onChange={handleInputChange}
-                          maxLength="10"
                         />
                       </div>
                       {formErrors.phone && (
@@ -1298,17 +1322,16 @@ export default function ProductClient() {
                         Alternate Phone
                       </label>
                       <div className={styles.inputWrapper}>
-                        <i className={`bi bi-phone ${styles.inputIcon}`}></i>
+                        <i className={`bi bi-telephone ${styles.inputIcon}`}></i>
                         <input
                           type="tel"
                           name="alternatePhone"
                           className={`${styles.formInput} ${
                             formErrors.alternatePhone ? styles.error : ""
                           }`}
-                          placeholder="Optional"
+                          placeholder="Optional alternate number"
                           value={formData.alternatePhone}
                           onChange={handleInputChange}
-                          maxLength="10"
                         />
                       </div>
                       {formErrors.alternatePhone && (
@@ -1321,7 +1344,7 @@ export default function ProductClient() {
                 </div>
 
                 <div className={styles.formSection}>
-                  <h5 className={styles.sectionTitle}>Shipping Address</h5>
+                  <h5 className={styles.sectionTitle}>Address Information</h5>
 
                   <div className="row g-3">
                     <div className="col-12">
@@ -1330,13 +1353,13 @@ export default function ProductClient() {
                         <i className={`bi bi-geo-alt ${styles.inputIcon}`}></i>
                         <textarea
                           name="address"
-                          className={`${styles.formInput} ${styles.textarea} ${
+                          className={`${styles.formInput} ${
                             formErrors.address ? styles.error : ""
                           }`}
                           placeholder="Enter your complete address"
                           value={formData.address}
                           onChange={handleInputChange}
-                          rows="2"
+                          rows="3"
                         />
                       </div>
                       {formErrors.address && (
@@ -1351,11 +1374,11 @@ export default function ProductClient() {
                         Alternate Address
                       </label>
                       <div className={styles.inputWrapper}>
-                        <i className={`bi bi-geo-alt ${styles.inputIcon}`}></i>
+                        <i className={`bi bi-pin-map ${styles.inputIcon}`}></i>
                         <textarea
                           name="alternateAddress"
                           className={styles.formInput}
-                          placeholder="Optional"
+                          placeholder="Optional alternate address"
                           value={formData.alternateAddress}
                           onChange={handleInputChange}
                           rows="2"
@@ -1365,16 +1388,19 @@ export default function ProductClient() {
 
                     <div className="col-md-4">
                       <label className={styles.fieldLabel}>City *</label>
-                      <input
-                        type="text"
-                        name="city"
-                        className={`${styles.formInput} ${
-                          formErrors.city ? styles.error : ""
-                        }`}
-                        placeholder="City"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                      />
+                      <div className={styles.inputWrapper}>
+                        <i className={`bi bi-building ${styles.inputIcon}`}></i>
+                        <input
+                          type="text"
+                          name="city"
+                          className={`${styles.formInput} ${
+                            formErrors.city ? styles.error : ""
+                          }`}
+                          placeholder="City"
+                          value={formData.city}
+                          onChange={handleInputChange}
+                        />
+                      </div>
                       {formErrors.city && (
                         <span className={styles.errorMessage}>
                           {formErrors.city}
@@ -1384,16 +1410,19 @@ export default function ProductClient() {
 
                     <div className="col-md-4">
                       <label className={styles.fieldLabel}>State *</label>
-                      <input
-                        type="text"
-                        name="state"
-                        className={`${styles.formInput} ${
-                          formErrors.state ? styles.error : ""
-                        }`}
-                        placeholder="State"
-                        value={formData.state}
-                        onChange={handleInputChange}
-                      />
+                      <div className={styles.inputWrapper}>
+                        <i className={`bi bi-map ${styles.inputIcon}`}></i>
+                        <input
+                          type="text"
+                          name="state"
+                          className={`${styles.formInput} ${
+                            formErrors.state ? styles.error : ""
+                          }`}
+                          placeholder="State"
+                          value={formData.state}
+                          onChange={handleInputChange}
+                        />
+                      </div>
                       {formErrors.state && (
                         <span className={styles.errorMessage}>
                           {formErrors.state}
@@ -1403,17 +1432,20 @@ export default function ProductClient() {
 
                     <div className="col-md-4">
                       <label className={styles.fieldLabel}>Pincode *</label>
-                      <input
-                        type="text"
-                        name="pincode"
-                        className={`${styles.formInput} ${
-                          formErrors.pincode ? styles.error : ""
-                        }`}
-                        placeholder="6-digit pincode"
-                        value={formData.pincode}
-                        onChange={handleInputChange}
-                        maxLength="6"
-                      />
+                      <div className={styles.inputWrapper}>
+                        <i className={`bi bi-mailbox ${styles.inputIcon}`}></i>
+                        <input
+                          type="text"
+                          name="pincode"
+                          className={`${styles.formInput} ${
+                            formErrors.pincode ? styles.error : ""
+                          }`}
+                          placeholder="6-digit pincode"
+                          value={formData.pincode}
+                          onChange={handleInputChange}
+                          maxLength="6"
+                        />
+                      </div>
                       {formErrors.pincode && (
                         <span className={styles.errorMessage}>
                           {formErrors.pincode}
@@ -1426,7 +1458,7 @@ export default function ProductClient() {
                 <div className={styles.formSection}>
                   <h5 className={styles.sectionTitle}>Payment Method</h5>
 
-                  {/* <div className={styles.paymentOptions}>
+                  <div className={styles.paymentOptions}>
                     <label className={styles.paymentOption}>
                       <input
                         type="radio"
@@ -1455,7 +1487,7 @@ export default function ProductClient() {
                       <i className="bi bi-google"></i>
                       <span>Google Pay</span>
                     </label>
-                  </div> */}
+                  </div>
 
                   {!isPaymentReady ? (
                     <button
@@ -1469,43 +1501,36 @@ export default function ProductClient() {
                   ) : (
                     <div className={styles.paymentButton}>
                       {formData.paymentMethod === "razorpay" ? (
-                       <RazorpayPayment
-  amount={calculatePrice()}
-  buttonText={`Pay ₹${calculatePrice()}`}
-  themeColor="#3496cb"
-  previewImage={mailPreviewImage}
-  customerDetails={{
-    orderId: orderId,
-    productType: orientation === "portrait" ? "portrait" : "landscape",
-    productName:
-      orientation === "portrait"
-        ? "Custom Portrait Print"
-        : "Custom Landscape Print",
-
-    name: formData.fullName,
-    email: formData.email,
-    phone: formData.phone,
-    alternatePhone: formData.alternatePhone,
-
-    address: formData.address,
-    alternateAddress: formData.alternateAddress,
-    city: formData.city,
-    state: formData.state,
-    pincode: formData.pincode,
-
-    orientation: orientation,
-    size: size,
-    thickness: thickness,
-    quantity: quantity,
-    amount: calculatePrice(),
-
-    imageZoom: zoom,
-    imageOffsetX: imageOffset.x,
-    imageOffsetY: imageOffset.y,
-  }}
-  onSuccess={handlePaymentSuccess}
-  onError={handlePaymentError}
-/>
+                        <RazorpayPayment
+                          amount={calculatePrice()}
+                          buttonText={`Pay ₹${calculatePrice()}`}
+                          themeColor="#3496cb"
+                          previewImage={mailPreviewImage}
+                          customerDetails={{
+                            orderId,
+                            productType: "portrait",
+                            productName: "Custom Portrait Print",
+                            name: formData.fullName,
+                            email: formData.email,
+                            phone: formData.phone,
+                            alternatePhone: formData.alternatePhone,
+                            address: formData.address,
+                            alternateAddress: formData.alternateAddress,
+                            city: formData.city,
+                            state: formData.state,
+                            pincode: formData.pincode,
+                            orientation,
+                            size,
+                            thickness,
+                            quantity,
+                            amount: calculatePrice(),
+                            imageZoom: zoom,
+                            imageOffsetX: imageOffset.x,
+                            imageOffsetY: imageOffset.y,
+                          }}
+                          onSuccess={handlePaymentSuccess}
+                          onError={handlePaymentError}
+                        />
                       ) : (
                         <GPayButton
                           amount={calculatePrice()}
@@ -1592,12 +1617,15 @@ export default function ProductClient() {
             </div>
             <div className="modal-body">
               <p>Your order has been placed successfully.</p>
-              <p>
-                <strong>Order ID:</strong> {orderId}
-              </p>
-              <p>
-                <strong>Amount Paid:</strong> ₹{calculatePrice()}
-              </p>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-primary"
+                data-bs-dismiss="modal"
+              >
+                Okay
+              </button>
             </div>
           </div>
         </div>
