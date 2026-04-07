@@ -785,56 +785,56 @@ const renderEditorControls = () => (
     );
   };
 
-  const renderSummaryPreview = () => {
-    if (!uploadedImage) return null;
+const renderSummaryPreview = () => {
+  if (!uploadedImage) return null;
 
-    const summaryDims = getSummaryFrameSize();
- const borderSize =
-      thickness === "3mm" ? "5px" : thickness === "5mm" ? "8px" : "11px";
-    return (
+  const summaryDims = getSummaryFrameSize();
+  const borderSize =
+    thickness === "3mm" ? "5px" : thickness === "5mm" ? "8px" : "11px";
+
+  return (
+    <div
+      className={styles.summaryImage}
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "220px",
+        borderRadius: "14px",
+        overflow: "hidden",
+        background: "#ffffff",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
+      }}
+    >
       <div
-        className={styles.summaryImage}
         style={{
-          position: "relative",
-          width: "100%",
-          height: "220px",
-          borderRadius: "14px",
+          width: `${summaryDims.width}px`,
+          height: `${summaryDims.height}px`,
           overflow: "hidden",
-          background: "#ffffff",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
+          borderRadius: "8px",
+          background: "#fff",
+          position: "relative",
         }}
       >
-        <div
+        <img
+          src={uploadedImage}
+          alt="Product preview"
           style={{
-            width: `${summaryDims.width}px`,
-            height: `${summaryDims.height}px`,
-            overflow: "hidden",
-            borderRadius: "8px",
-            background: "#fff",
-            position: "relative",
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            transform: `translate(${imageOffset.x}px, ${imageOffset.y}px) scale(${zoom})`,
+            transformOrigin: "center center",
+            userSelect: "none",
+            pointerEvents: "none",
           }}
-        >
-          <img
-            src={uploadedImage}
-            alt="Product preview"
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              transform: `translate(${imageOffset.x * 0.6}px, ${imageOffset.y * 0.6}px) scale(${zoom})`,
-              transformOrigin: "center center",
-              userSelect: "none",
-              pointerEvents: "none",
-            }}
-          />
-        </div>
+        />
       </div>
-    );
-  };
-
+    </div>
+  );
+};
   const renderStep1 = () => (
     <div className={styles.stepContainer}>
       <div className="container">
