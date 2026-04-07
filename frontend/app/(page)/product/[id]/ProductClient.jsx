@@ -515,27 +515,6 @@ export default function ProductClient() {
     setCurrentStep(step);
   };
 
-  const getSummaryFrameSize = () => {
-    switch (size) {
-      case "8x10":
-      case "10x8":
-        return { width: 120, height: 150 };
-      case "11x14":
-      case "14x11":
-        return { width: 135, height: 170 };
-      case "16x20":
-      case "20x16":
-        return { width: 150, height: 185 };
-      case "20x24":
-      case "24x20":
-        return { width: 165, height: 200 };
-      case "24x36":
-      case "36x24":
-        return { width: 180, height: 215 };
-      default:
-        return { width: 120, height: 150 };
-    }
-  };
 
   const renderStepIndicator = () => (
     <div className={styles.stepIndicator}>
@@ -788,9 +767,9 @@ const renderEditorControls = () => (
 const renderSummaryPreview = () => {
   if (!uploadedImage) return null;
 
-  const summaryDims = getSummaryFrameSize();
+  const dims = frameDimensions[size] || { width: 100, height: 150 };
   const borderSize =
-    thickness === "3mm" ? "5px" : thickness === "5mm" ? "8px" : "11px";
+    thickness === "3mm" ? "6px" : thickness === "5mm" ? "10px" : "14px";
 
   return (
     <div
@@ -810,12 +789,15 @@ const renderSummaryPreview = () => {
     >
       <div
         style={{
-          width: `${summaryDims.width}px`,
-          height: `${summaryDims.height}px`,
+          width: `${dims.width}px`,
+          height: `${dims.height}px`,
           overflow: "hidden",
           borderRadius: "8px",
           background: "#fff",
           position: "relative",
+          border: `${borderSize} solid #ffffff`,
+          boxShadow:
+            "0 18px 40px rgba(0,0,0,0.22), 0 4px 10px rgba(0,0,0,0.10)",
         }}
       >
         <img
