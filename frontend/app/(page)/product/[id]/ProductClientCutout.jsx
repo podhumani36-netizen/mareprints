@@ -218,7 +218,7 @@ export default function ProductClientCutout({ product }) {
 
     if (file && file.type.startsWith("image/")) {
       if (file.size > 10 * 1024 * 1024) {
-        showNotification("File size must be less than 10MB", "error");
+        showNotification("File size must be less than 50MB", "error");
         return;
       }
       processFile(file);
@@ -232,7 +232,7 @@ export default function ProductClientCutout({ product }) {
 
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
-        showNotification("File size must be less than 10MB", "error");
+        showNotification("File size must be less than 50MB", "error");
         return;
       }
 
@@ -449,7 +449,7 @@ export default function ProductClientCutout({ product }) {
             </button>
 
             <small className="text-muted mt-3 d-block">
-              JPG, PNG, GIF (Max 10MB)
+              JPG, PNG, GIF (Max 50MB)
             </small>
 
             {isProcessing && (

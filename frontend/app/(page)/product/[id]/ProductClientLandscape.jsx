@@ -13,12 +13,15 @@ export default function ProductClientLandscape() {
   const [zoom, setZoom] = useState(1);
   const [imageOffset, setImageOffset] = useState({ x: 0, y: 0 });
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [lastTouchPoint, setLastTouchPoint] = useState({ x: 0, y: 0 });
   const [isImageDragging, setIsImageDragging] = useState(false);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [orderId, setOrderId] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [isPaymentReady, setIsPaymentReady] = useState(false);
+  const [mailPreviewImage, setMailPreviewImage] = useState("");
 
   const [showToast, setShowToast] = useState({
     visible: false,
@@ -30,9 +33,8 @@ export default function ProductClientLandscape() {
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
-  const containerRef = useRef(null);
 
-  const [size, setSize] = useState("12×9");
+  const [size, setSize] = useState("10x8");
   const [thickness, setThickness] = useState("3mm");
   const [pincode, setPincode] = useState("");
   const [deliveryStatus, setDeliveryStatus] = useState({
@@ -57,28 +59,19 @@ export default function ProductClientLandscape() {
 
   const [formErrors, setFormErrors] = useState({});
 
-  const sizeOptions = [
-    "12×9",
-    "16×12",
-    "18×12",
-    "21×15",
-    "30×20",
-    "35×23",
-    "48×36",
-  ];
+  const sizeOptions = ["10x8", "14x11", "20x16", "24x20", "36x24"];
   const thicknessOptions = ["3mm", "5mm", "8mm"];
 
   const frameDimensions = {
-    "12×9": { width: 220, height: 165 },
-    "16×12": { width: 280, height: 210 },
-    "18×12": { width: 300, height: 200 },
-    "21×15": { width: 340, height: 240 },
-    "30×20": { width: 460, height: 300 },
-    "35×23": { width: 520, height: 340 },
-    "48×36": { width: 680, height: 510 },
+    "10x8": { width: 100, height: 80 },
+    "14x11": { width: 140, height: 110 },
+    "20x16": { width: 200, height: 160 },
+    "24x20": { width: 240, height: 200 },
+    "36x24": { width: 360, height: 240 },
   };
 
   const basePrice = 899;
+
   const roomWallBackground =
     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
 
@@ -89,7 +82,7 @@ export default function ProductClientLandscape() {
   }, []);
 
   useEffect(() => {
-    setOrderId(`#ORD${Math.floor(Math.random() * 10000)}`);
+    setOrderId(`#ORD${Math.floor(Math.random() * 100000)}`);
   }, []);
 
   useEffect(() => {
@@ -142,6 +135,11 @@ export default function ProductClientLandscape() {
     };
   }, [isImageDragging, dragStart]);
 
+  const isMobileView = () => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth <= 768;
+  };
+
   const showNotification = (message, type = "info", title = "") => {
     let notificationTitle = title;
 
@@ -178,16 +176,105 @@ export default function ProductClientLandscape() {
     }, 3000);
   };
 
+  const openSuccessModal = () => {
+    if (typeof window !== "undefined" && window.bootstrap) {
+      const modalEl = document.getElementById("successModal");
+      if (modalEl) {
+        const modal = new window.bootstrap.Modal(modalEl);
+        modal.show();
+      }
+    }
+  };
+
   const calculatePrice = useCallback(() => {
     let price = basePrice;
-    const sizeIndex = sizeOptions.indexOf(size);
 
+    const sizeIndex = sizeOptions.indexOf(size);
     if (sizeIndex > 0) price += sizeIndex * 180;
     if (thickness === "5mm") price += 150;
     if (thickness === "8mm") price += 300;
 
     return price * quantity;
   }, [size, thickness, quantity]);
+
+  const generateMailPreviewImage = async () => {
+    try {
+      if (!uploadedImage) return "";
+
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = uploadedImage;
+
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+
+      const exportWidth = 2000;
+      const exportHeight = 1600;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = exportWidth;
+      canvas.height = exportHeight;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return "";
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, exportWidth, exportHeight);
+
+      const baseScale = Math.max(
+        exportWidth / img.width,
+        exportHeight / img.height
+      );
+
+      const finalScale = baseScale * zoom;
+      const drawWidth = img.width * finalScale;
+      const drawHeight = img.height * finalScale;
+
+      const previewDims = frameDimensions[size] || { width: 200, height: 160 };
+
+      const offsetScaleX = exportWidth / previewDims.width;
+      const offsetScaleY = exportHeight / previewDims.height;
+
+      const dx = (exportWidth - drawWidth) / 2 + imageOffset.x * offsetScaleX;
+      const dy = (exportHeight - drawHeight) / 2 + imageOffset.y * offsetScaleY;
+
+      ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
+
+      return canvas.toDataURL("image/png");
+    } catch (error) {
+      console.error("Preview capture failed:", error);
+      return "";
+    }
+  };
+
+  const processFile = (file) => {
+    setIsProcessing(true);
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      setUploadedImage(event.target.result);
+      setZoom(1);
+      setImageOffset({ x: 0, y: 0 });
+      setCurrentStep(1);
+      setIsProcessing(false);
+      setIsPaymentReady(false);
+      setMailPreviewImage("");
+      showNotification("Image uploaded successfully!", "success");
+    };
+
+    reader.onerror = () => {
+      setIsProcessing(false);
+      showNotification("Failed to read file. Please try again.", "error");
+    };
+
+    reader.readAsDataURL(file);
+  };
 
   const handleDragEnter = (e) => {
     e.preventDefault();
@@ -213,6 +300,7 @@ export default function ProductClientLandscape() {
     setIsDragging(false);
 
     const file = e.dataTransfer.files[0];
+
     if (file && file.type.startsWith("image/")) {
       if (file.size > 10 * 1024 * 1024) {
         showNotification("File size must be less than 10MB", "error");
@@ -226,37 +314,20 @@ export default function ProductClientLandscape() {
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
+
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
         showNotification("File size must be less than 10MB", "error");
         return;
       }
+
       if (!file.type.startsWith("image/")) {
         showNotification("Please upload an image file", "error");
         return;
       }
+
       processFile(file);
     }
-  };
-
-  const processFile = (file) => {
-    setIsProcessing(true);
-    const reader = new FileReader();
-
-    reader.onload = (event) => {
-      setUploadedImage(event.target.result);
-      setZoom(1);
-      setImageOffset({ x: 0, y: 0 });
-      setIsProcessing(false);
-      showNotification("Image uploaded successfully!", "success");
-    };
-
-    reader.onerror = () => {
-      setIsProcessing(false);
-      showNotification("Failed to read file. Please try again.", "error");
-    };
-
-    reader.readAsDataURL(file);
   };
 
   const handleZoomIn = () => {
@@ -271,6 +342,9 @@ export default function ProductClientLandscape() {
     setUploadedImage(null);
     setZoom(1);
     setImageOffset({ x: 0, y: 0 });
+    setCurrentStep(1);
+    setIsPaymentReady(false);
+    setMailPreviewImage("");
     if (fileInputRef.current) fileInputRef.current.value = "";
     showNotification("Image removed successfully", "warning");
   };
@@ -282,6 +356,41 @@ export default function ProductClientLandscape() {
       x: e.clientX - imageOffset.x,
       y: e.clientY - imageOffset.y,
     });
+  };
+
+  const handleImageTouchStart = (e) => {
+    if (!e.touches || !e.touches[0]) return;
+
+    const touch = e.touches[0];
+    setIsImageDragging(true);
+    setLastTouchPoint({
+      x: touch.clientX,
+      y: touch.clientY,
+    });
+  };
+
+  const handleImageTouchMove = (e) => {
+    if (!isImageDragging || !e.touches || !e.touches[0]) return;
+
+    e.preventDefault();
+
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - lastTouchPoint.x;
+    const deltaY = touch.clientY - lastTouchPoint.y;
+
+    setImageOffset((prev) => ({
+      x: prev.x + deltaX,
+      y: prev.y + deltaY,
+    }));
+
+    setLastTouchPoint({
+      x: touch.clientX,
+      y: touch.clientY,
+    });
+  };
+
+  const handleImageTouchEnd = () => {
+    setIsImageDragging(false);
   };
 
   const handlePincodeChange = (e) => {
@@ -329,10 +438,25 @@ export default function ProductClientLandscape() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    let sanitizedValue = value;
+
+    if (name === "phone" || name === "alternatePhone") {
+      sanitizedValue = value.replace(/\D/g, "").slice(0, 10);
+    }
+
+    if (name === "pincode") {
+      sanitizedValue = value.replace(/\D/g, "").slice(0, 6);
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
 
     if (formErrors[name]) {
       setFormErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+
+    if (name !== "paymentMethod") {
+      setIsPaymentReady(false);
     }
   };
 
@@ -340,44 +464,67 @@ export default function ProductClientLandscape() {
     const errors = {};
 
     if (!formData.fullName.trim()) errors.fullName = "Full name is required";
+
     if (!formData.email.trim()) errors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(formData.email))
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       errors.email = "Invalid email format";
+    }
 
     if (!formData.phone.trim()) errors.phone = "Phone number is required";
-    else if (!/^\d{10}$/.test(formData.phone))
+    else if (!/^\d{10}$/.test(formData.phone)) {
       errors.phone = "Phone must be 10 digits";
+    }
+
+    if (
+      formData.alternatePhone.trim() &&
+      !/^\d{10}$/.test(formData.alternatePhone)
+    ) {
+      errors.alternatePhone = "Alternate phone must be 10 digits";
+    }
 
     if (!formData.address.trim()) errors.address = "Address is required";
     if (!formData.city.trim()) errors.city = "City is required";
     if (!formData.state.trim()) errors.state = "State is required";
 
     if (!formData.pincode.trim()) errors.pincode = "Pincode is required";
-    else if (!/^\d{6}$/.test(formData.pincode))
+    else if (!/^\d{6}$/.test(formData.pincode)) {
       errors.pincode = "Pincode must be 6 digits";
+    }
 
     return errors;
   };
 
-  const handleSubmitOrder = (e) => {
-    e.preventDefault();
+  const validateBeforePayment = async () => {
     const errors = validateForm();
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
+      setIsPaymentReady(false);
       showNotification("Please fill all required fields correctly", "error");
       return;
     }
 
-    showNotification("Order submitted successfully!", "success");
+    setFormErrors({});
 
-    if (typeof window !== "undefined" && window.bootstrap) {
-      const modalEl = document.getElementById("successModal");
-      if (modalEl) {
-        const modal = new window.bootstrap.Modal(modalEl);
-        modal.show();
-      }
-    }
+    const previewBase64 = await generateMailPreviewImage();
+    setMailPreviewImage(previewBase64);
+    setIsPaymentReady(true);
+    showNotification("Details verified. You can continue payment now.", "success");
+  };
+
+  const handleSubmitOrder = async (e) => {
+    e.preventDefault();
+    await validateBeforePayment();
+  };
+
+  const handlePaymentSuccess = () => {
+    showNotification("Payment successful! Thank you for your order.", "success");
+    openSuccessModal();
+    setIsPaymentReady(false);
+  };
+
+  const handlePaymentError = () => {
+    showNotification("Payment failed. Please try again.", "error");
   };
 
   const goToStep = (step) => {
@@ -385,28 +532,151 @@ export default function ProductClientLandscape() {
       showNotification("Please upload an image first", "warning");
       return;
     }
+
+    if (step === 3 && !uploadedImage) {
+      showNotification("Please upload an image first", "warning");
+      return;
+    }
+
     setCurrentStep(step);
   };
 
-  const getSummaryFrameSize = () => {
-    switch (size) {
-      case "12×9":
-        return { width: 140, height: 105 };
-      case "16×12":
-        return { width: 160, height: 120 };
-      case "18×12":
-        return { width: 170, height: 113 };
-      case "21×15":
-        return { width: 180, height: 129 };
-      case "30×20":
-        return { width: 190, height: 127 };
-      case "35×23":
-        return { width: 200, height: 131 };
-      case "48×36":
-        return { width: 210, height: 158 };
-      default:
-        return { width: 140, height: 105 };
+  const getPreviewFramePx = () => {
+    const isMobile = isMobileView();
+
+    if (isMobile) {
+      switch (size) {
+        case "10x8":
+          return { width: 260, height: 208 };
+        case "14x11":
+          return { width: 280, height: 220 };
+        case "20x16":
+          return { width: 300, height: 240 };
+        case "24x20":
+          return { width: 300, height: 250 };
+        case "36x24":
+          return { width: 300, height: 200 };
+        default:
+          return { width: 260, height: 208 };
+      }
     }
+
+    const dims = frameDimensions[size] || { width: 100, height: 80 };
+
+    let scale = 2.2;
+    if (size === "24x20") scale = 1.65;
+    if (size === "36x24") scale = 1.1;
+
+    return {
+      width: dims.width * scale,
+      height: dims.height * scale,
+    };
+  };
+
+  const getSummaryFramePx = () => {
+    const isMobile = isMobileView();
+
+    if (isMobile) {
+      switch (size) {
+        case "10x8":
+          return { width: 220, height: 176 };
+        case "14x11":
+          return { width: 230, height: 180 };
+        case "20x16":
+          return { width: 240, height: 192 };
+        case "24x20":
+          return { width: 240, height: 200 };
+        case "36x24":
+          return { width: 240, height: 160 };
+        default:
+          return { width: 220, height: 176 };
+      }
+    }
+
+    switch (size) {
+      case "10x8":
+        return { width: 170, height: 136 };
+      case "14x11":
+        return { width: 190, height: 149 };
+      case "20x16":
+        return { width: 220, height: 176 };
+      case "24x20":
+        return { width: 230, height: 192 };
+      case "36x24":
+        return { width: 240, height: 160 };
+      default:
+        return { width: 170, height: 136 };
+    }
+  };
+
+  const renderImagePreview = ({ showBackground = false, summary = false } = {}) => {
+    const dims = summary ? getSummaryFramePx() : getPreviewFramePx();
+    const isMobile = isMobileView();
+
+    return (
+      <div
+        className={summary ? "" : styles.previewArea}
+        style={{
+          position: "relative",
+          width: "100%",
+          minHeight: summary ? "auto" : isMobile ? "320px" : "480px",
+          borderRadius: "20px",
+          overflow: "hidden",
+          backgroundImage: showBackground ? `url(${roomWallBackground})` : "none",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          boxShadow: showBackground ? "0 10px 30px rgba(0,0,0,0.08)" : "none",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: summary ? "0" : isMobile ? "14px" : "20px",
+        }}
+      >
+        <div
+          className={summary ? "" : styles.previewFrame}
+          style={{
+            width: "100%",
+            maxWidth: `${dims.width}px`,
+            height: `${dims.height}px`,
+            border: `${thickness === "3mm" ? 6 : thickness === "5mm" ? 10 : 14}px solid #fff`,
+            borderRadius: "8px",
+            overflow: "hidden",
+            background: "#fff",
+            boxShadow: "0 18px 40px rgba(0,0,0,0.22), 0 4px 10px rgba(0,0,0,0.10)",
+            position: "relative",
+            margin: "0 auto",
+            touchAction: summary ? "auto" : "none",
+          }}
+        >
+          {uploadedImage ? (
+            <img
+              src={uploadedImage}
+              alt="Frame preview"
+              onMouseDown={!summary ? handleImageMouseDown : undefined}
+              onTouchStart={!summary ? handleImageTouchStart : undefined}
+              onTouchMove={!summary ? handleImageTouchMove : undefined}
+              onTouchEnd={!summary ? handleImageTouchEnd : undefined}
+              onTouchCancel={!summary ? handleImageTouchEnd : undefined}
+              draggable={false}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                transform: `translate(${imageOffset.x}px, ${imageOffset.y}px) scale(${zoom})`,
+                transformOrigin: "center center",
+                transition: isImageDragging ? "none" : "transform 0.18s ease",
+                userSelect: "none",
+                WebkitUserSelect: "none",
+                WebkitTouchCallout: "none",
+                cursor: summary ? "default" : isImageDragging ? "grabbing" : "grab",
+                touchAction: "none",
+              }}
+            />
+          ) : null}
+        </div>
+      </div>
+    );
   };
 
   const renderStepIndicator = () => (
@@ -427,7 +697,7 @@ export default function ProductClientLandscape() {
                   {currentStep > step ? <i className="bi bi-check-lg"></i> : step}
                 </span>
                 <span className={styles.stepLabel}>
-                  {step === 1 ? "Upload & Edit" : step === 2 ? "Customize" : "Payment"}
+                  {step === 1 ? "Upload" : step === 2 ? "Customize" : "Payment"}
                 </span>
               </button>
 
@@ -446,37 +716,68 @@ export default function ProductClientLandscape() {
   );
 
   const renderEditorControls = () => (
-    <div className="d-flex gap-2 mt-3 flex-wrap align-items-center">
-      <button
-        type="button"
-        className="btn btn-outline-secondary"
-        onClick={handleZoomOut}
+    <div className="mt-3">
+      <div
+        className="d-flex gap-2 flex-wrap align-items-center"
+        style={{ justifyContent: "center" }}
       >
-        <i className="bi bi-dash-lg"></i>
-      </button>
+        <button
+          type="button"
+          className="btn btn-outline-secondary"
+          onClick={handleZoomOut}
+        >
+          <i className="bi bi-dash-lg"></i>
+        </button>
 
-      <span style={{ minWidth: "64px", textAlign: "center", fontWeight: 600 }}>
-        {zoom.toFixed(1)}x
-      </span>
+        <div
+          style={{
+            minWidth: "70px",
+            textAlign: "center",
+            fontWeight: 700,
+            fontSize: "15px",
+          }}
+        >
+          {Math.round(zoom * 100)}%
+        </div>
 
-      <button
-        type="button"
-        className="btn btn-outline-secondary"
-        onClick={handleZoomIn}
+        <button
+          type="button"
+          className="btn btn-outline-secondary"
+          onClick={handleZoomIn}
+        >
+          <i className="bi bi-plus-lg"></i>
+        </button>
+
+        <button
+          type="button"
+          className="btn btn-outline-primary"
+          onClick={() => {
+            setZoom(1);
+            setImageOffset({ x: 0, y: 0 });
+          }}
+        >
+          Reset
+        </button>
+      </div>
+
+      <div className="mt-3">
+        <input
+          type="range"
+          min="1"
+          max="3"
+          step="0.05"
+          value={zoom}
+          onChange={(e) => setZoom(Number(e.target.value))}
+          style={{ width: "100%", cursor: "pointer" }}
+        />
+      </div>
+
+      <div
+        className="small text-muted mt-2 text-center"
+        style={{ lineHeight: "1.5" }}
       >
-        <i className="bi bi-plus-lg"></i>
-      </button>
-
-      <button
-        type="button"
-        className="btn btn-outline-primary"
-        onClick={() => {
-          setZoom(1);
-          setImageOffset({ x: 0, y: 0 });
-        }}
-      >
-        Reset
-      </button>
+        Drag on desktop / touch and move on mobile
+      </div>
     </div>
   );
 
@@ -486,6 +787,11 @@ export default function ProductClientLandscape() {
         <div className="row g-4">
           <div className="col-sm-12 col-md-8">
             <div className={styles.uploadCard}>
+              <h4 className={styles.uploadTitle}>
+                <i className="bi bi-cloud-upload me-2"></i>
+                Upload Your Landscape Image
+              </h4>
+
               <div
                 ref={dropZoneRef}
                 className={`${styles.uploadZone} ${isDragging ? styles.dragging : ""}`}
@@ -494,68 +800,14 @@ export default function ProductClientLandscape() {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
-                {uploadedImage ? (
-                  <div className={styles.previewContainer}>
-                    <div
-                      ref={containerRef}
-                      className={styles.imagePreview}
-                      style={{
-                        overflow: "auto",
-                        maxHeight: "500px",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        backgroundColor: "#f5f5f5",
-                        borderRadius: "8px",
-                        position: "relative",
-                      }}
-                    >
-                      <canvas
-                        ref={canvasRef}
-                        className={styles.drawingCanvas}
-                        style={{
-                          transform: `scale(${zoom}) translate(${imageOffset.x / 8}px, ${imageOffset.y / 8}px)`,
-                          transformOrigin: "center",
-                          transition: isImageDragging ? "none" : "transform 0.2s ease",
-                          maxWidth: "100%",
-                          height: "auto",
-                          display: "block",
-                          cursor: isImageDragging ? "grabbing" : "grab",
-                        }}
-                        onMouseDown={handleImageMouseDown}
-                      />
-                    </div>
-
-                    {renderEditorControls()}
-
-                    <div className={styles.imageControls}>
-                      <button
-                        className={`${styles.controlButton} ${styles.dangerButton}`}
-                        onClick={handleRemoveImage}
-                        title="Remove Image"
-                        type="button"
-                      >
-                        <i className="bi bi-trash"></i>
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className={styles.uploadPrompt}>
+                {!uploadedImage ? (
+                  <div className={styles.uploadPlaceholder}>
                     <div className={styles.uploadIcon}>
-                      <i
-                        className={`bi ${
-                          isDragging ? "bi-file-earmark-arrow-up" : "bi-cloud-upload"
-                        }`}
-                      ></i>
+                      <i className="bi bi-image"></i>
                     </div>
 
-                    <h3 className={styles.uploadTitle}>
-                      {isDragging ? "Drop your image here" : "Upload your image"}
-                    </h3>
-
-                    <p className={styles.uploadSubtitle}>
-                      {isDragging ? "Release to upload" : "Drag & drop or click to browse"}
-                    </p>
+                    <h5>Drag & drop your image here</h5>
+                    <p>Upload a clear landscape image for best print quality</p>
 
                     <button
                       className={styles.browseButton}
@@ -567,7 +819,7 @@ export default function ProductClientLandscape() {
                     </button>
 
                     <p className={styles.uploadHint}>
-                      Supported formats: JPG, PNG, GIF (Max 10MB)
+                      Supported formats: JPG, PNG, WEBP (Max 10MB)
                     </p>
 
                     {isProcessing && (
@@ -575,6 +827,39 @@ export default function ProductClientLandscape() {
                         Processing image...
                       </p>
                     )}
+                  </div>
+                ) : (
+                  <div
+                    className={styles.previewWrapper}
+                    style={{
+                      width: "100%",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {renderImagePreview({ showBackground: false })}
+                    {renderEditorControls()}
+
+                    <div
+                      className="d-flex gap-2 mt-3 flex-wrap"
+                      style={{ justifyContent: "center" }}
+                    >
+                      <button
+                        type="button"
+                        className="btn btn-outline-danger"
+                        onClick={handleRemoveImage}
+                      >
+                        Remove Image
+                      </button>
+
+                      {/* <button
+                        className={styles.nextButton}
+                        onClick={() => goToStep(2)}
+                        type="button"
+                      >
+                        Continue to Customize
+                        <i className="bi bi-arrow-right ms-2"></i>
+                      </button> */}
+                    </div>
                   </div>
                 )}
 
@@ -586,6 +871,14 @@ export default function ProductClientLandscape() {
                   className="d-none"
                 />
               </div>
+            </div>
+
+            <div className={`${styles.uploadCard} mt-4`}>
+              <img
+                src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png"
+                alt="Sample"
+                className="img-fluid"
+              />
             </div>
           </div>
 
@@ -609,15 +902,15 @@ export default function ProductClientLandscape() {
                 </li>
                 <li>
                   <i className="bi bi-check-circle-fill"></i>
-                  Ensure image is sharp and clear
+                  Use clear landscape photos
                 </li>
                 <li>
                   <i className="bi bi-check-circle-fill"></i>
-                  Avoid screenshots or low-quality images
+                  Avoid blurry or cropped images
                 </li>
                 <li className={styles.warning}>
                   <i className="bi bi-exclamation-triangle-fill"></i>
-                  Poor quality images affect final print
+                  Poor quality image affects final print
                 </li>
               </ul>
 
@@ -648,57 +941,7 @@ export default function ProductClientLandscape() {
                 Live Preview
               </h4>
 
-              <div
-                style={{
-                  position: "relative",
-                  width: "100%",
-                  minHeight: "480px",
-                  borderRadius: "20px",
-                  overflow: "hidden",
-                  backgroundImage: `url(${roomWallBackground})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <div
-                  style={{
-                    width: `${frameDimensions[size]?.width || 220}px`,
-                    height: `${frameDimensions[size]?.height || 165}px`,
-                    border: `${
-                      thickness === "3mm" ? 6 : thickness === "5mm" ? 10 : 14
-                    }px solid #fff`,
-                    borderRadius: "8px",
-                    overflow: "hidden",
-                    background: "#fff",
-                    boxShadow: "0 18px 40px rgba(0,0,0,0.22), 0 4px 10px rgba(0,0,0,0.10)",
-                    position: "relative",
-                  }}
-                >
-                  {uploadedImage ? (
-                    <img
-                      src={uploadedImage}
-                      alt="Frame preview"
-                      onMouseDown={handleImageMouseDown}
-                      draggable={false}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        transform: `translate(${imageOffset.x}px, ${imageOffset.y}px) scale(${zoom})`,
-                        transformOrigin: "center center",
-                        transition: isImageDragging ? "none" : "transform 0.18s ease",
-                        userSelect: "none",
-                        cursor: isImageDragging ? "grabbing" : "grab",
-                      }}
-                    />
-                  ) : null}
-                </div>
-              </div>
-
+              {renderImagePreview({ showBackground: true })}
               {renderEditorControls()}
             </div>
           </div>
@@ -724,6 +967,9 @@ export default function ProductClientLandscape() {
                     </button>
                   ))}
                 </div>
+                <small className="text-muted d-block mt-2">
+                  {frameDimensions[size].width} × {frameDimensions[size].height} cm
+                </small>
               </div>
 
               <div className={styles.optionGroup}>
@@ -743,15 +989,18 @@ export default function ProductClientLandscape() {
               </div>
 
               <div className={styles.optionGroup}>
-                <label className={styles.optionLabel}>Price</label>
-                {deliveryStatus.message && (
-                  <div className={`${styles.deliveryMessage} ${styles[deliveryStatus.type]}`}>
-                    <span>{deliveryStatus.message}</span>
-                    {estimatedDeliveryDate && deliveryStatus.type === "success" && (
-                      <small>Est. delivery: {estimatedDeliveryDate}</small>
-                    )}
-                  </div>
-                )}
+                <label className={styles.optionLabel}>Quantity</label>
+                <select
+                  className="form-select"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Number(e.target.value))}
+                >
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                    <option key={num} value={num}>
+                      {num}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className={styles.priceBreakdown}>
@@ -760,7 +1009,7 @@ export default function ProductClientLandscape() {
                   <span>₹{basePrice}</span>
                 </div>
 
-                {size !== "12×9" && (
+                {size !== "10x8" && (
                   <div className={styles.priceRow}>
                     <span>Size Upgrade</span>
                     <span>+₹{sizeOptions.indexOf(size) * 180}</span>
@@ -770,40 +1019,31 @@ export default function ProductClientLandscape() {
                 {thickness !== "3mm" && (
                   <div className={styles.priceRow}>
                     <span>Thickness Upgrade</span>
-                    <span>+₹{thickness === "5mm" ? "150" : "300"}</span>
+                    <span>+₹{thickness === "5mm" ? 150 : 300}</span>
                   </div>
                 )}
 
-                <div className={styles.priceRow}>
-                  <span>Quantity</span>
-                  <span>{quantity}</span>
-                </div>
-
-                <div className={styles.totalRow}>
-                  <span>Total</span>
-                  <span>₹{calculatePrice()}</span>
-                </div>
+                {quantity > 1 && (
+                  <div className={styles.priceRow}>
+                    <span>Quantity</span>
+                    <span>x{quantity}</span>
+                  </div>
+                )}
               </div>
 
-              <div className="d-flex gap-2 mt-4">
-                <button
-                  className="btn btn-outline-secondary w-50 py-3 fw-bold"
-                  onClick={() => goToStep(1)}
-                  type="button"
-                >
-                  <i className="bi bi-arrow-left me-2"></i>
-                  Back
-                </button>
-
-                <button
-                  className="btn btn-success w-50 py-3 fw-bold"
-                  onClick={() => goToStep(3)}
-                  type="button"
-                >
-                  <i className="bi bi-cart-check me-2"></i>
-                  Buy Now
-                </button>
+              <div className={styles.summaryTotal}>
+                <span>Total Amount</span>
+                <span>₹{calculatePrice()}</span>
               </div>
+
+              <button
+                className={styles.nextButton}
+                onClick={() => goToStep(3)}
+                type="button"
+              >
+                Continue to Payment
+                <i className="bi bi-arrow-right ms-2"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -813,7 +1053,6 @@ export default function ProductClientLandscape() {
 
   const renderStep3 = () => {
     const totalAmount = calculatePrice();
-    const summaryDims = getSummaryFrameSize();
 
     return (
       <div className={styles.stepContainer}>
@@ -821,88 +1060,48 @@ export default function ProductClientLandscape() {
           <div className="row g-4">
             <div className="col-lg-4 order-lg-2">
               <div className={styles.summaryCard}>
-                <h4 className={styles.summaryTitle}>
-                  <i className="bi bi-bag-check me-2"></i>
-                  Order Summary
-                </h4>
+                <h4 className="mb-4">Order Summary</h4>
 
-                {uploadedImage && (
-                  <div
-                    className={styles.summaryImage}
-                    style={{
-                      position: "relative",
-                      width: "100%",
-                      height: "220px",
-                      borderRadius: "14px",
-                      overflow: "hidden",
-                      background: "#f3f4f6",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${summaryDims.width}px`,
-                        height: `${summaryDims.height}px`,
-                        border: `${
-                          thickness === "3mm" ? 5 : thickness === "5mm" ? 8 : 11
-                        }px solid #fff`,
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                        background: "#fff",
-                        boxShadow: "0 10px 24px rgba(0,0,0,0.16)",
-                        position: "relative",
-                      }}
-                    >
-                      <img
-                        src={uploadedImage}
-                        alt="Product preview"
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                          transform: `translate(${imageOffset.x * 0.35}px, ${imageOffset.y * 0.35}px) scale(${zoom})`,
-                          transformOrigin: "center center",
-                          userSelect: "none",
-                          pointerEvents: "none",
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className={styles.summaryDetails}>
-                  <div className={styles.summaryRow}>
-                    <span>Size</span>
-                    <span className={styles.summaryValue}>{size}</span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span>Thickness</span>
-                    <span className={styles.summaryValue}>{thickness}</span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span>Quantity</span>
-                    <div className={styles.quantityWrapper}>
-                      <select
-                        className={styles.quantityDropdown}
-                        value={quantity}
-                        onChange={(e) => setQuantity(Number(e.target.value))}
-                      >
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                          <option key={num} value={num}>
-                            {num}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
+                <div className="text-center mb-4">
+                  {renderImagePreview({ summary: true })}
                 </div>
 
-                <div className={styles.summaryTotal}>
-                  <span>Total Amount</span>
-                  <span>₹{totalAmount}</span>
+                <div className="bg-light rounded p-3 mt-3">
+                  <div className="d-flex justify-content-between py-1">
+                    <span>Order ID</span>
+                    <span>{orderId}</span>
+                  </div>
+                  <div className="d-flex justify-content-between py-1">
+                    <span>Product</span>
+                    <span>Landscape Print</span>
+                  </div>
+                  <div className="d-flex justify-content-between py-1">
+                    <span>Selected Size</span>
+                    <span>{size}</span>
+                  </div>
+                  <div className="d-flex justify-content-between py-1">
+                    <span>Frame Size</span>
+                    <span>
+                      {frameDimensions[size].width} × {frameDimensions[size].height} cm
+                    </span>
+                  </div>
+                  <div className="d-flex justify-content-between py-1">
+                    <span>Thickness</span>
+                    <span>{thickness}</span>
+                  </div>
+                  <div className="d-flex justify-content-between py-1">
+                    <span>Quantity</span>
+                    <span>{quantity}</span>
+                  </div>
+                  <div className="d-flex justify-content-between py-1">
+                    <span>Estimated Delivery</span>
+                    <span>{estimatedDeliveryDate || "3-5 business days"}</span>
+                  </div>
+                  <hr />
+                  <div className="d-flex justify-content-between fw-bold fs-5">
+                    <span>Total</span>
+                    <span className="text-primary">₹{totalAmount}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -963,7 +1162,7 @@ export default function ProductClientLandscape() {
                         className={`form-control ${formErrors.phone ? "is-invalid" : ""}`}
                         value={formData.phone}
                         onChange={handleInputChange}
-                        maxLength="10"
+                        maxLength={10}
                       />
                       {formErrors.phone && (
                         <div className="invalid-feedback">{formErrors.phone}</div>
@@ -975,11 +1174,14 @@ export default function ProductClientLandscape() {
                       <input
                         type="text"
                         name="alternatePhone"
-                        className="form-control"
+                        className={`form-control ${formErrors.alternatePhone ? "is-invalid" : ""}`}
                         value={formData.alternatePhone}
                         onChange={handleInputChange}
-                        maxLength="10"
+                        maxLength={10}
                       />
+                      {formErrors.alternatePhone && (
+                        <div className="invalid-feedback">{formErrors.alternatePhone}</div>
+                      )}
                     </div>
 
                     <div className="col-12">
@@ -987,7 +1189,7 @@ export default function ProductClientLandscape() {
                       <textarea
                         name="address"
                         className={`form-control ${formErrors.address ? "is-invalid" : ""}`}
-                        rows="2"
+                        rows={3}
                         value={formData.address}
                         onChange={handleInputChange}
                       />
@@ -1001,7 +1203,7 @@ export default function ProductClientLandscape() {
                       <textarea
                         name="alternateAddress"
                         className="form-control"
-                        rows="2"
+                        rows={2}
                         value={formData.alternateAddress}
                         onChange={handleInputChange}
                       />
@@ -1043,7 +1245,7 @@ export default function ProductClientLandscape() {
                         className={`form-control ${formErrors.pincode ? "is-invalid" : ""}`}
                         value={formData.pincode}
                         onChange={handleInputChange}
-                        maxLength="6"
+                        maxLength={6}
                       />
                       {formErrors.pincode && (
                         <div className="invalid-feedback">{formErrors.pincode}</div>
@@ -1051,125 +1253,97 @@ export default function ProductClientLandscape() {
                     </div>
 
                     <div className="col-12">
-                      <label className="form-label">Payment Method</label>
-                      {/* <div className="d-flex gap-3 mt-2">
-                        <div className="form-check">
-                          <input
-                            type="radio"
-                            className="form-check-input"
-                            name="paymentMethod"
-                            value="razorpay"
-                            checked={formData.paymentMethod === "razorpay"}
-                            onChange={handleInputChange}
-                          />
-                          <label className="form-check-label">Razorpay</label>
-                        </div>
+                      <div className={styles.formSection}>
+                        <h5 className={styles.sectionTitle}>Payment Method</h5>
 
-                        <div className="form-check">
-                          <input
-                            type="radio"
-                            className="form-check-input"
-                            name="paymentMethod"
-                            value="gpay"
-                            checked={formData.paymentMethod === "gpay"}
-                            onChange={handleInputChange}
-                          />
-                          <label className="form-check-label">Google Pay</label>
-                        </div>
-                      </div> */}
-                    </div>
+                        {/* <div className={styles.paymentOptions}>
+                          <label className={styles.paymentOption}>
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value="razorpay"
+                              checked={formData.paymentMethod === "razorpay"}
+                              onChange={handleInputChange}
+                            />
+                            <span className={styles.radioCustom}></span>
+                            <img
+                              src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773377507/razorpay_chzbwv.svg"
+                              alt="Razorpay"
+                            />
+                            <span>Razorpay</span>
+                          </label>
+                        </div> */}
 
-                    <div className="col-12">
-                      <div className="bg-light rounded p-3 mt-2">
-                        <div className="d-flex justify-content-between py-1">
-                          <span>Selected Size</span>
-                          <span>{size}</span>
-                        </div>
-                        <div className="d-flex justify-content-between py-1">
-                          <span>Thickness</span>
-                          <span>{thickness}</span>
-                        </div>
-                        <div className="d-flex justify-content-between py-1">
-                          <span>Quantity</span>
-                          <span>{quantity}</span>
-                        </div>
-                        <div className="d-flex justify-content-between py-1">
-                          <span>Estimated Delivery</span>
-                          <span>{estimatedDeliveryDate || "3-5 business days"}</span>
-                        </div>
-                        <hr />
-                        <div className="d-flex justify-content-between fw-bold fs-5">
-                          <span>Total</span>
-                          <span className="text-primary">₹{totalAmount}</span>
-                        </div>
+                        {!isPaymentReady ? (
+                          <button
+                            type="submit"
+                            className={styles.proceedButton}
+                            style={{ marginTop: "14px" }}
+                          >
+                            Verify Details & Continue
+                            <i className="bi bi-shield-check ms-2"></i>
+                          </button>
+                        ) : (
+                          <div className={styles.paymentButton}>
+                            {formData.paymentMethod === "razorpay" ? (
+                              <RazorpayPayment
+                                amount={calculatePrice()}
+                                buttonText={`Pay `}
+                                themeColor="#3496cb"
+                                previewImage={mailPreviewImage}
+                                disabled={!isPaymentReady}
+                                customerDetails={{
+                                  orderId,
+                                  productType: "landscape",
+                                  productName: "Custom Landscape Print",
+                                  name: formData.fullName,
+                                  email: formData.email,
+                                  phone: formData.phone,
+                                  alternatePhone: formData.alternatePhone,
+                                  address: formData.address,
+                                  alternateAddress: formData.alternateAddress,
+                                  city: formData.city,
+                                  state: formData.state,
+                                  pincode: formData.pincode,
+                                  size,
+                                  thickness,
+                                  quantity,
+                                  amount: calculatePrice(),
+                                  imageZoom: zoom,
+                                  imageOffsetX: imageOffset.x,
+                                  imageOffsetY: imageOffset.y,
+                                }}
+                                onSuccess={handlePaymentSuccess}
+                                onError={handlePaymentError}
+                              />
+                            ) : (
+                              <GPayButton
+                                amount={calculatePrice()}
+                                customerDetails={{
+                                  orderId,
+                                  productType: "landscape",
+                                  productName: "Custom Landscape Print",
+                                  name: formData.fullName,
+                                  email: formData.email,
+                                  phone: formData.phone,
+                                  alternatePhone: formData.alternatePhone,
+                                  address: formData.address,
+                                  alternateAddress: formData.alternateAddress,
+                                  city: formData.city,
+                                  state: formData.state,
+                                  pincode: formData.pincode,
+                                  size,
+                                  thickness,
+                                  quantity,
+                                  amount: calculatePrice(),
+                                }}
+                                onSuccess={handlePaymentSuccess}
+                                onError={handlePaymentError}
+                              />
+                            )}
+                          </div>
+                        )}
                       </div>
-                    </div>
-
-                    <div className="col-12 mt-4">
-                      {formData.paymentMethod === "razorpay" ? (
-                        <RazorpayPayment
-                          amount={totalAmount}
-                          buttonText={`Pay ₹${totalAmount}`}
-                          themeColor="#3496cb"
-                          customerDetails={{
-                            name: formData.fullName,
-                            email: formData.email,
-                            phone: formData.phone,
-                            address: formData.address,
-                            alternatePhone: formData.alternatePhone,
-                            alternateAddress: formData.alternateAddress,
-                            city: formData.city,
-                            state: formData.state,
-                            pincode: formData.pincode,
-                            size,
-                            thickness,
-                            quantity,
-                            imageZoom: zoom,
-                            imageOffsetX: imageOffset.x,
-                            imageOffsetY: imageOffset.y,
-                            productType: "landscape",
-                            productName: "Landscape Print",
-                          }}
-                          onSuccess={() => {
-                            showNotification(
-                              "Payment successful! Thank you for your order.",
-                              "success"
-                            );
-
-                            if (typeof window !== "undefined" && window.bootstrap) {
-                              const modalEl = document.getElementById("successModal");
-                              if (modalEl) {
-                                const modal = new window.bootstrap.Modal(modalEl);
-                                modal.show();
-                              }
-                            }
-                          }}
-                          onError={() =>
-                            showNotification("Payment failed. Please try again.", "error")
-                          }
-                        />
-                      ) : (
-                        <GPayButton
-                          amount={totalAmount}
-                          onSuccess={() => {
-                            showNotification(
-                              "Payment successful! Thank you for your order.",
-                              "success"
-                            );
-
-                            if (typeof window !== "undefined" && window.bootstrap) {
-                              const modalEl = document.getElementById("successModal");
-                              if (modalEl) {
-                                const modal = new window.bootstrap.Modal(modalEl);
-                                modal.show();
-                              }
-                            }
-                          }}
-                          onError={() =>
-                            showNotification("Payment failed. Please try again.", "error")
-                          }
-                        />
-                      )}
                     </div>
                   </div>
                 </form>
@@ -1190,57 +1364,7 @@ export default function ProductClientLandscape() {
         {currentStep === 3 && renderStep3()}
       </div>
 
-      <div className="modal fade" id="successModal" tabIndex="-1" aria-hidden="true">
-        <div className="modal-dialog modal-dialog-centered">
-          <div className={styles.modalContent}>
-            <div className={styles.modalHeader}>
-              <h5 className={styles.modalTitle}>
-                <i className="bi bi-check-circle-fill me-2"></i>
-                Order Confirmed!
-              </h5>
-
-              <button
-                type="button"
-                className={styles.modalClose}
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              >
-                <i className="bi bi-x-lg"></i>
-              </button>
-            </div>
-
-            <div className={styles.modalBody}>
-              <div className={styles.modalIcon}>
-                <i className="bi bi-check-circle-fill"></i>
-              </div>
-
-              <h6 className={styles.modalThankYou}>Thank you for your order!</h6>
-
-              <p className={styles.modalMessage}>
-                Your landscape print order has been placed successfully. You will
-                receive a confirmation email shortly.
-              </p>
-
-              <div className={styles.modalOrderDetails}>
-                <div className={styles.orderDetailRow}>
-                  <span>Order ID:</span>
-                  <strong>{orderId}</strong>
-                </div>
-
-                <div className={styles.orderDetailRow}>
-                  <span>Total Amount:</span>
-                  <strong>₹{calculatePrice()}</strong>
-                </div>
-
-                <div className={styles.orderDetailRow}>
-                  <span>Estimated Delivery:</span>
-                  <strong>{estimatedDeliveryDate || "3-5 business days"}</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <canvas ref={canvasRef} style={{ display: "none" }} />
 
       {showToast.visible && (
         <div
@@ -1254,12 +1378,46 @@ export default function ProductClientLandscape() {
             boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
             zIndex: 9999,
             minWidth: "250px",
+            maxWidth: "calc(100vw - 30px)",
           }}
         >
           <strong>{showToast.title}</strong>
           <div>{showToast.message}</div>
         </div>
       )}
+
+      <div
+        className="modal fade"
+        id="successModal"
+        tabIndex="-1"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Order Submitted</h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              <p>Your landscape order has been placed successfully.</p>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-primary"
+                data-bs-dismiss="modal"
+              >
+                Okay
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }

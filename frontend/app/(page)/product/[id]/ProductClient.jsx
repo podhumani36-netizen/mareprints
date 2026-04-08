@@ -294,7 +294,7 @@ export default function ProductClient() {
 
     if (file && file.type.startsWith("image/")) {
       if (file.size > 10 * 1024 * 1024) {
-        showNotification("File size must be less than 10MB", "error");
+        showNotification("File size must be less than 50MB", "error");
         return;
       }
       processFile(file);
@@ -308,7 +308,7 @@ export default function ProductClient() {
 
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
-        showNotification("File size must be less than 10MB", "error");
+        showNotification("File size must be less than 50MB", "error");
         return;
       }
 
@@ -882,7 +882,7 @@ const renderSummaryPreview = () => {
                     </button>
 
                     <p className={styles.uploadHint}>
-                      Supported formats: JPG, PNG, GIF (Max 10MB)
+                      Supported formats: JPG, PNG, GIF (Max 50MB)
                     </p>
 
                     {isProcessing && (
@@ -1466,7 +1466,7 @@ const renderSummaryPreview = () => {
                       />
                       <span>Razorpay</span>
                     </label>
-
+{/* 
                     <label className={styles.paymentOption}>
                       <input
                         type="radio"
@@ -1478,7 +1478,7 @@ const renderSummaryPreview = () => {
                       <span className={styles.radioCustom}></span>
                       <i className="bi bi-google"></i>
                       <span>Google Pay</span>
-                    </label>
+                    </label> */}
                   </div>
 
                   {!isPaymentReady ? (
