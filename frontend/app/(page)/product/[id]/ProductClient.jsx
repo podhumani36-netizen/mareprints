@@ -121,29 +121,64 @@ export default function ProductClient() {
     setImageOffset({ x: 0, y: 0 });
   }, [orientation]);
 
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (!isImageDragging) return;
+ useEffect(() => {
+  const handleMouseMove = (e) => {
+    if (!isImageDragging) return;
+    setImageOffset({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y,
+    });
+  };
 
-      setImageOffset({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y,
-      });
-    };
+  const handleTouchMove = (e) => {
+    if (!isImageDragging || !e.touches?.length) return;
+    const touch = e.touches[0];
+    setImageOffset({
+      x: touch.clientX - dragStart.x,
+      y: touch.clientY - dragStart.y,
+    });
+  };
 
-    const handleMouseUp = () => {
-      setIsImageDragging(false);
-    };
+  const stopDragging = () => setIsImageDragging(false);
 
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+  window.addEventListener("mousemove", handleMouseMove);
+  window.addEventListener("mouseup", stopDragging);
+  window.addEventListener("touchmove", handleTouchMove, { passive: false });
+  window.addEventListener("touchend", stopDragging);
+  window.addEventListener("touchcancel", stopDragging);
 
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [isImageDragging, dragStart]);
+  return () => {
+    window.removeEventListener("mousemove", handleMouseMove);
+    window.removeEventListener("mouseup", stopDragging);
+    window.removeEventListener("touchmove", handleTouchMove);
+    window.removeEventListener("touchend", stopDragging);
+    window.removeEventListener("touchcancel", stopDragging);
+  };
+}, [isImageDragging, dragStart]);
 
+const handleImageTouchStart = (e) => {
+  if (!uploadedImage || !e.touches?.length) return;
+  const touch = e.touches[0];
+  setIsImageDragging(true);
+  setDragStart({
+    x: touch.clientX - imageOffset.x,
+    y: touch.clientY - imageOffset.y,
+  });
+};
+
+const handleImageTouchMove = (e) => {
+  if (!isImageDragging || !e.touches?.length) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  setImageOffset({
+    x: touch.clientX - dragStart.x,
+    y: touch.clientY - dragStart.y,
+  });
+};
+
+const handleImageTouchEnd = () => {
+  setIsImageDragging(false);
+};
   const showNotification = (message, type = "info", title = "") => {
     let notificationTitle = title;
 
@@ -678,6 +713,10 @@ const renderEditorControls = () => (
               src={uploadedImage || roomWallBackground}
               alt="Frame preview"
               onMouseDown={uploadedImage ? handleImageMouseDown : undefined}
+               onTouchStart={uploadedImage ? handleImageTouchStart : undefined}
+  onTouchMove={uploadedImage ? handleImageTouchMove : undefined}
+  onTouchEnd={uploadedImage ? handleImageTouchEnd : undefined}
+  onTouchCancel={uploadedImage ? handleImageTouchEnd : undefined}
               draggable={false}
               style={{
                 width: "100%",
@@ -688,6 +727,7 @@ const renderEditorControls = () => (
                 transition: isImageDragging ? "none" : "transform 0.18s ease",
                 userSelect: "none",
                  filter: "drop-shadow(0 8px 18px rgba(0,0,0,0.25))",
+                  touchAction: "none",
               }}
             />
 

@@ -303,7 +303,7 @@ export default function ProductClientLandscape() {
 
     if (file && file.type.startsWith("image/")) {
       if (file.size > 10 * 1024 * 1024) {
-        showNotification("File size must be less than 10MB", "error");
+        showNotification("File size must be less than 50MB", "error");
         return;
       }
       processFile(file);
@@ -317,7 +317,7 @@ export default function ProductClientLandscape() {
 
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
-        showNotification("File size must be less than 10MB", "error");
+        showNotification("File size must be less than 50MB", "error");
         return;
       }
 
@@ -662,7 +662,7 @@ export default function ProductClientLandscape() {
               style={{
                 width: "100%",
                 height: "100%",
-                objectFit: "cover",
+                objectFit: "contain",
                 transform: `translate(${imageOffset.x}px, ${imageOffset.y}px) scale(${zoom})`,
                 transformOrigin: "center center",
                 transition: isImageDragging ? "none" : "transform 0.18s ease",
@@ -819,7 +819,7 @@ export default function ProductClientLandscape() {
                     </button>
 
                     <p className={styles.uploadHint}>
-                      Supported formats: JPG, PNG, WEBP (Max 10MB)
+                      Supported formats: JPG, PNG, WEBP (Max 50MB)
                     </p>
 
                     {isProcessing && (

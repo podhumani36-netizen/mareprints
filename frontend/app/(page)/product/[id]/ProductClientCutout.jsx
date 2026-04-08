@@ -15,6 +15,9 @@ export default function ProductClientCutout({ product }) {
   const [orderId, setOrderId] = useState("");
   const [quantity, setQuantity] = useState(1);
 
+  const [isPaymentReady, setIsPaymentReady] = useState(false);
+  const [mailPreviewImage, setMailPreviewImage] = useState("");
+
   const [showToast, setShowToast] = useState({
     visible: false,
     type: "",
@@ -75,7 +78,7 @@ export default function ProductClientCutout({ product }) {
   }, []);
 
   useEffect(() => {
-    setOrderId(`#ORD${Math.floor(Math.random() * 10000)}`);
+    setOrderId(`#ORD${Math.floor(Math.random() * 100000)}`);
   }, []);
 
   const showNotification = (message, type = "info", title = "") => {
@@ -114,6 +117,16 @@ export default function ProductClientCutout({ product }) {
     }, 3000);
   };
 
+  const openSuccessModal = () => {
+    if (typeof window !== "undefined" && window.bootstrap) {
+      const modalEl = document.getElementById("successModal");
+      if (modalEl) {
+        const modal = new window.bootstrap.Modal(modalEl);
+        modal.show();
+      }
+    }
+  };
+
   const calculatePrice = useCallback(() => {
     let price = basePrice;
     const sizeIndex = sizeOptions.indexOf(size);
@@ -129,6 +142,52 @@ export default function ProductClientCutout({ product }) {
   }, [size, thickness, sizeOptions, basePrice, quantity, product]);
 
   const totalAmount = calculatePrice() + (product?.cutoutPremium || 199);
+
+  const generateMailPreviewImage = async () => {
+    try {
+      const imageToUse = uploadedImage || originalImage;
+      if (!imageToUse) return "";
+
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = imageToUse;
+
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+
+      const canvas = document.createElement("canvas");
+      const exportWidth = 1400;
+      const exportHeight = 1400;
+
+      canvas.width = exportWidth;
+      canvas.height = exportHeight;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return "";
+
+      ctx.clearRect(0, 0, exportWidth, exportHeight);
+
+      const scale = Math.min(
+        exportWidth / img.width,
+        exportHeight / img.height
+      );
+
+      const drawWidth = img.width * scale;
+      const drawHeight = img.height * scale;
+
+      const dx = (exportWidth - drawWidth) / 2;
+      const dy = (exportHeight - drawHeight) / 2;
+
+      ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
+
+      return canvas.toDataURL("image/png");
+    } catch (error) {
+      console.error("Preview capture failed:", error);
+      return "";
+    }
+  };
 
   const autoRemoveBackground = async (imageDataURL) => {
     setIsRemovingBackground(true);
@@ -149,9 +208,9 @@ export default function ProductClientCutout({ product }) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.errors?.[0]?.title || "Background removal failed"
+          errorData?.errors?.[0]?.title || "Background removal failed"
         );
       }
 
@@ -166,11 +225,16 @@ export default function ProductClientCutout({ product }) {
 
       setUploadedImage(resultDataURL);
       setBackgroundRemoved(true);
+      setIsPaymentReady(false);
+      setMailPreviewImage("");
       showNotification("Background removed successfully!", "success");
     } catch (error) {
       console.error("Background removal failed:", error);
-      showNotification("Using original image", "warning");
       setUploadedImage(imageDataURL);
+      setBackgroundRemoved(false);
+      setIsPaymentReady(false);
+      setMailPreviewImage("");
+      showNotification("Using original image", "warning");
     } finally {
       setIsRemovingBackground(false);
     }
@@ -193,11 +257,16 @@ export default function ProductClientCutout({ product }) {
 
   const processFile = (file) => {
     setIsProcessing(true);
+
     const reader = new FileReader();
 
     reader.onload = (event) => {
       const result = event.target.result;
       setOriginalImage(result);
+      setUploadedImage(null);
+      setBackgroundRemoved(false);
+      setIsPaymentReady(false);
+      setMailPreviewImage("");
       autoRemoveBackground(result);
       setIsProcessing(false);
     };
@@ -217,7 +286,7 @@ export default function ProductClientCutout({ product }) {
     const file = e.dataTransfer.files[0];
 
     if (file && file.type.startsWith("image/")) {
-      if (file.size > 10 * 1024 * 1024) {
+      if (file.size > 50 * 1024 * 1024) {
         showNotification("File size must be less than 50MB", "error");
         return;
       }
@@ -231,7 +300,7 @@ export default function ProductClientCutout({ product }) {
     const file = e.target.files[0];
 
     if (file) {
-      if (file.size > 10 * 1024 * 1024) {
+      if (file.size > 50 * 1024 * 1024) {
         showNotification("File size must be less than 50MB", "error");
         return;
       }
@@ -249,6 +318,8 @@ export default function ProductClientCutout({ product }) {
     setUploadedImage(null);
     setOriginalImage(null);
     setBackgroundRemoved(false);
+    setMailPreviewImage("");
+    setIsPaymentReady(false);
 
     if (fileInputRef.current) fileInputRef.current.value = "";
 
@@ -271,7 +342,7 @@ export default function ProductClientCutout({ product }) {
     setDeliveryStatus({ message: "", type: "", isChecking: true });
 
     setTimeout(() => {
-      const servicable = [
+      const serviceable = [
         "110001",
         "400001",
         "700001",
@@ -279,7 +350,7 @@ export default function ProductClientCutout({ product }) {
         "600001",
       ].includes(pincode);
 
-      if (servicable) {
+      if (serviceable) {
         setDeliveryStatus({
           type: "success",
           message: "Delivery available to this pincode.",
@@ -302,9 +373,19 @@ export default function ProductClientCutout({ product }) {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
+    let sanitizedValue = value;
+
+    if (name === "phone" || name === "alternatePhone") {
+      sanitizedValue = value.replace(/\D/g, "").slice(0, 10);
+    }
+
+    if (name === "pincode") {
+      sanitizedValue = value.replace(/\D/g, "").slice(0, 6);
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: sanitizedValue,
     }));
 
     if (formErrors[name]) {
@@ -313,12 +394,17 @@ export default function ProductClientCutout({ product }) {
         [name]: "",
       }));
     }
+
+    if (name !== "paymentMethod") {
+      setIsPaymentReady(false);
+    }
   };
 
   const validateForm = () => {
     const errors = {};
 
     if (!formData.fullName.trim()) errors.fullName = "Full name is required";
+
     if (!formData.email.trim()) {
       errors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -329,6 +415,13 @@ export default function ProductClientCutout({ product }) {
       errors.phone = "Phone number is required";
     } else if (!/^\d{10}$/.test(formData.phone)) {
       errors.phone = "Phone must be 10 digits";
+    }
+
+    if (
+      formData.alternatePhone.trim() &&
+      !/^\d{10}$/.test(formData.alternatePhone)
+    ) {
+      errors.alternatePhone = "Alternate phone must be 10 digits";
     }
 
     if (!formData.address.trim()) errors.address = "Address is required";
@@ -344,26 +437,40 @@ export default function ProductClientCutout({ product }) {
     return errors;
   };
 
-  const handleSubmitOrder = (e) => {
-    e.preventDefault();
-
+  const validateBeforePayment = async () => {
     const errors = validateForm();
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
+      setIsPaymentReady(false);
       showNotification("Please fill all required fields correctly", "error");
       return;
     }
 
-    showNotification("Order submitted successfully!", "success");
+    setFormErrors({});
 
-    if (typeof window !== "undefined" && window.bootstrap) {
-      const modalEl = document.getElementById("successModal");
-      if (modalEl) {
-        const modal = new window.bootstrap.Modal(modalEl);
-        modal.show();
-      }
-    }
+    const previewBase64 = await generateMailPreviewImage();
+    setMailPreviewImage(previewBase64);
+    setIsPaymentReady(true);
+    showNotification(
+      "Details verified. You can continue payment now.",
+      "success"
+    );
+  };
+
+  const handleSubmitOrder = async (e) => {
+    e.preventDefault();
+    await validateBeforePayment();
+  };
+
+  const handlePaymentSuccess = () => {
+    showNotification("Payment successful! Thank you for your order.", "success");
+    openSuccessModal();
+    setIsPaymentReady(false);
+  };
+
+  const handlePaymentError = () => {
+    showNotification("Payment failed. Please try again.", "error");
   };
 
   const goToStep = (step) => {
@@ -498,8 +605,15 @@ export default function ProductClientCutout({ product }) {
 
             {backgroundRemoved && !isRemovingBackground && (
               <div className="mt-3 p-2 bg-success bg-opacity-10 rounded text-success small text-center">
-                <i className="bi bi-check-circle-fill me-1"></i>
-                Background removed successfully!
+                <i className="bi bi-check-circle me-2"></i>
+                Background removed successfully
+              </div>
+            )}
+
+            {!backgroundRemoved && !isRemovingBackground && originalImage && (
+              <div className="mt-3 p-2 bg-warning bg-opacity-10 rounded text-warning small text-center">
+                <i className="bi bi-exclamation-circle me-2"></i>
+                Using original image
               </div>
             )}
           </div>
@@ -599,7 +713,10 @@ export default function ProductClientCutout({ product }) {
                     className={`btn ${
                       size === opt ? "btn-primary" : "btn-outline-primary"
                     }`}
-                    onClick={() => setSize(opt)}
+                    onClick={() => {
+                      setSize(opt);
+                      setIsPaymentReady(false);
+                    }}
                     type="button"
                   >
                     {opt}
@@ -615,9 +732,12 @@ export default function ProductClientCutout({ product }) {
                   <button
                     key={opt}
                     className={`btn ${
-                      thickness === opt ? "btn-dark" : "btn-outline-dark"
+                      thickness === opt ? "btn-primary" : "btn-outline-primary"
                     }`}
-                    onClick={() => setThickness(opt)}
+                    onClick={() => {
+                      setThickness(opt);
+                      setIsPaymentReady(false);
+                    }}
                     type="button"
                   >
                     {opt}
@@ -630,9 +750,12 @@ export default function ProductClientCutout({ product }) {
               <label className="form-label fw-bold">Quantity</label>
               <div className="d-flex align-items-center gap-3 mt-2">
                 <button
-                  className="btn btn-outline-secondary"
-                  onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
                   type="button"
+                  className="btn btn-outline-secondary"
+                  onClick={() => {
+                    setQuantity((prev) => Math.max(1, prev - 1));
+                    setIsPaymentReady(false);
+                  }}
                 >
                   <i className="bi bi-dash-lg"></i>
                 </button>
@@ -640,76 +763,29 @@ export default function ProductClientCutout({ product }) {
                 <span className="fw-bold fs-5">{quantity}</span>
 
                 <button
-                  className="btn btn-outline-secondary"
-                  onClick={() => setQuantity((prev) => prev + 1)}
                   type="button"
+                  className="btn btn-outline-secondary"
+                  onClick={() => {
+                    setQuantity((prev) => prev + 1);
+                    setIsPaymentReady(false);
+                  }}
                 >
                   <i className="bi bi-plus-lg"></i>
                 </button>
               </div>
             </div>
 
-            <div className="mb-4">
-              <label className="form-label fw-bold">Price</label>
+            {renderSummaryCard()}
 
-              {deliveryStatus.message && (
-                <div
-                  className={`mt-2 small ${
-                    deliveryStatus.type === "success"
-                      ? "text-success"
-                      : "text-danger"
-                  }`}
-                >
-                  {deliveryStatus.message}
-                </div>
-              )}
-
-              {estimatedDeliveryDate && (
-                <div className="mt-2 small text-muted">
-                  Estimated delivery: {estimatedDeliveryDate}
-                </div>
-              )}
-            </div>
-
-            <div className="bg-light rounded p-3">
-              <div className="d-flex justify-content-between py-2">
-                <span>Base Price</span>
-                <span>₹{calculatePrice()}</span>
-              </div>
-
-              <div className="d-flex justify-content-between py-2">
-                <span>Cutout Premium</span>
-                <span>₹{product?.cutoutPremium || 199}</span>
-              </div>
-
-              <hr className="my-2" />
-
-              <div className="d-flex justify-content-between fw-bold fs-5 py-2">
-                <span>Total</span>
-                <span className="text-primary">₹{totalAmount}</span>
-              </div>
-            </div>
-
-            <div className="d-flex gap-2 mt-4">
-              <button
-                className="btn btn-outline-secondary w-50 py-3 fw-bold"
-                onClick={() => goToStep(1)}
-                type="button"
-              >
-                <i className="bi bi-arrow-left me-2"></i>
-                Back
-              </button>
-
-              <button
-                className="btn btn-success w-50 py-3 fw-bold"
-                onClick={() => goToStep(3)}
-                disabled={!uploadedImage && !originalImage}
-                type="button"
-              >
-                <i className="bi bi-cart-check me-2"></i>
-                Buy Now
-              </button>
-            </div>
+            <button
+              className="btn btn-primary w-100 mt-4 py-3 fw-bold"
+              onClick={() => goToStep(3)}
+              disabled={!uploadedImage && !originalImage}
+              type="button"
+            >
+              <i className="bi bi-cart-check me-2"></i>
+              Buy Now
+            </button>
           </div>
         </div>
       </div>
@@ -749,11 +825,10 @@ export default function ProductClientCutout({ product }) {
                     }`}
                     value={formData.fullName}
                     onChange={handleInputChange}
+                    placeholder="Enter your full name"
                   />
                   {formErrors.fullName && (
-                    <div className="invalid-feedback">
-                      {formErrors.fullName}
-                    </div>
+                    <div className="invalid-feedback">{formErrors.fullName}</div>
                   )}
                 </div>
 
@@ -767,6 +842,7 @@ export default function ProductClientCutout({ product }) {
                     }`}
                     value={formData.email}
                     onChange={handleInputChange}
+                    placeholder="Enter your email"
                   />
                   {formErrors.email && (
                     <div className="invalid-feedback">{formErrors.email}</div>
@@ -774,15 +850,16 @@ export default function ProductClientCutout({ product }) {
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">Phone *</label>
+                  <label className="form-label">Phone Number *</label>
                   <input
-                    type="text"
+                    type="tel"
                     name="phone"
                     className={`form-control ${
                       formErrors.phone ? "is-invalid" : ""
                     }`}
                     value={formData.phone}
                     onChange={handleInputChange}
+                    placeholder="10-digit phone number"
                     maxLength="10"
                   />
                   {formErrors.phone && (
@@ -793,13 +870,21 @@ export default function ProductClientCutout({ product }) {
                 <div className="col-md-6">
                   <label className="form-label">Alternate Phone</label>
                   <input
-                    type="text"
+                    type="tel"
                     name="alternatePhone"
-                    className="form-control"
+                    className={`form-control ${
+                      formErrors.alternatePhone ? "is-invalid" : ""
+                    }`}
                     value={formData.alternatePhone}
                     onChange={handleInputChange}
+                    placeholder="Optional alternate phone"
                     maxLength="10"
                   />
+                  {formErrors.alternatePhone && (
+                    <div className="invalid-feedback">
+                      {formErrors.alternatePhone}
+                    </div>
+                  )}
                 </div>
 
                 <div className="col-12">
@@ -809,9 +894,10 @@ export default function ProductClientCutout({ product }) {
                     className={`form-control ${
                       formErrors.address ? "is-invalid" : ""
                     }`}
-                    rows="2"
+                    rows="3"
                     value={formData.address}
                     onChange={handleInputChange}
+                    placeholder="Enter your full address"
                   />
                   {formErrors.address && (
                     <div className="invalid-feedback">{formErrors.address}</div>
@@ -826,6 +912,7 @@ export default function ProductClientCutout({ product }) {
                     rows="2"
                     value={formData.alternateAddress}
                     onChange={handleInputChange}
+                    placeholder="Optional alternate delivery address"
                   />
                 </div>
 
@@ -839,6 +926,7 @@ export default function ProductClientCutout({ product }) {
                     }`}
                     value={formData.city}
                     onChange={handleInputChange}
+                    placeholder="City"
                   />
                   {formErrors.city && (
                     <div className="invalid-feedback">{formErrors.city}</div>
@@ -855,6 +943,7 @@ export default function ProductClientCutout({ product }) {
                     }`}
                     value={formData.state}
                     onChange={handleInputChange}
+                    placeholder="State"
                   />
                   {formErrors.state && (
                     <div className="invalid-feedback">{formErrors.state}</div>
@@ -871,6 +960,7 @@ export default function ProductClientCutout({ product }) {
                     }`}
                     value={formData.pincode}
                     onChange={handleInputChange}
+                    placeholder="6-digit pincode"
                     maxLength="6"
                   />
                   {formErrors.pincode && (
@@ -878,37 +968,19 @@ export default function ProductClientCutout({ product }) {
                   )}
                 </div>
 
+               
                 <div className="col-12">
-                  <label className="form-label">Payment Method</label>
-                  {/* <div className="d-flex gap-3 mt-2">
-                    <div className="form-check">
-                      <input
-                        type="radio"
-                        className="form-check-input"
-                        name="paymentMethod"
-                        value="razorpay"
-                        checked={formData.paymentMethod === "razorpay"}
-                        onChange={handleInputChange}
-                      />
-                      <label className="form-check-label">Razorpay</label>
-                    </div>
+                  <div className="border rounded p-3">
+                    <h5 className="mb-3">Order Summary</h5>
 
-                    <div className="form-check">
-                      <input
-                        type="radio"
-                        className="form-check-input"
-                        name="paymentMethod"
-                        value="gpay"
-                        checked={formData.paymentMethod === "gpay"}
-                        onChange={handleInputChange}
-                      />
-                      <label className="form-check-label">Google Pay</label>
+                    <div className="d-flex justify-content-between py-1">
+                      <span>Order ID</span>
+                      <span>{orderId}</span>
                     </div>
-                  </div> */}
-                </div>
-
-                <div className="col-12">
-                  <div className="bg-light rounded p-3 mt-2">
+                    <div className="d-flex justify-content-between py-1">
+                      <span>Product</span>
+                      <span>{product?.name || "Cutout Print"}</span>
+                    </div>
                     <div className="d-flex justify-content-between py-1">
                       <span>Selected Size</span>
                       <span>{size}</span>
@@ -922,6 +994,10 @@ export default function ProductClientCutout({ product }) {
                       <span>{quantity}</span>
                     </div>
                     <div className="d-flex justify-content-between py-1">
+                      <span>Background</span>
+                      <span>{backgroundRemoved ? "Removed" : "Original"}</span>
+                    </div>
+                    <div className="d-flex justify-content-between py-1">
                       <span>Estimated Delivery</span>
                       <span>{estimatedDeliveryDate || "3-5 business days"}</span>
                     </div>
@@ -933,70 +1009,103 @@ export default function ProductClientCutout({ product }) {
                   </div>
                 </div>
 
+                <div className="col-12">
+                  <h5 className="mb-3">Payment Method</h5>
+{/* 
+                  <div className="d-flex flex-wrap gap-3">
+                    <label className="d-flex align-items-center gap-2">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="razorpay"
+                        checked={formData.paymentMethod === "razorpay"}
+                        onChange={handleInputChange}
+                      />
+                      <span>Razorpay</span>
+                    </label>
+
+                    <label className="d-flex align-items-center gap-2">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="gpay"
+                        checked={formData.paymentMethod === "gpay"}
+                        onChange={handleInputChange}
+                      />
+                      <span>Google Pay</span>
+                    </label>
+                  </div> */}
+                </div>
+
                 <div className="col-12 mt-4">
-                  {formData.paymentMethod === "razorpay" ? (
-                    <RazorpayPayment
-                      amount={totalAmount}
-                      buttonText={`Pay ₹${totalAmount}`}
-                      themeColor="#3496cb"
-                      customerDetails={{
-                        name: formData.fullName,
-                        email: formData.email,
-                        phone: formData.phone,
-                        address: formData.address,
-                        size,
-                        thickness,
-                        quantity,
-                        productType: product?.type || "cutout",
-                        productName: product?.name || "Cutout Print",
-                      }}
-                      onSuccess={() => {
-                        showNotification(
-                          "Payment successful! Thank you for your order.",
-                          "success"
-                        );
-
-                        if (typeof window !== "undefined" && window.bootstrap) {
-                          const modalEl =
-                            document.getElementById("successModal");
-                          if (modalEl) {
-                            const modal = new window.bootstrap.Modal(modalEl);
-                            modal.show();
-                          }
-                        }
-                      }}
-                      onError={() =>
-                        showNotification(
-                          "Payment failed. Please try again.",
-                          "error"
-                        )
-                      }
-                    />
+                  {!isPaymentReady ? (
+                    <button
+                      type="submit"
+                      className={styles.proceedButton}
+                      style={{ marginTop: "14px" }}
+                    >
+                      Verify Details & Continue
+                      <i className="bi bi-shield-check ms-2"></i>
+                    </button>
                   ) : (
-                    <GPayButton
-                      amount={totalAmount}
-                      onSuccess={() => {
-                        showNotification(
-                          "Payment successful! Thank you for your order.",
-                          "success"
-                        );
-
-                        if (typeof window !== "undefined" && window.bootstrap) {
-                          const modalEl =
-                            document.getElementById("successModal");
-                          if (modalEl) {
-                            const modal = new window.bootstrap.Modal(modalEl);
-                            modal.show();
-                          }
-                        }
-                      }}
-                      onError={() =>
-                        showNotification(
-                          "Payment failed. Please try again.",
-                          "error"
-                        )
-                      }
-                    />
+                    <div className={styles.paymentButton}>
+                      {formData.paymentMethod === "razorpay" ? (
+                        <RazorpayPayment
+                          amount={totalAmount}
+                          buttonText={`Pay ₹${totalAmount}`}
+                          themeColor="#3496cb"
+                          previewImage={mailPreviewImage}
+                          originalImage={uploadedImage || originalImage}
+                          disabled={!isPaymentReady}
+                          customerDetails={{
+                            orderId,
+                            productType: product?.type || "cutout",
+                            productName: product?.name || "Cutout Print",
+                            name: formData.fullName,
+                            email: formData.email,
+                            phone: formData.phone,
+                            alternatePhone: formData.alternatePhone,
+                            address: formData.address,
+                            alternateAddress: formData.alternateAddress,
+                            city: formData.city,
+                            state: formData.state,
+                            pincode: formData.pincode,
+                            size,
+                            thickness,
+                            quantity,
+                            amount: totalAmount,
+                            backgroundRemoved,
+                          }}
+                          onSuccess={handlePaymentSuccess}
+                          onError={handlePaymentError}
+                        />
+                      ) : (
+                        <GPayButton
+                          amount={totalAmount}
+                          customerDetails={{
+                            orderId,
+                            productType: product?.type || "cutout",
+                            productName: product?.name || "Cutout Print",
+                            name: formData.fullName,
+                            email: formData.email,
+                            phone: formData.phone,
+                            alternatePhone: formData.alternatePhone,
+                            address: formData.address,
+                            alternateAddress: formData.alternateAddress,
+                            city: formData.city,
+                            state: formData.state,
+                            pincode: formData.pincode,
+                            size,
+                            thickness,
+                            quantity,
+                            amount: totalAmount,
+                            backgroundRemoved,
+                          }}
+                          onSuccess={handlePaymentSuccess}
+                          onError={handlePaymentError}
+                        />
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -1017,64 +1126,6 @@ export default function ProductClientCutout({ product }) {
         {currentStep === 3 && renderStep3()}
       </div>
 
-      <div
-        className="modal fade"
-        id="successModal"
-        tabIndex="-1"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog modal-dialog-centered">
-          <div className={styles.modalContent}>
-            <div className={styles.modalHeader}>
-              <h5 className={styles.modalTitle}>
-                <i className="bi bi-check-circle-fill me-2"></i>
-                Order Confirmed!
-              </h5>
-
-              <button
-                type="button"
-                className={styles.modalClose}
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              >
-                <i className="bi bi-x-lg"></i>
-              </button>
-            </div>
-
-            <div className={styles.modalBody}>
-              <div className={styles.modalIcon}>
-                <i className="bi bi-check-circle-fill"></i>
-              </div>
-
-              <h6 className={styles.modalThankYou}>Thank you for your order!</h6>
-
-              <p className={styles.modalMessage}>
-                Your {product?.name || "Photo"} acrylic cutout order has been
-                placed successfully. You will receive a confirmation email
-                shortly.
-              </p>
-
-              <div className={styles.modalOrderDetails}>
-                <div className={styles.orderDetailRow}>
-                  <span>Order ID:</span>
-                  <strong>{orderId}</strong>
-                </div>
-
-                <div className={styles.orderDetailRow}>
-                  <span>Total Amount:</span>
-                  <strong>₹{totalAmount}</strong>
-                </div>
-
-                <div className={styles.orderDetailRow}>
-                  <span>Estimated Delivery:</span>
-                  <strong>{estimatedDeliveryDate || "3-5 business days"}</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {showToast.visible && (
         <div
           style={{
@@ -1093,6 +1144,44 @@ export default function ProductClientCutout({ product }) {
           <div>{showToast.message}</div>
         </div>
       )}
+
+      <div
+        className="modal fade"
+        id="successModal"
+        tabIndex="-1"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className={styles.modalContent || "modal-content"}>
+            <div className={styles.modalHeader || "modal-header"}>
+              <h5 className={styles.modalTitle || "modal-title"}>
+                Order Submitted
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className={styles.modalBody || "modal-body"}>
+              <p>Your order has been placed successfully.</p>
+              <p className="mb-0">
+                Payment completed and order details will be processed.
+              </p>
+            </div>
+            <div className={styles.modalFooter || "modal-footer"}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                data-bs-dismiss="modal"
+              >
+                Okay
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }

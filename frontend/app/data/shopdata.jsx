@@ -398,10 +398,10 @@ export const shopData = [
   // Cutout Products
   {
     id: 9,
-    title: "Heart Shape Cutout",
+    title: " Shape Cutout",
     type: "cutout",
     category: "cutout",
-    name: "Heart Shape Cutout",
+    name: " Shape Cutout",
     image:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773848543/ChatGPT_Image_Mar_18__2026__06_11_53_PM_xfuyyc.png",
     themeColor: "#3496cb",
