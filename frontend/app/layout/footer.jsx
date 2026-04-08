@@ -134,7 +134,7 @@ export default function Footer() {
                 </h4>
                 <p className={styles.description}>
                   Crafting premium Cutouts and Frames with precision. Based in
-                  Chennai, serving quality to your doorstep since 2015.
+                  Chennai, serving quality to your doorstep since 2013.
                 </p>
                 <div className={styles.socialIcons}>
   <a 

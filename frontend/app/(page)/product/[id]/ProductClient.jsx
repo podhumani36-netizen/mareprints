@@ -784,7 +784,7 @@ const renderEditorControls = () => (
               boxShadow: "0 6px 18px rgba(0,0,0,0.10)",
             }}
           >
-            {/* {size} ({(widthInch * 2.54).toFixed(2)} x {(heightInch * 2.54).toFixed(2)} cm) */}
+            {size} ({(widthInch * 2.54).toFixed(2)} x {(heightInch * 2.54).toFixed(2)} cm)
           </span>
 
           <span
@@ -794,7 +794,7 @@ const renderEditorControls = () => (
               borderRadius: "999px",
               fontWeight: 600,
               fontSize: "13px",
-              boxShadow: "0 6px 18px rgba(0,0,0,0.10)",
+              boxShadow: "0 6px 18px rgba(0, 0, 0, 0.95)",
             }}
           >
             {thickness}
