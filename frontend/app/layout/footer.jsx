@@ -247,8 +247,8 @@ export default function Footer() {
               .
             </p>
             <div className={styles.legalLinks}>
-              <Link href="/privacy">Privacy</Link>
-              <Link href="/terms">Terms</Link>
+              <Link href="/privacy">Privacy Policy</Link>
+              <Link href="/terms">Terms & Conditions</Link>
             </div>
           </div>
         </div>

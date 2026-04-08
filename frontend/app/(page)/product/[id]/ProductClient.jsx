@@ -784,7 +784,7 @@ const renderEditorControls = () => (
               boxShadow: "0 6px 18px rgba(0,0,0,0.10)",
             }}
           >
-            {size} ({(widthInch * 2.54).toFixed(2)} x {(heightInch * 2.54).toFixed(2)} cm)
+            {/* {size} ({(widthInch * 2.54).toFixed(2)} x {(heightInch * 2.54).toFixed(2)} cm) */}
           </span>
 
           <span
@@ -1491,7 +1491,7 @@ const renderSummaryPreview = () => {
                   <h5 className={styles.sectionTitle}>Payment Method</h5>
 
                   <div className={styles.paymentOptions}>
-                    <label className={styles.paymentOption}>
+                    {/* <label className={styles.paymentOption}>
                       <input
                         type="radio"
                         name="paymentMethod"
@@ -1505,7 +1505,7 @@ const renderSummaryPreview = () => {
                         alt="Razorpay"
                       />
                       <span>Razorpay</span>
-                    </label>
+                    </label> */}
 {/* 
                     <label className={styles.paymentOption}>
                       <input
