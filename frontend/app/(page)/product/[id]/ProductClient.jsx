@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import styles from "../../../assest/style/ProductClient.module.css";
-import GPayButton from "../../../Components/GPayButton";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -66,7 +65,7 @@ export default function ProductClient() {
 
   const thicknessOptions = ["3mm", "5mm", "8mm"];
 
-   const frameDimensions = {
+  const frameDimensions = {
     "8x10": { width: 80, height: 100 },
     "11x14": { width: 110, height: 140 },
     "16x20": { width: 160, height: 200 },
@@ -78,7 +77,9 @@ export default function ProductClient() {
     "24x20": { width: 240, height: 200 },
     "36x24": { width: 360, height: 240 },
   };
+
   const basePrice = 1;
+
   const roomWallBackground =
     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
 
@@ -119,19 +120,57 @@ export default function ProductClient() {
     setSize(orientation === "portrait" ? "8x10" : "10x8");
     setZoom(1);
     setImageOffset({ x: 0, y: 0 });
+    setIsPaymentReady(false);
   }, [orientation]);
 
- useEffect(() => {
-  const handleMouseMove = (e) => {
-    if (!isImageDragging) return;
-    setImageOffset({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y,
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isImageDragging) return;
+      setImageOffset({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    };
+
+    const handleTouchMove = (e) => {
+      if (!isImageDragging || !e.touches?.length) return;
+      const touch = e.touches[0];
+      setImageOffset({
+        x: touch.clientX - dragStart.x,
+        y: touch.clientY - dragStart.y,
+      });
+    };
+
+    const stopDragging = () => setIsImageDragging(false);
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", stopDragging);
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("touchend", stopDragging);
+    window.addEventListener("touchcancel", stopDragging);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", stopDragging);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", stopDragging);
+      window.removeEventListener("touchcancel", stopDragging);
+    };
+  }, [isImageDragging, dragStart]);
+
+  const handleImageTouchStart = (e) => {
+    if (!uploadedImage || !e.touches?.length) return;
+    const touch = e.touches[0];
+    setIsImageDragging(true);
+    setDragStart({
+      x: touch.clientX - imageOffset.x,
+      y: touch.clientY - imageOffset.y,
     });
   };
 
-  const handleTouchMove = (e) => {
+  const handleImageTouchMove = (e) => {
     if (!isImageDragging || !e.touches?.length) return;
+    e.preventDefault();
     const touch = e.touches[0];
     setImageOffset({
       x: touch.clientX - dragStart.x,
@@ -139,46 +178,10 @@ export default function ProductClient() {
     });
   };
 
-  const stopDragging = () => setIsImageDragging(false);
-
-  window.addEventListener("mousemove", handleMouseMove);
-  window.addEventListener("mouseup", stopDragging);
-  window.addEventListener("touchmove", handleTouchMove, { passive: false });
-  window.addEventListener("touchend", stopDragging);
-  window.addEventListener("touchcancel", stopDragging);
-
-  return () => {
-    window.removeEventListener("mousemove", handleMouseMove);
-    window.removeEventListener("mouseup", stopDragging);
-    window.removeEventListener("touchmove", handleTouchMove);
-    window.removeEventListener("touchend", stopDragging);
-    window.removeEventListener("touchcancel", stopDragging);
+  const handleImageTouchEnd = () => {
+    setIsImageDragging(false);
   };
-}, [isImageDragging, dragStart]);
 
-const handleImageTouchStart = (e) => {
-  if (!uploadedImage || !e.touches?.length) return;
-  const touch = e.touches[0];
-  setIsImageDragging(true);
-  setDragStart({
-    x: touch.clientX - imageOffset.x,
-    y: touch.clientY - imageOffset.y,
-  });
-};
-
-const handleImageTouchMove = (e) => {
-  if (!isImageDragging || !e.touches?.length) return;
-  e.preventDefault();
-  const touch = e.touches[0];
-  setImageOffset({
-    x: touch.clientX - dragStart.x,
-    y: touch.clientY - dragStart.y,
-  });
-};
-
-const handleImageTouchEnd = () => {
-  setIsImageDragging(false);
-};
   const showNotification = (message, type = "info", title = "") => {
     let notificationTitle = title;
 
@@ -254,7 +257,6 @@ const handleImageTouchEnd = () => {
       });
 
       const isPortrait = orientation === "portrait";
-
       const exportWidth = isPortrait ? 1600 : 2000;
       const exportHeight = isPortrait ? 2000 : 1600;
 
@@ -277,7 +279,6 @@ const handleImageTouchEnd = () => {
       );
 
       const finalScale = baseScale * zoom;
-
       const drawWidth = img.width * finalScale;
       const drawHeight = img.height * finalScale;
 
@@ -366,6 +367,7 @@ const handleImageTouchEnd = () => {
       setZoom(1);
       setImageOffset({ x: 0, y: 0 });
       setIsProcessing(false);
+      setIsPaymentReady(false);
     };
 
     reader.onerror = () => {
@@ -378,10 +380,12 @@ const handleImageTouchEnd = () => {
 
   const handleZoomIn = () => {
     setZoom((prev) => Math.min(prev + 0.1, 3));
+    setIsPaymentReady(false);
   };
 
   const handleZoomOut = () => {
     setZoom((prev) => Math.max(prev - 0.1, 1));
+    setIsPaymentReady(false);
   };
 
   const handleRemoveImage = () => {
@@ -389,6 +393,7 @@ const handleImageTouchEnd = () => {
     setZoom(1);
     setImageOffset({ x: 0, y: 0 });
     setCurrentStep(1);
+    setIsPaymentReady(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
     showNotification("Image removed successfully", "warning");
   };
@@ -518,7 +523,10 @@ const handleImageTouchEnd = () => {
     const previewBase64 = await generateMailPreviewImage();
     setMailPreviewImage(previewBase64);
     setIsPaymentReady(true);
-    showNotification("Details verified. You can continue payment now.", "success");
+    showNotification(
+      "Details verified. You can continue payment now.",
+      "success"
+    );
   };
 
   const handleSubmitOrder = async (e) => {
@@ -542,20 +550,14 @@ const handleImageTouchEnd = () => {
       return;
     }
 
-    if (step === 3 && !uploadedImage) {
-      showNotification("Please upload an image first", "warning");
-      return;
-    }
-
     setCurrentStep(step);
   };
-
 
   const renderStepIndicator = () => (
     <div className={styles.stepIndicator}>
       <div className="container">
         <div className={styles.stepWrapper}>
-          {[1, 2, 3].map((step) => (
+          {[1, 2].map((step) => (
             <div key={step} className={styles.stepItem}>
               <button
                 className={`${styles.stepButton} ${
@@ -569,11 +571,11 @@ const handleImageTouchEnd = () => {
                   {currentStep > step ? <i className="bi bi-check-lg"></i> : step}
                 </span>
                 <span className={styles.stepLabel}>
-                  {step === 1 ? "Upload" : step === 2 ? "Customize" : "Payment"}
+                  {step === 1 ? "Upload" : "Customize & Payment"}
                 </span>
               </button>
 
-              {step < 3 && (
+              {step < 2 && (
                 <div
                   className={`${styles.stepConnector} ${
                     currentStep > step ? styles.completed : ""
@@ -587,65 +589,69 @@ const handleImageTouchEnd = () => {
     </div>
   );
 
-const renderEditorControls = () => (
-  <div className="mt-3">
-    <div className="d-flex gap-2 flex-wrap align-items-center">
-      <button
-        type="button"
-        className="btn btn-outline-secondary"
-        onClick={handleZoomOut}
-      >
-        <i className="bi bi-dash-lg"></i>
-      </button>
+  const renderEditorControls = () => (
+    <div className="mt-3">
+      <div className="d-flex gap-2 flex-wrap align-items-center">
+        <button
+          type="button"
+          className="btn btn-outline-secondary"
+          onClick={handleZoomOut}
+        >
+          <i className="bi bi-dash-lg"></i>
+        </button>
 
-      <div
-        style={{
-          minWidth: "70px",
-          textAlign: "center",
-          fontWeight: 700,
-          fontSize: "15px",
-        }}
-      >
-        {Math.round(zoom * 100)}%
+        <div
+          style={{
+            minWidth: "70px",
+            textAlign: "center",
+            fontWeight: 700,
+            fontSize: "15px",
+          }}
+        >
+          {Math.round(zoom * 100)}%
+        </div>
+
+        <button
+          type="button"
+          className="btn btn-outline-secondary"
+          onClick={handleZoomIn}
+        >
+          <i className="bi bi-plus-lg"></i>
+        </button>
+
+        <button
+          type="button"
+          className="btn btn-outline-primary"
+          onClick={() => {
+            setZoom(1);
+            setImageOffset({ x: 0, y: 0 });
+            setIsPaymentReady(false);
+          }}
+        >
+          Reset
+        </button>
       </div>
 
-      <button
-        type="button"
-        className="btn btn-outline-secondary"
-        onClick={handleZoomIn}
-      >
-        <i className="bi bi-plus-lg"></i>
-      </button>
-
-      <button
-        type="button"
-        className="btn btn-outline-primary"
-        onClick={() => {
-          setZoom(1);
-          setImageOffset({ x: 0, y: 0 });
-        }}
-      >
-        Reset
-      </button>
+      <div className="mt-3">
+        <input
+          type="range"
+          min="0.5"
+          max="3"
+          step="0.05"
+          value={zoom}
+          onChange={(e) => {
+            setZoom(Number(e.target.value));
+            setIsPaymentReady(false);
+          }}
+          style={{ width: "100%", cursor: "pointer" }}
+        />
+      </div>
     </div>
+  );
 
-    {/* 🔥 Slider */}
-    <div className="mt-3">
-      <input
-        type="range"
-        min="0.5"
-        max="3"
-        step="0.05"
-        value={zoom}
-        onChange={(e) => setZoom(Number(e.target.value))}
-        style={{ width: "100%", cursor: "pointer" }}
-      />
-    </div>
-  </div>
-);
   const renderBetterPreview = (useWall = false) => {
     const dims = frameDimensions[size] || { width: 220, height: 280 };
-     const [widthInch, heightInch] = size.split("x").map(Number);
+    const [widthInch, heightInch] = size.split("x").map(Number);
     const borderSize =
       thickness === "3mm" ? "6px" : thickness === "5mm" ? "10px" : "14px";
 
@@ -713,10 +719,10 @@ const renderEditorControls = () => (
               src={uploadedImage || roomWallBackground}
               alt="Frame preview"
               onMouseDown={uploadedImage ? handleImageMouseDown : undefined}
-               onTouchStart={uploadedImage ? handleImageTouchStart : undefined}
-  onTouchMove={uploadedImage ? handleImageTouchMove : undefined}
-  onTouchEnd={uploadedImage ? handleImageTouchEnd : undefined}
-  onTouchCancel={uploadedImage ? handleImageTouchEnd : undefined}
+              onTouchStart={uploadedImage ? handleImageTouchStart : undefined}
+              onTouchMove={uploadedImage ? handleImageTouchMove : undefined}
+              onTouchEnd={uploadedImage ? handleImageTouchEnd : undefined}
+              onTouchCancel={uploadedImage ? handleImageTouchEnd : undefined}
               draggable={false}
               style={{
                 width: "100%",
@@ -726,8 +732,8 @@ const renderEditorControls = () => (
                 transformOrigin: "center center",
                 transition: isImageDragging ? "none" : "transform 0.18s ease",
                 userSelect: "none",
-                 filter: "drop-shadow(0 8px 18px rgba(0,0,0,0.25))",
-                  touchAction: "none",
+                filter: "drop-shadow(0 8px 18px rgba(0,0,0,0.25))",
+                touchAction: "none",
               }}
             />
 
@@ -784,7 +790,8 @@ const renderEditorControls = () => (
               boxShadow: "0 6px 18px rgba(0,0,0,0.10)",
             }}
           >
-            {size} ({(widthInch * 2.54).toFixed(2)} x {(heightInch * 2.54).toFixed(2)} cm)
+            {size} ({(widthInch * 2.54).toFixed(2)} x{" "}
+            {(heightInch * 2.54).toFixed(2)} cm)
           </span>
 
           <span
@@ -794,7 +801,7 @@ const renderEditorControls = () => (
               borderRadius: "999px",
               fontWeight: 600,
               fontSize: "13px",
-              boxShadow: "0 6px 18px rgba(0, 0, 0, 0.95)",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.10)",
             }}
           >
             {thickness}
@@ -804,59 +811,60 @@ const renderEditorControls = () => (
     );
   };
 
-const renderSummaryPreview = () => {
-  if (!uploadedImage) return null;
+  const renderSummaryPreview = () => {
+    if (!uploadedImage) return null;
 
-  const dims = frameDimensions[size] || { width: 100, height: 150 };
-  const borderSize =
-    thickness === "3mm" ? "6px" : thickness === "5mm" ? "10px" : "14px";
+    const dims = frameDimensions[size] || { width: 100, height: 150 };
+    const borderSize =
+      thickness === "3mm" ? "6px" : thickness === "5mm" ? "10px" : "14px";
 
-  return (
-    <div
-      className={styles.summaryImage}
-      style={{
-        position: "relative",
-        width: "100%",
-        height: "220px",
-        borderRadius: "14px",
-        overflow: "hidden",
-        background: "#ffffff",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
-      }}
-    >
+    return (
       <div
+        className={styles.summaryImage}
         style={{
-          width: `${dims.width}px`,
-          height: `${dims.height}px`,
-          overflow: "hidden",
-          borderRadius: "8px",
-          background: "#fff",
           position: "relative",
-          border: `${borderSize} solid #ffffff`,
-          boxShadow:
-            "0 18px 40px rgba(0,0,0,0.22), 0 4px 10px rgba(0,0,0,0.10)",
+          width: "100%",
+          height: "220px",
+          borderRadius: "14px",
+          overflow: "hidden",
+          background: "#ffffff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
         }}
       >
-        <img
-          src={uploadedImage}
-          alt="Product preview"
+        <div
           style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            transform: `translate(${imageOffset.x}px, ${imageOffset.y}px) scale(${zoom})`,
-            transformOrigin: "center center",
-            userSelect: "none",
-            pointerEvents: "none",
+            width: `${dims.width}px`,
+            height: `${dims.height}px`,
+            overflow: "hidden",
+            borderRadius: "8px",
+            background: "#fff",
+            position: "relative",
+            border: `${borderSize} solid #ffffff`,
+            boxShadow:
+              "0 18px 40px rgba(0,0,0,0.22), 0 4px 10px rgba(0,0,0,0.10)",
           }}
-        />
+        >
+          <img
+            src={uploadedImage}
+            alt="Product preview"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              transform: `translate(${imageOffset.x}px, ${imageOffset.y}px) scale(${zoom})`,
+              transformOrigin: "center center",
+              userSelect: "none",
+              pointerEvents: "none",
+            }}
+          />
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
+
   const renderStep1 = () => (
     <div className={styles.stepContainer}>
       <div className="container">
@@ -876,7 +884,6 @@ const renderSummaryPreview = () => {
                 {uploadedImage ? (
                   <div className={styles.previewContainer}>
                     {renderBetterPreview(false)}
-
                     {renderEditorControls()}
 
                     <div className={styles.imageControls}>
@@ -990,7 +997,7 @@ const renderSummaryPreview = () => {
                 disabled={!uploadedImage}
                 type="button"
               >
-                Continue to Customize
+                Continue to Customize & Payment
                 <i className="bi bi-arrow-right ms-2"></i>
               </button>
             </div>
@@ -1001,7 +1008,7 @@ const renderSummaryPreview = () => {
   );
 
   const renderStep2 = () => {
-    const dims = frameDimensions[size] || { width: 100, height: 150 };
+    const totalAmount = calculatePrice();
 
     return (
       <div className={styles.stepContainer}>
@@ -1015,14 +1022,8 @@ const renderSummaryPreview = () => {
                 </h4>
 
                 {renderBetterPreview(true)}
-
-                
-
                 {renderEditorControls()}
               </div>
-            </div>
-
-            <div className="col-lg-4">
               <div className={styles.optionsCard}>
                 <h4 className={styles.optionsTitle}>
                   <i className="bi bi-sliders2 me-2"></i>
@@ -1068,7 +1069,10 @@ const renderSummaryPreview = () => {
                         className={`${styles.sizeButton} ${
                           size === opt ? styles.active : ""
                         }`}
-                        onClick={() => setSize(opt)}
+                        onClick={() => {
+                          setSize(opt);
+                          setIsPaymentReady(false);
+                        }}
                         type="button"
                       >
                         {opt}
@@ -1086,7 +1090,10 @@ const renderSummaryPreview = () => {
                         className={`${styles.optionButton} ${
                           thickness === opt ? styles.active : ""
                         }`}
-                        onClick={() => setThickness(opt)}
+                        onClick={() => {
+                          setThickness(opt);
+                          setIsPaymentReady(false);
+                        }}
                         type="button"
                       >
                         {opt}
@@ -1096,94 +1103,259 @@ const renderSummaryPreview = () => {
                 </div>
 
                 <div className={styles.optionGroup}>
-                  <label className={styles.optionLabel}>Price</label>
-
-                  {/* Optional pincode checker
-                  <div className={styles.pincodeInput}>
-                    <input
-                      type="text"
-                      className={styles.pincodeField}
-                      placeholder="Enter 6-digit pincode"
-                      value={pincode}
-                      onChange={handlePincodeChange}
-                      maxLength="6"
-                    />
+                  <label className={styles.optionLabel}>Quantity</label>
+                  <div className="d-flex align-items-center gap-2">
                     <button
-                      className={styles.checkButton}
-                      onClick={handleCheckDelivery}
-                      disabled={pincode.length !== 6 || deliveryStatus.isChecking}
                       type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => {
+                        setQuantity((prev) => Math.max(1, prev - 1));
+                        setIsPaymentReady(false);
+                      }}
                     >
-                      {deliveryStatus.isChecking ? (
-                        <span className={styles.spinner}></span>
-                      ) : (
-                        "Check"
-                      )}
+                      <i className="bi bi-dash-lg"></i>
+                    </button>
+
+                    <div className="fw-bold px-3">{quantity}</div>
+
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => {
+                        setQuantity((prev) => prev + 1);
+                        setIsPaymentReady(false);
+                      }}
+                    >
+                      <i className="bi bi-plus-lg"></i>
                     </button>
                   </div>
-                  */}
-
-                  {deliveryStatus.message && (
-                    <div
-                      className={`${styles.deliveryMessage} ${
-                        styles[deliveryStatus.type]
-                      }`}
-                    >
-                      <i
-                        className={`bi ${
-                          deliveryStatus.type === "success"
-                            ? "bi-check-circle"
-                            : "bi-exclamation-circle"
-                        }`}
-                      ></i>
-                      <span>{deliveryStatus.message}</span>
-                      {estimatedDeliveryDate &&
-                        deliveryStatus.type === "success" && (
-                          <small>Est. delivery: {estimatedDeliveryDate}</small>
-                        )}
-                    </div>
-                  )}
                 </div>
 
-                <div className={styles.priceBreakdown}>
-                  <div className={styles.priceRow}>
-                    <span>Base Price</span>
-                    <span>₹{basePrice}</span>
-                  </div>
-
-                  {size !== (orientation === "portrait" ? "8x10" : "10x8") && (
-                    <div className={styles.priceRow}>
-                      <span>Size Upgrade</span>
-                      <span>
-                        +₹
-                        {(orientation === "portrait"
-                          ? sizeOptions.portrait.indexOf(size)
-                          : sizeOptions.landscape.indexOf(size)) * 150}
-                      </span>
-                    </div>
-                  )}
-
-                  {thickness !== "3mm" && (
-                    <div className={styles.priceRow}>
-                      <span>Thickness Upgrade</span>
-                      <span>+₹{thickness === "5mm" ? "150" : "300"}</span>
-                    </div>
-                  )}
-
-                  <div className={styles.totalRow}>
-                    <span>Total</span>
-                    <span>₹{calculatePrice()}</span>
-                  </div>
+                <div className={styles.optionGroup}>
+                  <label className={styles.optionLabel}>Price</label>
+                  <div className="fs-4 fw-bold text-primary">₹{totalAmount}</div>
                 </div>
+              </div>
+            </div>
 
-                <button
-                  className={styles.proceedButton}
-                  onClick={() => goToStep(3)}
-                  type="button"
-                >
-                  Proceed to Payment
-                  <i className="bi bi-arrow-right ms-2"></i>
-                </button>
+            <div className="col-lg-4">
+              
+
+              
+
+              <div className={`${styles.optionsCard} mt-4`}>
+                <h4 className={styles.optionsTitle}>
+                  <i className="bi bi-person-lines-fill me-2"></i>
+                  Customer Details & Payment
+                </h4>
+
+                <form onSubmit={handleSubmitOrder}>
+                  <div className="mb-3">
+                    <label className={styles.optionLabel}>Full Name *</label>
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleInputChange}
+                      className="form-control"
+                    />
+                    {formErrors.fullName && (
+                      <small className="text-danger">{formErrors.fullName}</small>
+                    )}
+                  </div>
+
+                  <div className="mb-3">
+                    <label className={styles.optionLabel}>Email *</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="form-control"
+                    />
+                    {formErrors.email && (
+                      <small className="text-danger">{formErrors.email}</small>
+                    )}
+                  </div>
+
+                  <div className="mb-3">
+                    <label className={styles.optionLabel}>Phone *</label>
+                    <input
+                      type="text"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="form-control"
+                    />
+                    {formErrors.phone && (
+                      <small className="text-danger">{formErrors.phone}</small>
+                    )}
+                  </div>
+
+                  <div className="mb-3">
+                    <label className={styles.optionLabel}>Alternate Phone</label>
+                    <input
+                      type="text"
+                      name="alternatePhone"
+                      value={formData.alternatePhone}
+                      onChange={handleInputChange}
+                      className="form-control"
+                    />
+                    {formErrors.alternatePhone && (
+                      <small className="text-danger">
+                        {formErrors.alternatePhone}
+                      </small>
+                    )}
+                  </div>
+
+                  <div className="mb-3">
+                    <label className={styles.optionLabel}>Address *</label>
+                    <textarea
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      className="form-control"
+                      rows="3"
+                    />
+                    {formErrors.address && (
+                      <small className="text-danger">{formErrors.address}</small>
+                    )}
+                  </div>
+
+                  <div className="mb-3">
+                    <label className={styles.optionLabel}>Alternate Address</label>
+                    <textarea
+                      name="alternateAddress"
+                      value={formData.alternateAddress}
+                      onChange={handleInputChange}
+                      className="form-control"
+                      rows="2"
+                    />
+                  </div>
+
+                  <div className="row g-3">
+                    <div className="col-md-4">
+                      <label className={styles.optionLabel}>City *</label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                        className="form-control"
+                      />
+                      {formErrors.city && (
+                        <small className="text-danger">{formErrors.city}</small>
+                      )}
+                    </div>
+
+                    <div className="col-md-4">
+                      <label className={styles.optionLabel}>State *</label>
+                      <input
+                        type="text"
+                        name="state"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                        className="form-control"
+                      />
+                      {formErrors.state && (
+                        <small className="text-danger">{formErrors.state}</small>
+                      )}
+                    </div>
+
+                    <div className="col-md-4">
+                      <label className={styles.optionLabel}>Pincode *</label>
+                      <input
+                        type="text"
+                        name="pincode"
+                        value={formData.pincode}
+                        onChange={handleInputChange}
+                        className="form-control"
+                      />
+                      {formErrors.pincode && (
+                        <small className="text-danger">{formErrors.pincode}</small>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className={styles.optionLabel}>Order Summary</label>
+
+                    {renderSummaryPreview()}
+
+                    <div className="bg-light rounded-4 p-3 mt-3">
+                      <div className="d-flex justify-content-between mb-2">
+                        <span>Order ID</span>
+                        <span>{orderId}</span>
+                      </div>
+                      <div className="d-flex justify-content-between mb-2">
+                        <span>Orientation</span>
+                        <span>{orientation}</span>
+                      </div>
+                      <div className="d-flex justify-content-between mb-2">
+                        <span>Size</span>
+                        <span>{size}</span>
+                      </div>
+                      <div className="d-flex justify-content-between mb-2">
+                        <span>Thickness</span>
+                        <span>{thickness}</span>
+                      </div>
+                      <div className="d-flex justify-content-between mb-2">
+                        <span>Quantity</span>
+                        <span>{quantity}</span>
+                      </div>
+                      <div className="d-flex justify-content-between mb-2">
+                        <span>Estimated Delivery</span>
+                        <span>{estimatedDeliveryDate || "3-5 business days"}</span>
+                      </div>
+                      <hr />
+                      <div className="d-flex justify-content-between fw-bold fs-5">
+                        <span>Total</span>
+                        <span className="text-primary">₹{totalAmount}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <button type="submit" className="btn btn-primary w-100">
+                      Verify Details & Continue
+                    </button>
+                  </div>
+                </form>
+
+                <div className="mt-4">
+                  <RazorpayPayment
+                    amount={totalAmount}
+                    buttonText={`Pay ₹${totalAmount}`}
+                    themeColor="#3496cb"
+                    previewImage={mailPreviewImage}
+                    originalImage={uploadedImage}
+                    disabled={!isPaymentReady}
+                    customerDetails={{
+                      orderId,
+                      productType: "portrait",
+                      productName: "Custom Portrait Print",
+                      name: formData.fullName,
+                      email: formData.email,
+                      phone: formData.phone,
+                      alternatePhone: formData.alternatePhone,
+                      address: formData.address,
+                      alternateAddress: formData.alternateAddress,
+                      city: formData.city,
+                      state: formData.state,
+                      pincode: formData.pincode,
+                      orientation,
+                      size,
+                      thickness,
+                      quantity,
+                      amount: totalAmount,
+                      imageZoom: zoom,
+                      imageOffsetX: imageOffset.x,
+                      imageOffsetY: imageOffset.y,
+                    }}
+                    onSuccess={handlePaymentSuccess}
+                    onError={handlePaymentError}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -1192,477 +1364,114 @@ const renderSummaryPreview = () => {
     );
   };
 
-  const renderStep3 = () => (
-    <div className={styles.stepContainer}>
-      <div className="container">
-        <div className="row g-4">
-          <div className="col-lg-4 order-lg-2">
-            <div className={styles.summaryCard}>
-              <h4 className={styles.summaryTitle}>
-                <i className="bi bi-bag-check me-2"></i>
-                Order Summary
-              </h4>
-
-              {renderSummaryPreview()}
-
-              <div className={styles.summaryDetails}>
-                <div className={styles.summaryRow}>
-                  <span>Orientation</span>
-                  <span className={styles.summaryValue}>{orientation}</span>
-                </div>
-                <div className={styles.summaryRow}>
-                  <span>Size</span>
-                  <span className={styles.summaryValue}>{size}</span>
-                </div>
-                <div className={styles.summaryRow}>
-                  <span>Thickness</span>
-                  <span className={styles.summaryValue}>{thickness}</span>
-                </div>
-                <div className={styles.summaryRow}>
-                  <span>Quantity</span>
-                  <div className={styles.quantityWrapper}>
-                    <select
-                      className={styles.quantityDropdown}
-                      value={quantity}
-                      onChange={(e) => {
-                        setQuantity(Number(e.target.value));
-                        setIsPaymentReady(false);
-                      }}
-                    >
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                        <option key={num} value={num}>
-                          {num}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.totalItems}>
-                <span>Total Items:</span>
-                <span className={styles.totalItemsValue}>{quantity}</span>
-              </div>
-
-              <div className={styles.summaryTotal}>
-                <span>Total Amount</span>
-                <span>₹{calculatePrice()}</span>
-              </div>
-
-              <div className={styles.progressBar}>
-                <div
-                  className={styles.progressFill}
-                  style={{ width: "100%" }}
-                ></div>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-lg-8 order-lg-1">
-            <div className={styles.formCard}>
-              <div className={styles.formHeader}>
-                <h4 className={styles.formTitle}>
-                  <i className="bi bi-truck me-2"></i>
-                  Shipping Details
-                </h4>
-                <button
-                  className={styles.backButton}
-                  onClick={() => setCurrentStep(2)}
-                  type="button"
-                >
-                  <i className="bi bi-arrow-left me-2"></i>
-                  Back
-                </button>
-              </div>
-
-              <form
-                onSubmit={handleSubmitOrder}
-                className={styles.shippingForm}
-              >
-                <div className={styles.formSection}>
-                  <h5 className={styles.sectionTitle}>Personal Information</h5>
-
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className={styles.fieldLabel}>Full Name *</label>
-                      <div className={styles.inputWrapper}>
-                        <i className={`bi bi-person ${styles.inputIcon}`}></i>
-                        <input
-                          type="text"
-                          name="fullName"
-                          className={`${styles.formInput} ${
-                            formErrors.fullName ? styles.error : ""
-                          }`}
-                          placeholder="Enter your full name"
-                          value={formData.fullName}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                      {formErrors.fullName && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.fullName}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="col-md-6">
-                      <label className={styles.fieldLabel}>Email *</label>
-                      <div className={styles.inputWrapper}>
-                        <i className={`bi bi-envelope ${styles.inputIcon}`}></i>
-                        <input
-                          type="email"
-                          name="email"
-                          className={`${styles.formInput} ${
-                            formErrors.email ? styles.error : ""
-                          }`}
-                          placeholder="Enter your email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                      {formErrors.email && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.email}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="col-md-6">
-                      <label className={styles.fieldLabel}>Phone *</label>
-                      <div className={styles.inputWrapper}>
-                        <i className={`bi bi-phone ${styles.inputIcon}`}></i>
-                        <input
-                          type="tel"
-                          name="phone"
-                          className={`${styles.formInput} ${
-                            formErrors.phone ? styles.error : ""
-                          }`}
-                          placeholder="10-digit mobile number"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                      {formErrors.phone && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.phone}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="col-md-6">
-                      <label className={styles.fieldLabel}>
-                        Alternate Phone
-                      </label>
-                      <div className={styles.inputWrapper}>
-                        <i className={`bi bi-telephone ${styles.inputIcon}`}></i>
-                        <input
-                          type="tel"
-                          name="alternatePhone"
-                          className={`${styles.formInput} ${
-                            formErrors.alternatePhone ? styles.error : ""
-                          }`}
-                          placeholder="Optional alternate number"
-                          value={formData.alternatePhone}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                      {formErrors.alternatePhone && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.alternatePhone}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.formSection}>
-                  <h5 className={styles.sectionTitle}>Address Information</h5>
-
-                  <div className="row g-3">
-                    <div className="col-12">
-                      <label className={styles.fieldLabel}>Address *</label>
-                      <div className={styles.inputWrapper}>
-                        <i className={`bi bi-geo-alt ${styles.inputIcon}`}></i>
-                        <textarea
-                          name="address"
-                          className={`${styles.formInput} ${
-                            formErrors.address ? styles.error : ""
-                          }`}
-                          placeholder="Enter your complete address"
-                          value={formData.address}
-                          onChange={handleInputChange}
-                          rows="3"
-                        />
-                      </div>
-                      {formErrors.address && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.address}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="col-12">
-                      <label className={styles.fieldLabel}>
-                        Alternate Address
-                      </label>
-                      <div className={styles.inputWrapper}>
-                        <i className={`bi bi-pin-map ${styles.inputIcon}`}></i>
-                        <textarea
-                          name="alternateAddress"
-                          className={styles.formInput}
-                          placeholder="Optional alternate address"
-                          value={formData.alternateAddress}
-                          onChange={handleInputChange}
-                          rows="2"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="col-md-4">
-                      <label className={styles.fieldLabel}>City *</label>
-                      <div className={styles.inputWrapper}>
-                        <i className={`bi bi-building ${styles.inputIcon}`}></i>
-                        <input
-                          type="text"
-                          name="city"
-                          className={`${styles.formInput} ${
-                            formErrors.city ? styles.error : ""
-                          }`}
-                          placeholder="City"
-                          value={formData.city}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                      {formErrors.city && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.city}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="col-md-4">
-                      <label className={styles.fieldLabel}>State *</label>
-                      <div className={styles.inputWrapper}>
-                        <i className={`bi bi-map ${styles.inputIcon}`}></i>
-                        <input
-                          type="text"
-                          name="state"
-                          className={`${styles.formInput} ${
-                            formErrors.state ? styles.error : ""
-                          }`}
-                          placeholder="State"
-                          value={formData.state}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                      {formErrors.state && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.state}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="col-md-4">
-                      <label className={styles.fieldLabel}>Pincode *</label>
-                      <div className={styles.inputWrapper}>
-                        <i className={`bi bi-mailbox ${styles.inputIcon}`}></i>
-                        <input
-                          type="text"
-                          name="pincode"
-                          className={`${styles.formInput} ${
-                            formErrors.pincode ? styles.error : ""
-                          }`}
-                          placeholder="6-digit pincode"
-                          value={formData.pincode}
-                          onChange={handleInputChange}
-                          maxLength="6"
-                        />
-                      </div>
-                      {formErrors.pincode && (
-                        <span className={styles.errorMessage}>
-                          {formErrors.pincode}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.formSection}>
-                  <h5 className={styles.sectionTitle}>Payment Method</h5>
-
-                  <div className={styles.paymentOptions}>
-                    {/* <label className={styles.paymentOption}>
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="razorpay"
-                        checked={formData.paymentMethod === "razorpay"}
-                        onChange={handleInputChange}
-                      />
-                      <span className={styles.radioCustom}></span>
-                      <img
-                        src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773377507/razorpay_chzbwv.svg"
-                        alt="Razorpay"
-                      />
-                      <span>Razorpay</span>
-                    </label> */}
-{/* 
-                    <label className={styles.paymentOption}>
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="gpay"
-                        checked={formData.paymentMethod === "gpay"}
-                        onChange={handleInputChange}
-                      />
-                      <span className={styles.radioCustom}></span>
-                      <i className="bi bi-google"></i>
-                      <span>Google Pay</span>
-                    </label> */}
-                  </div>
-
-                  {!isPaymentReady ? (
-                    <button
-                      type="submit"
-                      className={styles.proceedButton}
-                      style={{ marginTop: "14px" }}
-                    >
-                      Verify Details & Continue
-                      <i className="bi bi-shield-check ms-2"></i>
-                    </button>
-                  ) : (
-                    <div className={styles.paymentButton}>
-                      {formData.paymentMethod === "razorpay" ? (
-                       <RazorpayPayment
-  amount={calculatePrice()}
-  buttonText={`Pay ₹${calculatePrice()}`}
-  themeColor="#3496cb"
-  previewImage={mailPreviewImage}
-  disabled={!isPaymentReady}
-  customerDetails={{
-    orderId,
-    productType: "portrait",
-    productName: "Custom Portrait Print",
-    name: formData.fullName,
-    email: formData.email,
-    phone: formData.phone,
-    alternatePhone: formData.alternatePhone,
-    address: formData.address,
-    alternateAddress: formData.alternateAddress,
-    city: formData.city,
-    state: formData.state,
-    pincode: formData.pincode,
-    orientation,
-    size,
-    thickness,
-    quantity,
-    amount: calculatePrice(),
-    imageZoom: zoom,
-    imageOffsetX: imageOffset.x,
-    imageOffsetY: imageOffset.y,
-  }}
-  onSuccess={handlePaymentSuccess}
-  onError={handlePaymentError}
-/>
-                      ) : (
-                        <GPayButton
-                          amount={calculatePrice()}
-                          customerDetails={{
-                            orderId,
-                            productType: "portrait",
-                            productName: "Custom Portrait Print",
-                            name: formData.fullName,
-                            email: formData.email,
-                            phone: formData.phone,
-                            alternatePhone: formData.alternatePhone,
-                            address: formData.address,
-                            alternateAddress: formData.alternateAddress,
-                            city: formData.city,
-                            state: formData.state,
-                            pincode: formData.pincode,
-                            orientation,
-                            size,
-                            thickness,
-                            quantity,
-                            amount: calculatePrice(),
-                          }}
-                          onSuccess={handlePaymentSuccess}
-                          onError={handlePaymentError}
-                        />
-                      )}
-                    </div>
-                  )}
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <>
-      <div className={styles.productClient}>
-        {renderStepIndicator()}
-        {currentStep === 1 && renderStep1()}
-        {currentStep === 2 && renderStep2()}
-        {currentStep === 3 && renderStep3()}
-      </div>
-
       <canvas ref={canvasRef} style={{ display: "none" }} />
 
-      {showToast.visible && (
-        <div
-          style={{
-            position: "fixed",
-            top: "20px",
-            right: "20px",
-            background: "#fff",
-            borderRadius: "10px",
-            padding: "12px 16px",
-            boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
-            zIndex: 9999,
-            minWidth: "250px",
-          }}
-        >
-          <strong>{showToast.title}</strong>
-          <div>{showToast.message}</div>
-        </div>
-      )}
+      {renderStepIndicator()}
+
+      {currentStep === 1 && renderStep1()}
+      {currentStep === 2 && renderStep2()}
 
       <div
         className="modal fade"
         id="successModal"
         tabIndex="-1"
+        aria-labelledby="successModalLabel"
         aria-hidden="true"
       >
         <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Order Submitted</h5>
+          <div className="modal-content border-0 rounded-4 shadow">
+            <div className="modal-body text-center p-4">
+              <div
+                className="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle"
+                style={{
+                  width: "72px",
+                  height: "72px",
+                  background: "rgba(25, 135, 84, 0.12)",
+                  color: "#198754",
+                  fontSize: "32px",
+                }}
+              >
+                <i className="bi bi-check2-circle"></i>
+              </div>
+
+              <h4 id="successModalLabel" className="fw-bold mb-2">
+                Payment Successful
+              </h4>
+              <p className="text-muted mb-4">
+                Thank you for your order. Your payment was completed successfully.
+              </p>
+
+              <div className="bg-light rounded-4 p-3 text-start mb-4">
+                <div className="d-flex justify-content-between mb-2">
+                  <span>Order ID</span>
+                  <span>{orderId}</span>
+                </div>
+                <div className="d-flex justify-content-between mb-2">
+                  <span>Product Size</span>
+                  <span>{size}</span>
+                </div>
+                <div className="d-flex justify-content-between mb-2">
+                  <span>Thickness</span>
+                  <span>{thickness}</span>
+                </div>
+                <div className="d-flex justify-content-between fw-bold">
+                  <span>Total Amount</span>
+                  <span>₹{calculatePrice()}</span>
+                </div>
+              </div>
+
               <button
                 type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div className="modal-body">
-              <p>Your order has been placed successfully.</p>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-primary"
+                className="btn btn-primary px-4"
                 data-bs-dismiss="modal"
               >
-                Okay
+                Done
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {showToast.visible && (
+        <div
+          className="position-fixed top-0 end-0 p-3"
+          style={{ zIndex: 1080, minWidth: "320px" }}
+        >
+          <div
+            className={`toast show align-items-center border-0 text-white ${
+              showToast.type === "success"
+                ? "bg-success"
+                : showToast.type === "error"
+                ? "bg-danger"
+                : showToast.type === "warning"
+                ? "bg-warning"
+                : "bg-primary"
+            }`}
+            role="alert"
+          >
+            <div className="d-flex">
+              <div className="toast-body">
+                <strong className="d-block mb-1">{showToast.title}</strong>
+                <span>{showToast.message}</span>
+              </div>
+              <button
+                type="button"
+                className="btn-close btn-close-white me-2 m-auto"
+                onClick={() =>
+                  setShowToast({
+                    visible: false,
+                    type: "",
+                    title: "",
+                    message: "",
+                  })
+                }
+              ></button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
