@@ -133,7 +133,7 @@ def get_attachment_from_base64(preview_image):
 
 def send_payment_emails(customer_details, razorpay_order_id, payment_id, preview_image=None):
     customer_email = (customer_details.get("email") or "").strip()
-    admin_email = (getattr(settings, "ADMIN_EMAIL", settings.EMAIL_HOST_USER) or "").strip()
+    admin_email = getattr(settings, "ADMIN_EMAIL", settings.EMAIL_HOST_USER) 
 
     logger.info("=== EMAIL SEND STARTED ===")
     logger.info(f"Customer email: {customer_email}")
