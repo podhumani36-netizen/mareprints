@@ -15,6 +15,8 @@ const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [openMobileDropdown, setOpenMobileDropdown] = useState(null);
+  const [openDesktopDropdown, setOpenDesktopDropdown] = useState(null);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -118,12 +120,25 @@ const Header = () => {
   useEffect(() => {
     setIsMenuOpen(false);
     setIsSearchOpen(false);
+    setOpenMobileDropdown(null);
+    setOpenDesktopDropdown(null);
   }, [pathname]);
 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyPress);
     return () => document.removeEventListener("keydown", handleKeyPress);
   }, []);
+
+  useEffect(() => {
+    if (openDesktopDropdown === null) return;
+    const closeDropdown = (e) => {
+      if (!e.target.closest(`.${styles.navItem}`)) {
+        setOpenDesktopDropdown(null);
+      }
+    };
+    document.addEventListener("pointerdown", closeDropdown);
+    return () => document.removeEventListener("pointerdown", closeDropdown);
+  }, [openDesktopDropdown]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -237,11 +252,20 @@ const Header = () => {
                   >
                     {link.dropdown ? (
                       <>
-                        <button className={styles.navLink}>
+                        <button
+                          className={styles.navLink}
+                          onClick={() =>
+                            setOpenDesktopDropdown(
+                              openDesktopDropdown === index ? null : index
+                            )
+                          }
+                        >
                           {link.label}
                           <i className="bi bi-chevron-down"></i>
                         </button>
-                        <ul className={styles.dropdownMenu}>
+                        <ul
+                          className={`${styles.dropdownMenu} ${openDesktopDropdown === index ? styles.dropdownOpen : ""}`}
+                        >
                           {link.items.map((item, idx) => (
                             <li key={idx}>
                               <Link
@@ -475,17 +499,19 @@ const Header = () => {
                 {link.dropdown ? (
                   <>
                     <button
-                      className={styles.mobileNavLink}
-                      onClick={(e) => {
-                        e.currentTarget.classList.toggle(styles.active);
-                        const dropdown = e.currentTarget.nextElementSibling;
-                        dropdown.classList.toggle(styles.show);
-                      }}
+                      className={`${styles.mobileNavLink} ${openMobileDropdown === index ? styles.active : ""}`}
+                      onClick={() =>
+                        setOpenMobileDropdown(
+                          openMobileDropdown === index ? null : index
+                        )
+                      }
                     >
                       {link.label}
                       <i className="bi bi-chevron-down"></i>
                     </button>
-                    <ul className={styles.mobileDropdown}>
+                    <ul
+                      className={`${styles.mobileDropdown} ${openMobileDropdown === index ? styles.show : ""}`}
+                    >
                       {link.items.map((item, idx) => (
                         <li key={idx}>
                           <Link
