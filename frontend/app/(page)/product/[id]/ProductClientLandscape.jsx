@@ -3,10 +3,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import styles from "../../../assest/style/ProductClient.module.css";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap-icons/font/bootstrap-icons.css";
+// Bootstrap CSS and Icons are already loaded globally via globals.css — do NOT import again here.
 
-export default function ProductClientLandscape() {
+export default function ProductClientLandscape({ product }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [zoom, setZoom] = useState(1);
@@ -73,11 +72,7 @@ export default function ProductClientLandscape() {
   const roomWallBackground =
     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
 
-  useEffect(() => {
-    import("bootstrap/dist/js/bootstrap.bundle.min.js")
-      .then(() => console.log("Bootstrap JS loaded"))
-      .catch((err) => console.error("Failed to load Bootstrap JS:", err));
-  }, []);
+  // Bootstrap JS is already loaded via layout.tsx <Script> tag — do NOT import it again here.
 
   useEffect(() => {
     setOrderId(`#ORD${Math.floor(Math.random() * 9000 + 1000)}`);

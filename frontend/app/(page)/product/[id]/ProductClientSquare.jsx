@@ -4,8 +4,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import styles from "../../../assest/style/ProductClient.module.css";
 import GPayButton from "../../../Components/GPayButton";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap-icons/font/bootstrap-icons.css";
 
 export default function ProductClientSquare({ product }) {
   const [currentStep, setCurrentStep] = useState(1);

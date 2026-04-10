@@ -3,10 +3,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import styles from "../../../assest/style/ProductClient.module.css";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap-icons/font/bootstrap-icons.css";
+// Bootstrap CSS and Icons are already loaded globally via globals.css — do NOT import again here.
+// Importing them here causes triple-loading (~1MB CSS), memory pressure, and OOM on low-end devices.
 
-export default function ProductClient() {
+export default function ProductClient({ product }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [zoom, setZoom] = useState(1);
@@ -83,11 +83,8 @@ export default function ProductClient() {
   const roomWallBackground =
     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
 
-  useEffect(() => {
-    import("bootstrap/dist/js/bootstrap.bundle.min.js")
-      .then(() => console.log("Bootstrap JS loaded"))
-      .catch((err) => console.error("Failed to load Bootstrap JS:", err));
-  }, []);
+  // Bootstrap JS is already loaded via layout.tsx <Script> tag — do NOT import it again here.
+  // Double-loading Bootstrap causes MutationObserver conflicts on iOS Safari that crash React hydration.
 
   useEffect(() => {
     setOrderId(`#ORD${Math.floor(Math.random() * 9000 + 1000)}`);
