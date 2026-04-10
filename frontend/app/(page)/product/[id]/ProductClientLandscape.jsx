@@ -128,14 +128,14 @@ export default function ProductClientLandscape() {
 
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", stopDragging);
-    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
     window.addEventListener("touchend", stopDragging);
     window.addEventListener("touchcancel", stopDragging);
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", stopDragging);
-      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchmove", handleTouchMove, { passive: true });
       window.removeEventListener("touchend", stopDragging);
       window.removeEventListener("touchcancel", stopDragging);
     };
@@ -840,7 +840,7 @@ export default function ProductClientLandscape() {
                     : "grab"
                   : "default",
                 background: "#f1f5f9",
-                touchAction: "none",
+                touchAction: uploadedImage ? "none" : "auto",
               }}
               onMouseDown={uploadedImage ? handleImageMouseDown : undefined}
               onTouchStart={uploadedImage ? handleImageTouchStart : undefined}
@@ -922,25 +922,19 @@ export default function ProductClientLandscape() {
     if (!uploadedImage) return null;
 
     return (
-      <div
-        style={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "flex-start",
-        }}
-      >
-        <div
+      <div style={{ width: "100%", marginBottom: "16px" }}>
+        <img
+          src={uploadedImage}
+          alt="Your uploaded photo"
           style={{
             width: "100%",
-            maxWidth: "420px",
-            transform: "scale(0.62)",
-            transformOrigin: "top center",
-            marginBottom: "-180px",
+            maxHeight: "220px",
+            objectFit: "contain",
+            borderRadius: "12px",
+            background: "#f1f5f9",
+            display: "block",
           }}
-        >
-          {renderBetterPreview(false)}
-        </div>
+        />
       </div>
     );
   };

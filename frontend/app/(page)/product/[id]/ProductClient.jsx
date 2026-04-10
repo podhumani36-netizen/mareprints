@@ -145,14 +145,14 @@ export default function ProductClient() {
 
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", stopDragging);
-    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
     window.addEventListener("touchend", stopDragging);
     window.addEventListener("touchcancel", stopDragging);
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", stopDragging);
-      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchmove", handleTouchMove, { passive: true });
       window.removeEventListener("touchend", stopDragging);
       window.removeEventListener("touchcancel", stopDragging);
     };
@@ -842,7 +842,7 @@ const getShadowByThickness = () => {
         : "grab"
       : "default",
     background: "#f1f5f9",
-    touchAction: "none",
+    touchAction: uploadedImage ? "none" : "auto",
   }}
   onMouseDown={uploadedImage ? handleImageMouseDown : undefined}
   onTouchStart={uploadedImage ? handleImageTouchStart : undefined}
@@ -943,28 +943,22 @@ const renderSummaryPreview = () => {
   if (!uploadedImage) return null;
 
   return (
-    <div
-      style={{
-        width: "100%",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "flex-start",
-      }}
-    >
-      <div
+    <div style={{ width: "100%", marginBottom: "16px" }}>
+      <img
+        src={uploadedImage}
+        alt="Your uploaded photo"
         style={{
           width: "100%",
-          maxWidth: "420px",
-          transform: "scale(0.62)",
-          transformOrigin: "top center",
-          marginBottom: "-180px",
+          maxHeight: "220px",
+          objectFit: "contain",
+          borderRadius: "12px",
+          background: "#f1f5f9",
+          display: "block",
         }}
-      >
-        {renderBetterPreview(false)}
-      </div>
+      />
     </div>
   );
-}; 
+};
  const renderStep1 = () => (
     <div className={styles.stepContainer}>
       <div className="container">
@@ -1178,31 +1172,23 @@ setIsPaymentReady(false);}}
                   <div className="col-md-4">
                     <label style={labelStyle}>Size</label>
                     <select
-  value={size}
-  onChange={(e) => {setOrientation(e.target.value)
-setIsPaymentReady(false);}}
-  style={{
-    width: "200px",
-    padding: "10px",
-    borderRadius: "6px",
-    border: "1px solid #ccc",
-    appearance: "none",
-
-    backgroundImage:
-      "url('data:image/svg+xml;utf8,<svg fill=\"black\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "right 10px center"
-  }}
->
-                    {/* <select
-                      className="form-select"
                       value={size}
                       onChange={(e) => {
                         setSize(e.target.value);
                         setIsPaymentReady(false);
                       }}
-                      style={inputStyle}
-                    > */}
+                      style={{
+                        width: "200px",
+                        padding: "10px",
+                        borderRadius: "6px",
+                        border: "1px solid #ccc",
+                        appearance: "none",
+                        backgroundImage:
+                          "url('data:image/svg+xml;utf8,<svg fill=\"black\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "right 10px center",
+                      }}
+                    >
                       {sizeOptions[orientation].map((option) => (
                         <option key={option} value={option}>
                           {option}
@@ -1214,34 +1200,23 @@ setIsPaymentReady(false);}}
                   <div className="col-md-4">
                     <label style={labelStyle}>Thickness</label>
                     <select
-  value={thickness}
-  onChange={(e) => {setOrientation(e.target.value)
-setIsPaymentReady(false);}
-  }
-  style={{
-    width: "200px",
-    padding: "10px",
-    borderRadius: "6px",
-    border: "1px solid #ccc",
-    appearance: "none",
-
-    backgroundImage:
-      "url('data:image/svg+xml;utf8,<svg fill=\"black\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "right 10px center"
-  }}
->
-
-{/* </select>
-                    <select
-                      className="form-select"
                       value={thickness}
                       onChange={(e) => {
                         setThickness(e.target.value);
                         setIsPaymentReady(false);
                       }}
-                      style={inputStyle}
-                    > */}
+                      style={{
+                        width: "200px",
+                        padding: "10px",
+                        borderRadius: "6px",
+                        border: "1px solid #ccc",
+                        appearance: "none",
+                        backgroundImage:
+                          "url('data:image/svg+xml;utf8,<svg fill=\"black\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "right 10px center",
+                      }}
+                    >
                       {thicknessOptions.map((option) => (
                         <option key={option} value={option}>
                           {option}
