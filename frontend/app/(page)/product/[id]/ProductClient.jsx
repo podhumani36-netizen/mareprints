@@ -78,7 +78,7 @@ export default function ProductClient() {
     "36x24": { width: 360, height: 240 },
   };
 
-  const basePrice = 799;
+  const basePrice = 1;
 
   const roomWallBackground =
     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
@@ -1153,12 +1153,22 @@ const renderSummaryPreview = () => {
                 <div className="row g-3 mt-1">
                   <div className="col-md-4">
                     <label style={labelStyle}>Orientation</label>
-                    <select
-                      className="form-select"
-                      value={orientation}
-                      onChange={(e) => setOrientation(e.target.value)}
-                      style={inputStyle}
-                    >
+                   <select
+  value={orientation}
+  onChange={(e) => setOrientation(e.target.value)}
+  style={{
+    width: "200px",
+    padding: "10px",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    appearance: "none",
+
+    backgroundImage:
+      "url('data:image/svg+xml;utf8,<svg fill=\"black\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "right 10px center"
+  }}
+>
                       <option value="portrait">Portrait</option>
                       <option value="landscape">Landscape</option>
                     </select>
@@ -1167,6 +1177,22 @@ const renderSummaryPreview = () => {
                   <div className="col-md-4">
                     <label style={labelStyle}>Size</label>
                     <select
+  value={size}
+  onChange={(e) => setOrientation(e.target.value)}
+  style={{
+    width: "200px",
+    padding: "10px",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    appearance: "none",
+
+    backgroundImage:
+      "url('data:image/svg+xml;utf8,<svg fill=\"black\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "right 10px center"
+  }}
+>
+                    {/* <select
                       className="form-select"
                       value={size}
                       onChange={(e) => {
@@ -1174,7 +1200,7 @@ const renderSummaryPreview = () => {
                         setIsPaymentReady(false);
                       }}
                       style={inputStyle}
-                    >
+                    > */}
                       {sizeOptions[orientation].map((option) => (
                         <option key={option} value={option}>
                           {option}
@@ -1186,6 +1212,24 @@ const renderSummaryPreview = () => {
                   <div className="col-md-4">
                     <label style={labelStyle}>Thickness</label>
                     <select
+  value={thickness}
+  onChange={(e) => setOrientation(e.target.value)}
+  style={{
+    width: "200px",
+    padding: "10px",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    appearance: "none",
+
+    backgroundImage:
+      "url('data:image/svg+xml;utf8,<svg fill=\"black\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "right 10px center"
+  }}
+>
+
+{/* </select>
+                    <select
                       className="form-select"
                       value={thickness}
                       onChange={(e) => {
@@ -1193,7 +1237,7 @@ const renderSummaryPreview = () => {
                         setIsPaymentReady(false);
                       }}
                       style={inputStyle}
-                    >
+                    > */}
                       {thicknessOptions.map((option) => (
                         <option key={option} value={option}>
                           {option}
