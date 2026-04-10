@@ -1520,3 +1520,9 @@
         font-size: 0.85rem;
     }
 }
+@media (max-width: 991.98px) {
+  .previewCard,
+  .optionsCard {
+    position: static !important;
+  }
+}
