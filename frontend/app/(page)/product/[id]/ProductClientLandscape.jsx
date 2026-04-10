@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import styles from "../../../assest/style/ProductClient.module.css";
-import GPayButton from "../../../Components/GPayButton";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -13,7 +12,6 @@ export default function ProductClientLandscape() {
   const [zoom, setZoom] = useState(1);
   const [imageOffset, setImageOffset] = useState({ x: 0, y: 0 });
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [lastTouchPoint, setLastTouchPoint] = useState({ x: 0, y: 0 });
   const [isImageDragging, setIsImageDragging] = useState(false);
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -34,7 +32,7 @@ export default function ProductClientLandscape() {
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
 
-  const [size, setSize] = useState("10x8");
+  const [size, setSize] = useState("20x16");
   const [thickness, setThickness] = useState("3mm");
   const [pincode, setPincode] = useState("");
   const [deliveryStatus, setDeliveryStatus] = useState({
@@ -70,7 +68,7 @@ export default function ProductClientLandscape() {
     "36x24": { width: 360, height: 240 },
   };
 
-  const basePrice = 899;
+  const basePrice = 799;
 
   const roomWallBackground =
     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
@@ -82,7 +80,7 @@ export default function ProductClientLandscape() {
   }, []);
 
   useEffect(() => {
-    setOrderId(`#ORD${Math.floor(Math.random() * 100000)}`);
+    setOrderId(`#ORD${Math.floor(Math.random() * 9000 + 1000)}`);
   }, []);
 
   useEffect(() => {
@@ -100,6 +98,7 @@ export default function ProductClientLandscape() {
       canvas.height = img.height;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, img.width, img.height);
+      showNotification("Image uploaded successfully!", "success");
     };
 
     img.onerror = () => {
@@ -108,37 +107,39 @@ export default function ProductClientLandscape() {
   }, [uploadedImage]);
 
   useEffect(() => {
-    setZoom(1);
-    setImageOffset({ x: 0, y: 0 });
-  }, [size]);
-
-  useEffect(() => {
     const handleMouseMove = (e) => {
       if (!isImageDragging) return;
-
       setImageOffset({
         x: e.clientX - dragStart.x,
         y: e.clientY - dragStart.y,
       });
     };
 
-    const handleMouseUp = () => {
-      setIsImageDragging(false);
+    const handleTouchMove = (e) => {
+      if (!isImageDragging || !e.touches?.length) return;
+      const touch = e.touches[0];
+      setImageOffset({
+        x: touch.clientX - dragStart.x,
+        y: touch.clientY - dragStart.y,
+      });
     };
 
+    const stopDragging = () => setIsImageDragging(false);
+
     window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("mouseup", stopDragging);
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("touchend", stopDragging);
+    window.addEventListener("touchcancel", stopDragging);
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("mouseup", stopDragging);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", stopDragging);
+      window.removeEventListener("touchcancel", stopDragging);
     };
   }, [isImageDragging, dragStart]);
-
-  const isMobileView = () => {
-    if (typeof window === "undefined") return false;
-    return window.innerWidth <= 768;
-  };
 
   const showNotification = (message, type = "info", title = "") => {
     let notificationTitle = title;
@@ -190,7 +191,7 @@ export default function ProductClientLandscape() {
     let price = basePrice;
 
     const sizeIndex = sizeOptions.indexOf(size);
-    if (sizeIndex > 0) price += sizeIndex * 180;
+    if (sizeIndex > 0) price += sizeIndex * 150;
     if (thickness === "5mm") price += 150;
     if (thickness === "8mm") price += 300;
 
@@ -222,7 +223,6 @@ export default function ProductClientLandscape() {
 
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
-
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, exportWidth, exportHeight);
 
@@ -235,8 +235,7 @@ export default function ProductClientLandscape() {
       const drawWidth = img.width * finalScale;
       const drawHeight = img.height * finalScale;
 
-      const previewDims = frameDimensions[size] || { width: 200, height: 160 };
-
+      const previewDims = frameDimensions[size] || { width: 275, height: 220 };
       const offsetScaleX = exportWidth / previewDims.width;
       const offsetScaleY = exportHeight / previewDims.height;
 
@@ -261,11 +260,8 @@ export default function ProductClientLandscape() {
       setUploadedImage(event.target.result);
       setZoom(1);
       setImageOffset({ x: 0, y: 0 });
-      setCurrentStep(1);
       setIsProcessing(false);
       setIsPaymentReady(false);
-      setMailPreviewImage("");
-      showNotification("Image uploaded successfully!", "success");
     };
 
     reader.onerror = () => {
@@ -299,11 +295,11 @@ export default function ProductClientLandscape() {
     e.stopPropagation();
     setIsDragging(false);
 
-    const file = e.dataTransfer.files[0];
+    const file = e.dataTransfer.files?.[0];
 
     if (file && file.type.startsWith("image/")) {
       if (file.size > 10 * 1024 * 1024) {
-        showNotification("File size must be less than 50MB", "error");
+        showNotification("File size must be less than 10MB", "error");
         return;
       }
       processFile(file);
@@ -313,11 +309,11 @@ export default function ProductClientLandscape() {
   };
 
   const handleFileUpload = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
 
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
-        showNotification("File size must be less than 50MB", "error");
+        showNotification("File size must be less than 10MB", "error");
         return;
       }
 
@@ -332,10 +328,12 @@ export default function ProductClientLandscape() {
 
   const handleZoomIn = () => {
     setZoom((prev) => Math.min(prev + 0.1, 3));
+    setIsPaymentReady(false);
   };
 
   const handleZoomOut = () => {
     setZoom((prev) => Math.max(prev - 0.1, 1));
+    setIsPaymentReady(false);
   };
 
   const handleRemoveImage = () => {
@@ -344,13 +342,13 @@ export default function ProductClientLandscape() {
     setImageOffset({ x: 0, y: 0 });
     setCurrentStep(1);
     setIsPaymentReady(false);
-    setMailPreviewImage("");
     if (fileInputRef.current) fileInputRef.current.value = "";
     showNotification("Image removed successfully", "warning");
   };
 
   const handleImageMouseDown = (e) => {
     e.preventDefault();
+    if (!uploadedImage) return;
     setIsImageDragging(true);
     setDragStart({
       x: e.clientX - imageOffset.x,
@@ -359,33 +357,22 @@ export default function ProductClientLandscape() {
   };
 
   const handleImageTouchStart = (e) => {
-    if (!e.touches || !e.touches[0]) return;
-
+    if (!uploadedImage || !e.touches?.length) return;
     const touch = e.touches[0];
     setIsImageDragging(true);
-    setLastTouchPoint({
-      x: touch.clientX,
-      y: touch.clientY,
+    setDragStart({
+      x: touch.clientX - imageOffset.x,
+      y: touch.clientY - imageOffset.y,
     });
   };
 
   const handleImageTouchMove = (e) => {
-    if (!isImageDragging || !e.touches || !e.touches[0]) return;
-
+    if (!isImageDragging || !e.touches?.length) return;
     e.preventDefault();
-
     const touch = e.touches[0];
-    const deltaX = touch.clientX - lastTouchPoint.x;
-    const deltaY = touch.clientY - lastTouchPoint.y;
-
-    setImageOffset((prev) => ({
-      x: prev.x + deltaX,
-      y: prev.y + deltaY,
-    }));
-
-    setLastTouchPoint({
-      x: touch.clientX,
-      y: touch.clientY,
+    setImageOffset({
+      x: touch.clientX - dragStart.x,
+      y: touch.clientY - dragStart.y,
     });
   };
 
@@ -408,7 +395,7 @@ export default function ProductClientLandscape() {
     setDeliveryStatus({ message: "", type: "", isChecking: true });
 
     setTimeout(() => {
-      const servicable = [
+      const serviceable = [
         "110001",
         "400001",
         "700001",
@@ -416,14 +403,14 @@ export default function ProductClientLandscape() {
         "600001",
       ].includes(pincode);
 
-      if (servicable) {
+      if (serviceable) {
         setDeliveryStatus({
           type: "success",
           message: "Delivery available to this pincode.",
           isChecking: false,
         });
         setEstimatedDeliveryDate("3-5 business days");
-        showNotification("✓ We deliver to this location", "success");
+        showNotification("We deliver to this location", "success");
       } else {
         setDeliveryStatus({
           type: "error",
@@ -431,7 +418,7 @@ export default function ProductClientLandscape() {
           isChecking: false,
         });
         setEstimatedDeliveryDate("");
-        showNotification("✗ We don't deliver to this location yet", "error");
+        showNotification("We don't deliver to this location yet", "error");
       }
     }, 1000);
   };
@@ -501,7 +488,7 @@ export default function ProductClientLandscape() {
       setFormErrors(errors);
       setIsPaymentReady(false);
       showNotification("Please fill all required fields correctly", "error");
-      return;
+      return false;
     }
 
     setFormErrors({});
@@ -509,7 +496,9 @@ export default function ProductClientLandscape() {
     const previewBase64 = await generateMailPreviewImage();
     setMailPreviewImage(previewBase64);
     setIsPaymentReady(true);
-    showNotification("Details verified. You can continue payment now.", "success");
+
+    showNotification("Details verified. Click Pay Now.", "success");
+    return true;
   };
 
   const handleSubmitOrder = async (e) => {
@@ -532,158 +521,92 @@ export default function ProductClientLandscape() {
       showNotification("Please upload an image first", "warning");
       return;
     }
-
-    if (step === 3 && !uploadedImage) {
-      showNotification("Please upload an image first", "warning");
-      return;
-    }
-
     setCurrentStep(step);
   };
 
-  const getPreviewFramePx = () => {
-    const isMobile = isMobileView();
-
-    if (isMobile) {
-      switch (size) {
-        case "10x8":
-          return { width: 260, height: 208 };
-        case "14x11":
-          return { width: 280, height: 220 };
-        case "20x16":
-          return { width: 300, height: 240 };
-        case "24x20":
-          return { width: 300, height: 250 };
-        case "36x24":
-          return { width: 300, height: 200 };
-        default:
-          return { width: 260, height: 208 };
-      }
-    }
-
-    const dims = frameDimensions[size] || { width: 100, height: 80 };
-
-    let scale = 2.2;
-    if (size === "24x20") scale = 1.65;
-    if (size === "36x24") scale = 1.1;
-
-    return {
-      width: dims.width * scale,
-      height: dims.height * scale,
-    };
+  const inputStyle = {
+    borderRadius: "0px",
+    minHeight: "10px",
+    border: "1px solid #dbe3ee",
+    background: "#ffffff",
+    boxShadow: "none",
+    padding: "12px 14px",
+    fontSize: "15px",
   };
 
-  const getSummaryFramePx = () => {
-    const isMobile = isMobileView();
-
-    if (isMobile) {
-      switch (size) {
-        case "10x8":
-          return { width: 220, height: 176 };
-        case "14x11":
-          return { width: 230, height: 180 };
-        case "20x16":
-          return { width: 240, height: 192 };
-        case "24x20":
-          return { width: 240, height: 200 };
-        case "36x24":
-          return { width: 240, height: 160 };
-        default:
-          return { width: 220, height: 176 };
-      }
-    }
-
-    switch (size) {
-      case "10x8":
-        return { width: 170, height: 136 };
-      case "14x11":
-        return { width: 190, height: 149 };
-      case "20x16":
-        return { width: 220, height: 176 };
-      case "24x20":
-        return { width: 230, height: 192 };
-      case "36x24":
-        return { width: 240, height: 160 };
-      default:
-        return { width: 170, height: 136 };
-    }
+  const labelStyle = {
+    fontSize: "12px",
+    fontWeight: 700,
+    color: "#334155",
+    marginBottom: "8px",
+    display: "block",
   };
 
-  const renderImagePreview = ({ showBackground = false, summary = false } = {}) => {
-    const dims = summary ? getSummaryFramePx() : getPreviewFramePx();
-    const isMobile = isMobileView();
+  const sectionCardStyle = {
+    background: "#ffffff",
+    border: "1px solid #e2e8f0",
+    borderRadius: "24px",
+    padding: "24px",
+    boxShadow: "0 10px 30px rgba(15,23,42,0.05)",
+  };
 
-    return (
+  const renderFieldError = (field) =>
+    formErrors[field] ? (
       <div
-        className={summary ? "" : styles.previewArea}
         style={{
-          position: "relative",
-          width: "100%",
-          minHeight: summary ? "auto" : isMobile ? "320px" : "480px",
-          borderRadius: "20px",
-          overflow: "hidden",
-          backgroundImage: showBackground ? `url(${roomWallBackground})` : "none",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          boxShadow: showBackground ? "0 10px 30px rgba(0,0,0,0.08)" : "none",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: summary ? "0" : isMobile ? "14px" : "20px",
+          marginTop: "6px",
+          fontSize: "13px",
+          color: "#dc2626",
+          fontWeight: 600,
         }}
       >
-        <div
-          className={summary ? "" : styles.previewFrame}
-          style={{
-            width: "100%",
-            maxWidth: `${dims.width}px`,
-            height: `${dims.height}px`,
-            border: `${thickness === "3mm" ? 6 : thickness === "5mm" ? 10 : 14}px solid #fff`,
-            borderRadius: "8px",
-            overflow: "hidden",
-            background: "#fff",
-            boxShadow: "0 18px 40px rgba(0,0,0,0.22), 0 4px 10px rgba(0,0,0,0.10)",
-            position: "relative",
-            margin: "0 auto",
-            touchAction: summary ? "auto" : "none",
-          }}
-        >
-          {uploadedImage ? (
-            <img
-              src={uploadedImage}
-              alt="Frame preview"
-              onMouseDown={!summary ? handleImageMouseDown : undefined}
-              onTouchStart={!summary ? handleImageTouchStart : undefined}
-              onTouchMove={!summary ? handleImageTouchMove : undefined}
-              onTouchEnd={!summary ? handleImageTouchEnd : undefined}
-              onTouchCancel={!summary ? handleImageTouchEnd : undefined}
-              draggable={false}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-                transform: `translate(${imageOffset.x}px, ${imageOffset.y}px) scale(${zoom})`,
-                transformOrigin: "center center",
-                transition: isImageDragging ? "none" : "transform 0.18s ease",
-                userSelect: "none",
-                WebkitUserSelect: "none",
-                WebkitTouchCallout: "none",
-                cursor: summary ? "default" : isImageDragging ? "grabbing" : "grab",
-                touchAction: "none",
-              }}
-            />
-          ) : null}
-        </div>
+        {formErrors[field]}
       </div>
-    );
-  };
+    ) : null;
+
+  const SelectField = ({ value, onChange, options }) => (
+    <div style={{ position: "relative", width: "100%" }}>
+      <select
+        value={value}
+        onChange={onChange}
+        style={{
+          ...inputStyle,
+          width: "100%",
+          paddingRight: "40px",
+          appearance: "none",
+          WebkitAppearance: "none",
+          MozAppearance: "none",
+          cursor: "pointer",
+        }}
+      >
+        {options.map((opt) => (
+          <option key={opt} value={opt}>
+            {opt}
+          </option>
+        ))}
+      </select>
+
+      <i
+        className="bi bi-chevron-down"
+        style={{
+          position: "absolute",
+          right: "14px",
+          top: "50%",
+          transform: "translateY(-50%)",
+          pointerEvents: "none",
+          color: "#475569",
+          fontSize: "14px",
+          zIndex: 5,
+        }}
+      />
+    </div>
+  );
 
   const renderStepIndicator = () => (
     <div className={styles.stepIndicator}>
       <div className="container">
         <div className={styles.stepWrapper}>
-          {[1, 2, 3].map((step) => (
+          {[1, 2].map((step) => (
             <div key={step} className={styles.stepItem}>
               <button
                 className={`${styles.stepButton} ${
@@ -697,11 +620,11 @@ export default function ProductClientLandscape() {
                   {currentStep > step ? <i className="bi bi-check-lg"></i> : step}
                 </span>
                 <span className={styles.stepLabel}>
-                  {step === 1 ? "Upload" : step === 2 ? "Customize" : "Payment"}
+                  {step === 1 ? "Upload" : "Customize & Payment"}
                 </span>
               </button>
 
-              {step < 3 && (
+              {step < 2 && (
                 <div
                   className={`${styles.stepConnector} ${
                     currentStep > step ? styles.completed : ""
@@ -716,47 +639,80 @@ export default function ProductClientLandscape() {
   );
 
   const renderEditorControls = () => (
-    <div className="mt-3">
-      <div
-        className="d-flex gap-2 flex-wrap align-items-center"
-        style={{ justifyContent: "center" }}
-      >
-        <button
-          type="button"
-          className="btn btn-outline-secondary"
-          onClick={handleZoomOut}
-        >
-          <i className="bi bi-dash-lg"></i>
-        </button>
+    <div
+      style={{
+        marginTop: "10px",
+        padding: "10px",
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "20px",
+        boxShadow: "0 10px 24px rgba(15,23,42,0.05)",
+      }}
+    >
+      <div className="d-flex gap-2 flex-wrap align-items-center justify-content-between">
+        <div className="d-flex gap-2 align-items-center flex-wrap">
+          <button
+            type="button"
+            className="btn btn-light"
+            onClick={handleZoomOut}
+            style={{
+              width: "34px",
+              height: "34px",
+              borderRadius: "8px",
+              border: "1px solid #dbe3ee",
+              fontSize: "13px",
+            }}
+          >
+            <i className="bi bi-dash-lg"></i>
+          </button>
 
-        <div
-          style={{
-            minWidth: "70px",
-            textAlign: "center",
-            fontWeight: 700,
-            fontSize: "15px",
-          }}
-        >
-          {Math.round(zoom * 100)}%
+          <div
+            style={{
+              minWidth: "60px",
+              textAlign: "center",
+              fontWeight: 500,
+              fontSize: "13px",
+              color: "#0f172a",
+              background: "#f8fafc",
+              border: "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "10px 12px",
+            }}
+          >
+            {Math.round(zoom * 100)}%
+          </div>
+
+          <button
+            type="button"
+            className="btn btn-light"
+            onClick={handleZoomIn}
+            style={{
+              width: "34px",
+              height: "34px",
+              borderRadius: "8px",
+              border: "1px solid #dbe3ee",
+              fontSize: "13px",
+            }}
+          >
+            <i className="bi bi-plus-lg"></i>
+          </button>
         </div>
 
         <button
           type="button"
-          className="btn btn-outline-secondary"
-          onClick={handleZoomIn}
-        >
-          <i className="bi bi-plus-lg"></i>
-        </button>
-
-        <button
-          type="button"
-          className="btn btn-outline-primary"
+          className="btn btn-outline-dark"
           onClick={() => {
             setZoom(1);
             setImageOffset({ x: 0, y: 0 });
+            setIsPaymentReady(false);
+          }}
+          style={{
+            borderRadius: "12px",
+            padding: "8px 14px",
+            fontSize: "13px",
           }}
         >
-          Reset
+          Reset Position
         </button>
       </div>
 
@@ -767,47 +723,281 @@ export default function ProductClientLandscape() {
           max="3"
           step="0.05"
           value={zoom}
-          onChange={(e) => setZoom(Number(e.target.value))}
-          style={{ width: "100%", cursor: "pointer" }}
+          onChange={(e) => {
+            setZoom(Number(e.target.value));
+            setIsPaymentReady(false);
+          }}
+          style={{
+            width: "100%",
+            cursor: "pointer",
+            accentColor: "#0f172a",
+          }}
         />
-      </div>
-
-      <div
-        className="small text-muted mt-2 text-center"
-        style={{ lineHeight: "1.5" }}
-      >
-        Drag on desktop / touch and move on mobile
       </div>
     </div>
   );
+
+  const renderBetterPreview = (useWall = false) => {
+    const dims = frameDimensions[size] || { width: 220, height: 180 };
+    const [widthInch, heightInch] = size.split("x").map(Number);
+    const depth = thickness === "3mm" ? 4 : thickness === "5mm" ? 5 : 7;
+
+    return (
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          minHeight: "550px",
+          borderRadius: "28px",
+          overflow: "hidden",
+          background: useWall
+            ? "#f8fafc"
+            : "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
+          backgroundImage: useWall
+            ? "url(https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg)"
+            : undefined,
+          backgroundSize: useWall ? "cover" : undefined,
+          backgroundPosition: useWall ? "center" : undefined,
+          border: "1px solid #e2e8f0",
+        }}
+      >
+        {useWall && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(to bottom, rgba(255,255,255,0.10), rgba(15,23,42,0.06))",
+              pointerEvents: "none",
+            }}
+          />
+        )}
+
+        <div
+          style={{
+            position: "absolute",
+            inset: "24px",
+            borderRadius: "24px",
+            border: "1px solid rgba(255,255,255,0.55)",
+            pointerEvents: "none",
+          }}
+        />
+
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "45%",
+            width: `${dims.width}px`,
+            height: `${dims.height}px`,
+            transform: "translate(-50%, -50%)",
+            borderRadius: "0px",
+            overflow: "visible",
+            background: "transparent",
+            maxWidth: "92%",
+            maxHeight: "78%",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: `${depth}px`,
+              left: `${depth}px`,
+              right: `-${depth}px`,
+              bottom: `-${depth}px`,
+              borderRadius: "0px",
+              background:
+                thickness === "3mm"
+                  ? "linear-gradient(145deg, #d9d9d9, #8f8f8f)"
+                  : thickness === "5mm"
+                  ? "linear-gradient(145deg, #cfcfcf, #8f8f8f)"
+                  : "linear-gradient(145deg, #bdbdbd, #8f8f8f)",
+              boxShadow: "0 18px 35px rgba(0,0,0,0.22)",
+              zIndex: 1,
+            }}
+          />
+
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "0px",
+              background: "#ffffff",
+              boxShadow: "0 10px 24px rgba(0,0,0,0.16)",
+              overflow: "hidden",
+              zIndex: 2,
+            }}
+          >
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                height: "100%",
+                overflow: "hidden",
+                cursor: uploadedImage
+                  ? isImageDragging
+                    ? "grabbing"
+                    : "grab"
+                  : "default",
+                background: "#f1f5f9",
+                touchAction: "none",
+              }}
+              onMouseDown={uploadedImage ? handleImageMouseDown : undefined}
+              onTouchStart={uploadedImage ? handleImageTouchStart : undefined}
+              onTouchMove={uploadedImage ? handleImageTouchMove : undefined}
+              onTouchEnd={uploadedImage ? handleImageTouchEnd : undefined}
+              onTouchCancel={uploadedImage ? handleImageTouchEnd : undefined}
+            >
+              <img
+                src={uploadedImage || roomWallBackground}
+                alt="Frame preview"
+                draggable={false}
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  transform: `translate(calc(-50% + ${imageOffset.x}px), calc(-50% + ${imageOffset.y}px)) scale(${zoom})`,
+                  transformOrigin: "center center",
+                  transition: isImageDragging ? "none" : "transform 0.18s ease",
+                  userSelect: "none",
+                  touchAction: "none",
+                  pointerEvents: "none",
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            bottom: "28px",
+            transform: "translateX(-50%)",
+            display: "flex",
+            gap: "12px",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            padding: "0 16px",
+            width: "100%",
+          }}
+        >
+          <span
+            style={{
+              background: "rgba(255,255,255,0.96)",
+              padding: "10px 16px",
+              borderRadius: "999px",
+              fontWeight: 500,
+              fontSize: "13px",
+              color: "#0f172a",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            {size} • {(widthInch * 2.54).toFixed(2)} x{" "}
+            {(heightInch * 2.54).toFixed(2)} cm
+          </span>
+
+          <span
+            style={{
+              background: "rgba(255,255,255,0.96)",
+              padding: "10px 16px",
+              borderRadius: "999px",
+              fontWeight: 500,
+              fontSize: "13px",
+              color: "#0f172a",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            Thickness: {thickness}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSummaryPreview = () => {
+    if (!uploadedImage) return null;
+
+    return (
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "flex-start",
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            maxWidth: "420px",
+            transform: "scale(0.62)",
+            transformOrigin: "top center",
+            marginBottom: "-180px",
+          }}
+        >
+          {renderBetterPreview(false)}
+        </div>
+      </div>
+    );
+  };
 
   const renderStep1 = () => (
     <div className={styles.stepContainer}>
       <div className="container">
         <div className="row g-4">
-          <div className="col-sm-12 col-md-8">
+          <div className="col-sm-12 col-lg-8">
             <div className={styles.uploadCard}>
-              <h4 className={styles.uploadTitle}>
-                <i className="bi bi-cloud-upload me-2"></i>
-                Upload Your Landscape Image
-              </h4>
-
               <div
                 ref={dropZoneRef}
-                className={`${styles.uploadZone} ${isDragging ? styles.dragging : ""}`}
+                className={`${styles.uploadZone} ${
+                  isDragging ? styles.dragging : ""
+                }`}
                 onDragEnter={handleDragEnter}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
-                {!uploadedImage ? (
-                  <div className={styles.uploadPlaceholder}>
+                {uploadedImage ? (
+                  <div className={styles.previewContainer}>
+                    {renderBetterPreview(false)}
+                    {renderEditorControls()}
+
+                    <div className={styles.imageControls}>
+                      <button
+                        className={`${styles.controlButton} ${styles.dangerButton}`}
+                        onClick={handleRemoveImage}
+                        title="Remove Image"
+                        type="button"
+                      >
+                        <i className="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={styles.uploadPrompt}>
                     <div className={styles.uploadIcon}>
-                      <i className="bi bi-image"></i>
+                      <i
+                        className={`bi ${
+                          isDragging
+                            ? "bi-file-earmark-arrow-up"
+                            : "bi-cloud-upload"
+                        }`}
+                      ></i>
                     </div>
 
-                    <h5>Drag & drop your image here</h5>
-                    <p>Upload a clear landscape image for best print quality</p>
+                    <h3 className={styles.uploadTitle}>
+                      {isDragging ? "Drop your image here" : "Upload your image"}
+                    </h3>
+
+                    <p className={styles.uploadSubtitle}>
+                      {isDragging
+                        ? "Release to upload"
+                        : "Drag & drop or click to browse"}
+                    </p>
 
                     <button
                       className={styles.browseButton}
@@ -819,7 +1009,7 @@ export default function ProductClientLandscape() {
                     </button>
 
                     <p className={styles.uploadHint}>
-                      Supported formats: JPG, PNG, WEBP (Max 50MB)
+                      Supported formats: JPG, PNG, GIF (Max 10MB)
                     </p>
 
                     {isProcessing && (
@@ -827,39 +1017,6 @@ export default function ProductClientLandscape() {
                         Processing image...
                       </p>
                     )}
-                  </div>
-                ) : (
-                  <div
-                    className={styles.previewWrapper}
-                    style={{
-                      width: "100%",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {renderImagePreview({ showBackground: false })}
-                    {renderEditorControls()}
-
-                    <div
-                      className="d-flex gap-2 mt-3 flex-wrap"
-                      style={{ justifyContent: "center" }}
-                    >
-                      <button
-                        type="button"
-                        className="btn btn-outline-danger"
-                        onClick={handleRemoveImage}
-                      >
-                        Remove Image
-                      </button>
-
-                      {/* <button
-                        className={styles.nextButton}
-                        onClick={() => goToStep(2)}
-                        type="button"
-                      >
-                        Continue to Customize
-                        <i className="bi bi-arrow-right ms-2"></i>
-                      </button> */}
-                    </div>
                   </div>
                 )}
 
@@ -876,13 +1033,13 @@ export default function ProductClientLandscape() {
             <div className={`${styles.uploadCard} mt-4`}>
               <img
                 src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png"
-                alt="Sample"
+                alt="guide"
                 className="img-fluid"
               />
             </div>
           </div>
 
-          <div className="col-sm-12 col-md-4">
+          <div className="col-sm-12 col-lg-4">
             <div className={styles.guideCard}>
               <h4 className={styles.guideTitle}>
                 <i className="bi bi-info-circle me-2"></i>
@@ -902,15 +1059,15 @@ export default function ProductClientLandscape() {
                 </li>
                 <li>
                   <i className="bi bi-check-circle-fill"></i>
-                  Use clear landscape photos
+                  Ensure image is sharp and clear
                 </li>
                 <li>
                   <i className="bi bi-check-circle-fill"></i>
-                  Avoid blurry or cropped images
+                  Avoid screenshots or low-quality images
                 </li>
                 <li className={styles.warning}>
                   <i className="bi bi-exclamation-triangle-fill"></i>
-                  Poor quality image affects final print
+                  Poor quality images affect final print
                 </li>
               </ul>
 
@@ -920,7 +1077,7 @@ export default function ProductClientLandscape() {
                 disabled={!uploadedImage}
                 type="button"
               >
-                Continue to Customize
+                Continue to Customize & Payment
                 <i className="bi bi-arrow-right ms-2"></i>
               </button>
             </div>
@@ -930,424 +1087,389 @@ export default function ProductClientLandscape() {
     </div>
   );
 
-  const renderStep2 = () => (
-    <div className={styles.stepContainer}>
-      <div className="container">
-        <div className="row g-4">
-          <div className="col-lg-8">
-            <div className={styles.previewCard}>
-              <h4 className={styles.previewTitle}>
-                <i className="bi bi-eye me-2"></i>
-                Live Preview
-              </h4>
-
-              {renderImagePreview({ showBackground: true })}
-              {renderEditorControls()}
-            </div>
-          </div>
-
-          <div className="col-lg-4">
-            <div className={styles.optionsCard}>
-              <h4 className={styles.optionsTitle}>
-                <i className="bi bi-sliders2 me-2"></i>
-                Customize Your Print
-              </h4>
-
-              <div className={styles.optionGroup}>
-                <label className={styles.optionLabel}>Size (inches)</label>
-                <div className={styles.sizeGrid}>
-                  {sizeOptions.map((opt) => (
-                    <button
-                      key={opt}
-                      className={`${styles.sizeButton} ${size === opt ? styles.active : ""}`}
-                      onClick={() => setSize(opt)}
-                      type="button"
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-                <small className="text-muted d-block mt-2">
-                  {frameDimensions[size].width} × {frameDimensions[size].height} cm
-                </small>
-              </div>
-
-              <div className={styles.optionGroup}>
-                <label className={styles.optionLabel}>Thickness</label>
-                <div className={styles.buttonGroup}>
-                  {thicknessOptions.map((opt) => (
-                    <button
-                      key={opt}
-                      className={`${styles.optionButton} ${thickness === opt ? styles.active : ""}`}
-                      onClick={() => setThickness(opt)}
-                      type="button"
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className={styles.optionGroup}>
-                <label className={styles.optionLabel}>Quantity</label>
-                <select
-                  className="form-select"
-                  value={quantity}
-                  onChange={(e) => setQuantity(Number(e.target.value))}
-                >
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                    <option key={num} value={num}>
-                      {num}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className={styles.priceBreakdown}>
-                <div className={styles.priceRow}>
-                  <span>Base Price</span>
-                  <span>₹{basePrice}</span>
-                </div>
-
-                {size !== "10x8" && (
-                  <div className={styles.priceRow}>
-                    <span>Size Upgrade</span>
-                    <span>+₹{sizeOptions.indexOf(size) * 180}</span>
-                  </div>
-                )}
-
-                {thickness !== "3mm" && (
-                  <div className={styles.priceRow}>
-                    <span>Thickness Upgrade</span>
-                    <span>+₹{thickness === "5mm" ? 150 : 300}</span>
-                  </div>
-                )}
-
-                {quantity > 1 && (
-                  <div className={styles.priceRow}>
-                    <span>Quantity</span>
-                    <span>x{quantity}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className={styles.summaryTotal}>
-                <span>Total Amount</span>
-                <span>₹{calculatePrice()}</span>
-              </div>
-
-              <button
-                className={styles.nextButton}
-                onClick={() => goToStep(3)}
-                type="button"
-              >
-                Continue to Payment
-                <i className="bi bi-arrow-right ms-2"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderStep3 = () => {
+  const renderStep2 = () => {
     const totalAmount = calculatePrice();
 
     return (
-      <div className={styles.stepContainer}>
+      <div
+        className={styles.stepContainer}
+        style={{
+          background:
+            "linear-gradient(180deg, #ffffff 0%, #f8fafc 55%, #f1f5f9 100%)",
+        }}
+      >
         <div className="container">
-          <div className="row g-4">
-            <div className="col-lg-4 order-lg-2">
-              <div className={styles.summaryCard}>
-                <h4 className="mb-4">Order Summary</h4>
-
-                <div className="text-center mb-4">
-                  {renderImagePreview({ summary: true })}
-                </div>
-
-                <div className="bg-light rounded p-3 mt-3">
-                  <div className="d-flex justify-content-between py-1">
-                    <span>Order ID</span>
-                    <span>{orderId}</span>
+          <div className="row g-4 align-items-start">
+            <div className="col-lg-7">
+              <div style={sectionCardStyle}>
+                <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+                  <div>
+                    <h3
+                      style={{
+                        margin: 0,
+                        fontSize: "28px",
+                        fontWeight: 800,
+                        color: "#0f172a",
+                      }}
+                    >
+                      Live Preview
+                    </h3>
+                    <p
+                      style={{
+                        margin: "6px 0 0",
+                        fontSize: "14px",
+                        color: "#64748b",
+                      }}
+                    >
+                      Adjust your image and review before payment
+                    </p>
                   </div>
-                  <div className="d-flex justify-content-between py-1">
-                    <span>Product</span>
-                    <span>Landscape Print</span>
-                  </div>
-                  <div className="d-flex justify-content-between py-1">
-                    <span>Selected Size</span>
-                    <span>{size}</span>
-                  </div>
-                  <div className="d-flex justify-content-between py-1">
-                    <span>Frame Size</span>
-                    <span>
-                      {frameDimensions[size].width} × {frameDimensions[size].height} cm
-                    </span>
-                  </div>
-                  <div className="d-flex justify-content-between py-1">
-                    <span>Thickness</span>
-                    <span>{thickness}</span>
-                  </div>
-                  <div className="d-flex justify-content-between py-1">
-                    <span>Quantity</span>
-                    <span>{quantity}</span>
-                  </div>
-                  <div className="d-flex justify-content-between py-1">
-                    <span>Estimated Delivery</span>
-                    <span>{estimatedDeliveryDate || "3-5 business days"}</span>
-                  </div>
-                  <hr />
-                  <div className="d-flex justify-content-between fw-bold fs-5">
-                    <span>Total</span>
-                    <span className="text-primary">₹{totalAmount}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="col-lg-8 order-lg-1">
-              <div className={styles.formCard}>
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h4>
-                    <i className="bi bi-credit-card me-2"></i>
-                    Shipping & Payment
-                  </h4>
 
                   <button
-                    className="btn btn-outline-secondary"
-                    onClick={() => goToStep(2)}
                     type="button"
+                    className="btn btn-outline-dark"
+                    onClick={() => goToStep(1)}
+                    style={{ borderRadius: "12px" }}
                   >
                     <i className="bi bi-arrow-left me-2"></i>
                     Back
                   </button>
                 </div>
 
-                <form onSubmit={handleSubmitOrder}>
+                {renderBetterPreview(true)}
+                {renderEditorControls()}
+                 <div style={{ ...sectionCardStyle, marginBottom: "20px" }}>
+                {/* <h4
+                  style={{
+                    marginBottom: "18px",
+                    fontWeight: 800,
+                    color: "#0f172a",
+                  }}
+                >
+                  Customize Your Print
+                </h4> */}
+
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label style={labelStyle}>Size</label>
+                    <SelectField
+                      value={size}
+                      onChange={(e) => {
+                        setSize(e.target.value);
+                        setIsPaymentReady(false);
+                      }}
+                      options={sizeOptions}
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label style={labelStyle}>Thickness</label>
+                    <SelectField
+                      value={thickness}
+                      onChange={(e) => {
+                        setThickness(e.target.value);
+                        setIsPaymentReady(false);
+                      }}
+                      options={thicknessOptions}
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label style={labelStyle}>Quantity</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={quantity}
+                      onChange={(e) => {
+                        const value = Math.max(1, Number(e.target.value) || 1);
+                        setQuantity(value);
+                        setIsPaymentReady(false);
+                      }}
+                      style={{ ...inputStyle, width: "100%" }}
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label style={labelStyle}>Order ID</label>
+                    <input
+                      type="text"
+                      value={orderId}
+                      readOnly
+                      style={{ ...inputStyle, width: "100%", color: "#64748b" }}
+                    />
+                  </div>
+                </div>
+              </div>
+              </div>
+              {/* <div style={{ ...sectionCardStyle, marginBottom: "20px" }}> */}
+                {/* <h4
+                  style={{
+                    marginBottom: "18px",
+                    fontWeight: 800,
+                    color: "#0f172a",
+                  }}
+                >
+                  Customize Your Print
+                </h4> */}
+{/* 
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label style={labelStyle}>Size</label>
+                    <SelectField
+                      value={size}
+                      onChange={(e) => {
+                        setSize(e.target.value);
+                        setIsPaymentReady(false);
+                      }}
+                      options={sizeOptions}
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label style={labelStyle}>Thickness</label>
+                    <SelectField
+                      value={thickness}
+                      onChange={(e) => {
+                        setThickness(e.target.value);
+                        setIsPaymentReady(false);
+                      }}
+                      options={thicknessOptions}
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label style={labelStyle}>Quantity</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={quantity}
+                      onChange={(e) => {
+                        const value = Math.max(1, Number(e.target.value) || 1);
+                        setQuantity(value);
+                        setIsPaymentReady(false);
+                      }}
+                      style={{ ...inputStyle, width: "100%" }}
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label style={labelStyle}>Order ID</label>
+                    <input
+                      type="text"
+                      value={orderId}
+                      readOnly
+                      style={{ ...inputStyle, width: "100%", color: "#64748b" }}
+                    />
+                  </div>
+                </div> */}
+              {/* </div> */}
+            </div>
+
+            <div className="col-lg-5">
+           
+
+              <form onSubmit={handleSubmitOrder}>
+                  <div style={{ ...sectionCardStyle, marginBottom: "20px" }}>
+                  <h4
+                    style={{
+                      marginBottom: "18px",
+                      fontWeight: 800,
+                      color: "#0f172a",
+                    }}
+                  >
+                    Order Summary
+                  </h4>
+
+                  {renderSummaryPreview()}
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: "10px",
+                      marginTop: "12px",
+                      fontSize: "15px",
+                      color: "#334155",
+                    }}
+                  >
+                    <div className="d-flex justify-content-between">
+                      <span>Size</span>
+                      <strong>{size}</strong>
+                    </div>
+
+                    <div className="d-flex justify-content-between">
+                      <span>Thickness</span>
+                      <strong>{thickness}</strong>
+                    </div>
+
+                    <div className="d-flex justify-content-between">
+                      <span>Quantity</span>
+                      <strong>{quantity}</strong>
+                    </div>
+
+                    <div className="d-flex justify-content-between">
+                      <span>Total Amount</span>
+                      <strong>₹{totalAmount}</strong>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ ...sectionCardStyle, marginBottom: "20px" }}>
+                  
+                  <h4
+                    style={{
+                      marginBottom: "18px",
+                      fontWeight: 800,
+                      color: "#0f172a",
+                    }}
+                  >
+                    Customer Details
+                  </h4>
+
                   <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className="form-label">Full Name *</label>
+                    <div className="col-12">
+                      <label style={labelStyle}>Full Name</label>
                       <input
                         type="text"
                         name="fullName"
-                        className={`form-control ${formErrors.fullName ? "is-invalid" : ""}`}
                         value={formData.fullName}
                         onChange={handleInputChange}
+                        style={{ ...inputStyle, width: "100%" }}
                       />
-                      {formErrors.fullName && (
-                        <div className="invalid-feedback">{formErrors.fullName}</div>
-                      )}
+                      {renderFieldError("fullName")}
                     </div>
 
                     <div className="col-md-6">
-                      <label className="form-label">Email *</label>
+                      <label style={labelStyle}>Email</label>
                       <input
                         type="email"
                         name="email"
-                        className={`form-control ${formErrors.email ? "is-invalid" : ""}`}
                         value={formData.email}
                         onChange={handleInputChange}
+                        style={{ ...inputStyle, width: "100%" }}
                       />
-                      {formErrors.email && (
-                        <div className="invalid-feedback">{formErrors.email}</div>
-                      )}
+                      {renderFieldError("email")}
                     </div>
 
                     <div className="col-md-6">
-                      <label className="form-label">Phone *</label>
+                      <label style={labelStyle}>Phone</label>
                       <input
                         type="text"
                         name="phone"
-                        className={`form-control ${formErrors.phone ? "is-invalid" : ""}`}
                         value={formData.phone}
                         onChange={handleInputChange}
-                        maxLength={10}
+                        style={{ ...inputStyle, width: "100%" }}
                       />
-                      {formErrors.phone && (
-                        <div className="invalid-feedback">{formErrors.phone}</div>
-                      )}
+                      {renderFieldError("phone")}
                     </div>
 
                     <div className="col-md-6">
-                      <label className="form-label">Alternate Phone</label>
+                      <label style={labelStyle}>Alternate Phone</label>
                       <input
                         type="text"
                         name="alternatePhone"
-                        className={`form-control ${formErrors.alternatePhone ? "is-invalid" : ""}`}
                         value={formData.alternatePhone}
                         onChange={handleInputChange}
-                        maxLength={10}
+                        style={{ ...inputStyle, width: "100%" }}
                       />
-                      {formErrors.alternatePhone && (
-                        <div className="invalid-feedback">{formErrors.alternatePhone}</div>
-                      )}
+                      {renderFieldError("alternatePhone")}
                     </div>
 
-                    <div className="col-12">
-                      <label className="form-label">Address *</label>
-                      <textarea
-                        name="address"
-                        className={`form-control ${formErrors.address ? "is-invalid" : ""}`}
-                        rows={3}
-                        value={formData.address}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.address && (
-                        <div className="invalid-feedback">{formErrors.address}</div>
-                      )}
-                    </div>
-
-                    <div className="col-12">
-                      <label className="form-label">Alternate Address</label>
-                      <textarea
-                        name="alternateAddress"
-                        className="form-control"
-                        rows={2}
-                        value={formData.alternateAddress}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-
-                    <div className="col-md-4">
-                      <label className="form-label">City *</label>
-                      <input
-                        type="text"
-                        name="city"
-                        className={`form-control ${formErrors.city ? "is-invalid" : ""}`}
-                        value={formData.city}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.city && (
-                        <div className="invalid-feedback">{formErrors.city}</div>
-                      )}
-                    </div>
-
-                    <div className="col-md-4">
-                      <label className="form-label">State *</label>
-                      <input
-                        type="text"
-                        name="state"
-                        className={`form-control ${formErrors.state ? "is-invalid" : ""}`}
-                        value={formData.state}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.state && (
-                        <div className="invalid-feedback">{formErrors.state}</div>
-                      )}
-                    </div>
-
-                    <div className="col-md-4">
-                      <label className="form-label">Pincode *</label>
+                    <div className="col-md-6">
+                      <label style={labelStyle}>Pincode</label>
                       <input
                         type="text"
                         name="pincode"
-                        className={`form-control ${formErrors.pincode ? "is-invalid" : ""}`}
                         value={formData.pincode}
                         onChange={handleInputChange}
-                        maxLength={6}
+                        style={{ ...inputStyle, width: "100%" }}
                       />
-                      {formErrors.pincode && (
-                        <div className="invalid-feedback">{formErrors.pincode}</div>
-                      )}
+                      {renderFieldError("pincode")}
                     </div>
 
                     <div className="col-12">
-                      <div className={styles.formSection}>
-                        <h5 className={styles.sectionTitle}>Payment Method</h5>
+                      <label style={labelStyle}>Address</label>
+                      <textarea
+                        name="address"
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        rows="3"
+                        style={{ ...inputStyle, width: "100%", resize: "none" }}
+                      />
+                      {renderFieldError("address")}
+                    </div>
 
-                        {/* <div className={styles.paymentOptions}>
-                          <label className={styles.paymentOption}>
-                            <input
-                              type="radio"
-                              name="paymentMethod"
-                              value="razorpay"
-                              checked={formData.paymentMethod === "razorpay"}
-                              onChange={handleInputChange}
-                            />
-                            <span className={styles.radioCustom}></span>
-                            <img
-                              src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773377507/razorpay_chzbwv.svg"
-                              alt="Razorpay"
-                            />
-                            <span>Razorpay</span>
-                          </label>
-                        </div> */}
+                    {/* <div className="col-12">
+                      <label style={labelStyle}>Alternate Address</label>
+                      <textarea
+                        name="alternateAddress"
+                        value={formData.alternateAddress}
+                        onChange={handleInputChange}
+                        rows="2"
+                        style={{ ...inputStyle, width: "100%", resize: "none" }}
+                      />
+                    </div> */}
 
-                        {!isPaymentReady ? (
-                          <button
-                            type="submit"
-                            className={styles.proceedButton}
-                            style={{ marginTop: "14px" }}
-                          >
-                            Verify Details & Continue
-                            <i className="bi bi-shield-check ms-2"></i>
-                          </button>
-                        ) : (
-                          <div className={styles.paymentButton}>
-                            {formData.paymentMethod === "razorpay" ? (
-                              <RazorpayPayment
-                                amount={calculatePrice()}
-                                buttonText={`Pay `}
-                                themeColor="#3496cb"
-                                previewImage={mailPreviewImage}
-                                disabled={!isPaymentReady}
-                                customerDetails={{
-                                  orderId,
-                                  productType: "landscape",
-                                  productName: "Custom Landscape Print",
-                                  name: formData.fullName,
-                                  email: formData.email,
-                                  phone: formData.phone,
-                                  alternatePhone: formData.alternatePhone,
-                                  address: formData.address,
-                                  alternateAddress: formData.alternateAddress,
-                                  city: formData.city,
-                                  state: formData.state,
-                                  pincode: formData.pincode,
-                                  size,
-                                  thickness,
-                                  quantity,
-                                  amount: calculatePrice(),
-                                  imageZoom: zoom,
-                                  imageOffsetX: imageOffset.x,
-                                  imageOffsetY: imageOffset.y,
-                                }}
-                                onSuccess={handlePaymentSuccess}
-                                onError={handlePaymentError}
-                              />
-                            ) : (
-                              <GPayButton
-                                amount={calculatePrice()}
-                                customerDetails={{
-                                  orderId,
-                                  productType: "landscape",
-                                  productName: "Custom Landscape Print",
-                                  name: formData.fullName,
-                                  email: formData.email,
-                                  phone: formData.phone,
-                                  alternatePhone: formData.alternatePhone,
-                                  address: formData.address,
-                                  alternateAddress: formData.alternateAddress,
-                                  city: formData.city,
-                                  state: formData.state,
-                                  pincode: formData.pincode,
-                                  size,
-                                  thickness,
-                                  quantity,
-                                  amount: calculatePrice(),
-                                }}
-                                onSuccess={handlePaymentSuccess}
-                                onError={handlePaymentError}
-                              />
-                            )}
-                          </div>
-                        )}
-                      </div>
+                    <div className="col-md-6">
+                      <label style={labelStyle}>City</label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                        style={{ ...inputStyle, width: "100%" }}
+                      />
+                      {renderFieldError("city")}
+                    </div>
+
+                    <div className="col-md-6">
+                      <label style={labelStyle}>State</label>
+                      <input
+                        type="text"
+                        name="state"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                        style={{ ...inputStyle, width: "100%" }}
+                      />
+                      {renderFieldError("state")}
                     </div>
                   </div>
-                </form>
-              </div>
+                </div>
+
+              
+
+                <div style={sectionCardStyle}>
+                  {!isPaymentReady ? (
+                    <button
+                      type="submit"
+                      className="btn btn-dark w-100"
+                      style={{
+                        borderRadius: "14px",
+                        padding: "14px 18px",
+                        fontWeight: 700,
+                        fontSize: "16px",
+                      }}
+                    >
+                      Verify Details & Pay Now
+                    </button>
+                  ) : (
+                    <RazorpayPayment
+                      amount={totalAmount}
+                      customerDetails={formData}
+                      previewImage={mailPreviewImage}
+                      productDetails={{
+                        orientation: "landscape",
+                        size,
+                        thickness,
+                        quantity,
+                        orderId,
+                        zoom,
+                        imageOffset,
+                      }}
+                      onSuccess={handlePaymentSuccess}
+                      onError={handlePaymentError}
+                    />
+                  )}
+                </div>
+              </form>
             </div>
           </div>
         </div>
@@ -1357,14 +1479,10 @@ export default function ProductClientLandscape() {
 
   return (
     <>
-      <div className={styles.productClient}>
-        {renderStepIndicator()}
-        {currentStep === 1 && renderStep1()}
-        {currentStep === 2 && renderStep2()}
-        {currentStep === 3 && renderStep3()}
-      </div>
+      {renderStepIndicator()}
+      {currentStep === 1 ? renderStep1() : renderStep2()}
 
-      <canvas ref={canvasRef} style={{ display: "none" }} />
+      <canvas ref={canvasRef} className="d-none" />
 
       {showToast.visible && (
         <div
@@ -1372,17 +1490,37 @@ export default function ProductClientLandscape() {
             position: "fixed",
             top: "20px",
             right: "20px",
-            background: "#fff",
-            borderRadius: "10px",
-            padding: "12px 16px",
-            boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
             zIndex: 9999,
-            minWidth: "250px",
-            maxWidth: "calc(100vw - 30px)",
+            minWidth: "280px",
+            maxWidth: "380px",
+            background: "#fff",
+            borderRadius: "16px",
+            boxShadow: "0 18px 40px rgba(15,23,42,0.16)",
+            border: "1px solid #e2e8f0",
+            overflow: "hidden",
           }}
         >
-          <strong>{showToast.title}</strong>
-          <div>{showToast.message}</div>
+          <div
+            style={{
+              padding: "14px 16px",
+              borderLeft: `4px solid ${
+                showToast.type === "success"
+                  ? "#16a34a"
+                  : showToast.type === "error"
+                  ? "#dc2626"
+                  : showToast.type === "warning"
+                  ? "#f59e0b"
+                  : "#2563eb"
+              }`,
+            }}
+          >
+            <div style={{ fontWeight: 800, color: "#0f172a", marginBottom: "4px" }}>
+              {showToast.title}
+            </div>
+            <div style={{ fontSize: "14px", color: "#475569" }}>
+              {showToast.message}
+            </div>
+          </div>
         </div>
       )}
 
@@ -1393,26 +1531,45 @@ export default function ProductClientLandscape() {
         aria-hidden="true"
       >
         <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Order Submitted</h5>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div className="modal-body">
-              <p>Your landscape order has been placed successfully.</p>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-primary"
-                data-bs-dismiss="modal"
+          <div className="modal-content" style={{ borderRadius: "24px" }}>
+            <div className="modal-body text-center p-4 p-md-5">
+              <div
+                style={{
+                  width: "72px",
+                  height: "72px",
+                  margin: "0 auto 18px",
+                  borderRadius: "999px",
+                  display: "grid",
+                  placeItems: "center",
+                  background: "#dcfce7",
+                  color: "#16a34a",
+                  fontSize: "32px",
+                }}
               >
-                Okay
+                <i className="bi bi-check2"></i>
+              </div>
+
+              <h3
+                style={{
+                  fontWeight: 800,
+                  color: "#0f172a",
+                  marginBottom: "10px",
+                }}
+              >
+                Payment Successful
+              </h3>
+
+              <p style={{ color: "#64748b", marginBottom: "20px" }}>
+                Thank you for your order. Your print request has been received.
+              </p>
+
+              <button
+                type="button"
+                className="btn btn-dark"
+                data-bs-dismiss="modal"
+                style={{ borderRadius: "14px", padding: "12px 24px" }}
+              >
+                Close
               </button>
             </div>
           </div>

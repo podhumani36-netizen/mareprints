@@ -68,7 +68,7 @@ export default function ProductClientCutout({ product }) {
   const thicknessOptions = ["3mm", "5mm", "8mm"];
   const basePrice = product?.basePrice || 999;
 
-  const BACKGROUND_REMOVAL_API_KEY = "4ZYh4wnqm1XNzeFEPMcpsYMk";
+  const BACKGROUND_REMOVAL_API_KEY = "fbstz8JJ7hPbsmvkW8WcJogg";
   const BACKGROUND_REMOVAL_API_URL = "https://api.remove.bg/v1.0/removebg";
 
   useEffect(() => {
