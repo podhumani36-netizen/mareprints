@@ -1155,7 +1155,8 @@ const renderSummaryPreview = () => {
                     <label style={labelStyle}>Orientation</label>
                    <select
   value={orientation}
-  onChange={(e) => setOrientation(e.target.value)}
+  onChange={(e) => {setOrientation(e.target.value)
+setIsPaymentReady(false);}}
   style={{
     width: "200px",
     padding: "10px",
@@ -1178,7 +1179,8 @@ const renderSummaryPreview = () => {
                     <label style={labelStyle}>Size</label>
                     <select
   value={size}
-  onChange={(e) => setOrientation(e.target.value)}
+  onChange={(e) => {setOrientation(e.target.value)
+setIsPaymentReady(false);}}
   style={{
     width: "200px",
     padding: "10px",
@@ -1213,7 +1215,9 @@ const renderSummaryPreview = () => {
                     <label style={labelStyle}>Thickness</label>
                     <select
   value={thickness}
-  onChange={(e) => setOrientation(e.target.value)}
+  onChange={(e) => {setOrientation(e.target.value)
+setIsPaymentReady(false);}
+  }
   style={{
     width: "200px",
     padding: "10px",
@@ -1302,8 +1306,7 @@ const renderSummaryPreview = () => {
                       </button>
                     </div>
                   </div>
-
-                                  </div>
+                 </div>
               </div>
             </div>
           
