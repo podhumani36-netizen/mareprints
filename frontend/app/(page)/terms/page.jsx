@@ -116,7 +116,7 @@ export default function TermsPage() {
             </section>
 
             <section id="return-refund" className={styles.sectionCard}>
-              <h2 className={styles.sectionTitle}>Return & Refund Policy</h2>
+              <h1 className={styles.sectionTitle}>Return & Refund Policy</h1>
               <p className={styles.sectionIntro}>
                 Every product is custom-made with precision and care. Since our
                 products are personalized, we follow a strict but fair return policy.
