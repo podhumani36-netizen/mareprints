@@ -3,9 +3,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import styles from "../../../assest/style/ProductClient.module.css";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
-// Bootstrap CSS and Icons are already loaded globally via globals.css — do NOT import again here.
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
-export default function ProductClientLandscape({ product }) {
+export default function ProductClientLandscape() {
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [zoom, setZoom] = useState(1);
@@ -72,7 +73,11 @@ export default function ProductClientLandscape({ product }) {
   const roomWallBackground =
     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
 
-  // Bootstrap JS is already loaded via layout.tsx <Script> tag — do NOT import it again here.
+  useEffect(() => {
+    import("bootstrap/dist/js/bootstrap.bundle.min.js")
+      .then(() => console.log("Bootstrap JS loaded"))
+      .catch((err) => console.error("Failed to load Bootstrap JS:", err));
+  }, []);
 
   useEffect(() => {
     setOrderId(`#ORD${Math.floor(Math.random() * 9000 + 1000)}`);
@@ -123,14 +128,14 @@ export default function ProductClientLandscape({ product }) {
 
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", stopDragging);
-    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
     window.addEventListener("touchend", stopDragging);
     window.addEventListener("touchcancel", stopDragging);
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", stopDragging);
-      window.removeEventListener("touchmove", handleTouchMove, { passive: true });
+      window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", stopDragging);
       window.removeEventListener("touchcancel", stopDragging);
     };
@@ -835,7 +840,7 @@ export default function ProductClientLandscape({ product }) {
                     : "grab"
                   : "default",
                 background: "#f1f5f9",
-                touchAction: uploadedImage ? "none" : "auto",
+                touchAction: "none",
               }}
               onMouseDown={uploadedImage ? handleImageMouseDown : undefined}
               onTouchStart={uploadedImage ? handleImageTouchStart : undefined}
@@ -917,19 +922,25 @@ export default function ProductClientLandscape({ product }) {
     if (!uploadedImage) return null;
 
     return (
-      <div style={{ width: "100%", marginBottom: "16px" }}>
-        <img
-          src={uploadedImage}
-          alt="Your uploaded photo"
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "flex-start",
+        }}
+      >
+        <div
           style={{
             width: "100%",
-            maxHeight: "220px",
-            objectFit: "contain",
-            borderRadius: "12px",
-            background: "#f1f5f9",
-            display: "block",
+            maxWidth: "420px",
+            transform: "scale(0.62)",
+            transformOrigin: "top center",
+            marginBottom: "-180px",
           }}
-        />
+        >
+          {renderBetterPreview(false)}
+        </div>
       </div>
     );
   };

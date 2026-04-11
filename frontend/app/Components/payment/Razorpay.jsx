@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Script from "next/script";
 
 export default function RazorpayPayment({
@@ -15,16 +15,7 @@ export default function RazorpayPayment({
   disabled = false,
 }) {
   const [loading, setLoading] = useState(false);
-  // If Razorpay is already loaded (e.g. after re-verify), start as true so the button isn't disabled.
-  const [scriptLoaded, setScriptLoaded] = useState(
-    () => typeof window !== "undefined" && !!window.Razorpay
-  );
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.Razorpay) {
-      setScriptLoaded(true);
-    }
-  }, []);
+  const [scriptLoaded, setScriptLoaded] = useState(false);
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {

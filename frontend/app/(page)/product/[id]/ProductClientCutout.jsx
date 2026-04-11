@@ -4,7 +4,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import styles from "../../../assest/style/ProductClient.module.css";
 import GPayButton from "../../../Components/GPayButton";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
-// Bootstrap CSS and Icons are already loaded globally via globals.css — do NOT import again here.
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 export default function ProductClientCutout({ product }) {
   const [currentStep, setCurrentStep] = useState(1);
@@ -70,7 +71,11 @@ export default function ProductClientCutout({ product }) {
   const BACKGROUND_REMOVAL_API_KEY = "fbstz8JJ7hPbsmvkW8WcJogg";
   const BACKGROUND_REMOVAL_API_URL = "https://api.remove.bg/v1.0/removebg";
 
-  // Bootstrap JS is already loaded via layout.tsx <Script> tag — do NOT import it again here.
+  useEffect(() => {
+    import("bootstrap/dist/js/bootstrap.bundle.min.js")
+      .then(() => console.log("Bootstrap JS loaded"))
+      .catch((err) => console.error("Failed to load Bootstrap JS:", err));
+  }, []);
 
   useEffect(() => {
     setOrderId(`#ORD${Math.floor(Math.random() * 100000)}`);

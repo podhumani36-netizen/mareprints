@@ -3,10 +3,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import styles from "../../../assest/style/ProductClient.module.css";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
-// Bootstrap CSS and Icons are already loaded globally via globals.css — do NOT import again here.
-// Importing them here causes triple-loading (~1MB CSS), memory pressure, and OOM on low-end devices.
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
-export default function ProductClient({ product }) {
+export default function ProductClient() {
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [zoom, setZoom] = useState(1);
@@ -83,8 +83,11 @@ export default function ProductClient({ product }) {
   const roomWallBackground =
     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
 
-  // Bootstrap JS is already loaded via layout.tsx <Script> tag — do NOT import it again here.
-  // Double-loading Bootstrap causes MutationObserver conflicts on iOS Safari that crash React hydration.
+  useEffect(() => {
+    import("bootstrap/dist/js/bootstrap.bundle.min.js")
+      .then(() => console.log("Bootstrap JS loaded"))
+      .catch((err) => console.error("Failed to load Bootstrap JS:", err));
+  }, []);
 
   useEffect(() => {
     setOrderId(`#ORD${Math.floor(Math.random() * 9000 + 1000)}`);
@@ -142,14 +145,14 @@ export default function ProductClient({ product }) {
 
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", stopDragging);
-    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
     window.addEventListener("touchend", stopDragging);
     window.addEventListener("touchcancel", stopDragging);
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", stopDragging);
-      window.removeEventListener("touchmove", handleTouchMove, { passive: true });
+      window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", stopDragging);
       window.removeEventListener("touchcancel", stopDragging);
     };
@@ -839,7 +842,7 @@ const getShadowByThickness = () => {
         : "grab"
       : "default",
     background: "#f1f5f9",
-    touchAction: uploadedImage ? "none" : "auto",
+    touchAction: "none",
   }}
   onMouseDown={uploadedImage ? handleImageMouseDown : undefined}
   onTouchStart={uploadedImage ? handleImageTouchStart : undefined}
@@ -940,22 +943,28 @@ const renderSummaryPreview = () => {
   if (!uploadedImage) return null;
 
   return (
-    <div style={{ width: "100%", marginBottom: "16px" }}>
-      <img
-        src={uploadedImage}
-        alt="Your uploaded photo"
+    <div
+      style={{
+        width: "100%",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+      }}
+    >
+      <div
         style={{
           width: "100%",
-          maxHeight: "220px",
-          objectFit: "contain",
-          borderRadius: "12px",
-          background: "#f1f5f9",
-          display: "block",
+          maxWidth: "420px",
+          transform: "scale(0.62)",
+          transformOrigin: "top center",
+          marginBottom: "-180px",
         }}
-      />
+      >
+        {renderBetterPreview(false)}
+      </div>
     </div>
   );
-};
+}; 
  const renderStep1 = () => (
     <div className={styles.stepContainer}>
       <div className="container">
@@ -1169,23 +1178,31 @@ setIsPaymentReady(false);}}
                   <div className="col-md-4">
                     <label style={labelStyle}>Size</label>
                     <select
+  value={size}
+  onChange={(e) => {setOrientation(e.target.value)
+setIsPaymentReady(false);}}
+  style={{
+    width: "200px",
+    padding: "10px",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    appearance: "none",
+
+    backgroundImage:
+      "url('data:image/svg+xml;utf8,<svg fill=\"black\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "right 10px center"
+  }}
+>
+                    {/* <select
+                      className="form-select"
                       value={size}
                       onChange={(e) => {
                         setSize(e.target.value);
                         setIsPaymentReady(false);
                       }}
-                      style={{
-                        width: "200px",
-                        padding: "10px",
-                        borderRadius: "6px",
-                        border: "1px solid #ccc",
-                        appearance: "none",
-                        backgroundImage:
-                          "url('data:image/svg+xml;utf8,<svg fill=\"black\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
-                        backgroundRepeat: "no-repeat",
-                        backgroundPosition: "right 10px center",
-                      }}
-                    >
+                      style={inputStyle}
+                    > */}
                       {sizeOptions[orientation].map((option) => (
                         <option key={option} value={option}>
                           {option}
@@ -1197,23 +1214,34 @@ setIsPaymentReady(false);}}
                   <div className="col-md-4">
                     <label style={labelStyle}>Thickness</label>
                     <select
+  value={thickness}
+  onChange={(e) => {setOrientation(e.target.value)
+setIsPaymentReady(false);}
+  }
+  style={{
+    width: "200px",
+    padding: "10px",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    appearance: "none",
+
+    backgroundImage:
+      "url('data:image/svg+xml;utf8,<svg fill=\"black\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "right 10px center"
+  }}
+>
+
+{/* </select>
+                    <select
+                      className="form-select"
                       value={thickness}
                       onChange={(e) => {
                         setThickness(e.target.value);
                         setIsPaymentReady(false);
                       }}
-                      style={{
-                        width: "200px",
-                        padding: "10px",
-                        borderRadius: "6px",
-                        border: "1px solid #ccc",
-                        appearance: "none",
-                        backgroundImage:
-                          "url('data:image/svg+xml;utf8,<svg fill=\"black\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
-                        backgroundRepeat: "no-repeat",
-                        backgroundPosition: "right 10px center",
-                      }}
-                    >
+                      style={inputStyle}
+                    > */}
                       {thicknessOptions.map((option) => (
                         <option key={option} value={option}>
                           {option}

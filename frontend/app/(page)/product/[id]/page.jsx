@@ -1,48 +1,9 @@
 import { notFound } from "next/navigation";
 import { shopData } from "../../../data/shopdata";
-import dynamic from "next/dynamic";
-
-// Each component is now a separate JS chunk — only the needed one is downloaded.
-// This cuts the per-page JS by ~75% on mobile and prevents OOM tab crashes.
-const ProductClient = dynamic(() => import("./ProductClient"), {
-  loading: () => (
-    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "60vh" }}>
-      <div className="spinner-border text-primary" role="status">
-        <span className="visually-hidden">Loading...</span>
-      </div>
-    </div>
-  ),
-});
-
-const ProductClientLandscape = dynamic(() => import("./ProductClientLandscape"), {
-  loading: () => (
-    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "60vh" }}>
-      <div className="spinner-border text-primary" role="status">
-        <span className="visually-hidden">Loading...</span>
-      </div>
-    </div>
-  ),
-});
-
-const ProductClientSquare = dynamic(() => import("./ProductClientSquare"), {
-  loading: () => (
-    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "60vh" }}>
-      <div className="spinner-border text-primary" role="status">
-        <span className="visually-hidden">Loading...</span>
-      </div>
-    </div>
-  ),
-});
-
-const ProductClientCutout = dynamic(() => import("./ProductClientCutout"), {
-  loading: () => (
-    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "60vh" }}>
-      <div className="spinner-border text-primary" role="status">
-        <span className="visually-hidden">Loading...</span>
-      </div>
-    </div>
-  ),
-});
+import ProductClientLandscape from "./ProductClientLandscape";
+import ProductClientSquare from "./ProductClientSquare";
+import ProductClientCutout from "./ProductClientCutout";
+import ProductClient from "./ProductClient";
 
 export async function generateStaticParams() {
   return shopData.map((product) => ({
@@ -78,6 +39,7 @@ export default async function ProductPage({ params }) {
     notFound();
   }
 
+  // Determine which component to render based on product type
   const productType = product.type || product.category || "portrait";
 
   switch (productType.toLowerCase()) {

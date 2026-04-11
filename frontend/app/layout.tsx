@@ -1,7 +1,8 @@
 import { Playfair_Display, Inter } from "next/font/google";
 import type { ReactNode } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 import Script from "next/script";
-// Bootstrap CSS and Icons are already loaded via globals.css @import — removed duplicate imports here.
 import "./globals.css";
 import Header from "./layout/header";
 import Footer from "./layout/footer";
