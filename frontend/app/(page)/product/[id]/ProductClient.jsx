@@ -1477,54 +1477,47 @@ export default function ProductClient({ product }) {
                       </div>
                     </div>
 
-                    <div className="col-12">
-                      {!isPaymentReady ? (
-                        <button
-                          type="button"
-                          className="btn btn-primary w-100"
-                          onClick={validateBeforePayment}
-                        >
-                          Verify Details
-                        </button>
-                      ) : (
-                        <RazorpayPayment
-                          amount={calculatePrice()}
-                          buttonText={`Pay Now ₹${calculatePrice()}`}
-                          themeColor="#3496cb"
-                          previewImage={mailPreviewImage}
-                          disabled={!isPaymentReady}
-                          customerDetails={{
-                            orderId,
-                            productType: orientation,
-                            productName:
-                              product?.name ||
-                              (orientation === "portrait"
-                                ? "Custom Portrait Print"
-                                : "Custom Landscape Print"),
-                            name: formData.fullName,
-                            fullName: formData.fullName,
-                            email: formData.email,
-                            phone: formData.phone,
-                            alternatePhone: formData.alternatePhone,
-                            address: formData.address,
-                            alternateAddress: formData.alternateAddress,
-                            city: formData.city,
-                            state: formData.state,
-                            pincode: formData.pincode,
-                            orientation,
-                            size,
-                            thickness,
-                            quantity,
-                            amount: calculatePrice(),
-                            imageZoom: zoom,
-                            imageOffsetX: imageOffset.x,
-                            imageOffsetY: imageOffset.y,
-                          }}
-                          onSuccess={handlePaymentSuccess}
-                          onError={handlePaymentError}
-                        />
-                      )}
-                    </div>
+                    <div className="mt-4 d-flex flex-column gap-3">
+  <button
+    type="button"
+    className="btn btn-primary w-100"
+    onClick={validateBeforePayment}
+  >
+    {isPaymentReady ? "Verify Again" : "Verify Details"}
+  </button>
+
+  <RazorpayPayment
+    amount={calculatePrice()}
+    buttonText={`Pay Now ₹${calculatePrice()}`}
+    themeColor="#3496cb"
+    previewImage={mailPreviewImage}
+    disabled={!isPaymentReady}
+    customerDetails={{
+      orderId,
+      productType: "portrait",
+      productName: "Custom Portrait Print",
+      name: formData.fullName,
+      email: formData.email,
+      phone: formData.phone,
+      alternatePhone: formData.alternatePhone,
+      address: formData.address,
+      alternateAddress: formData.alternateAddress,
+      city: formData.city,
+      state: formData.state,
+      pincode: formData.pincode,
+      orientation,
+      size,
+      thickness,
+      quantity,
+      amount: calculatePrice(),
+      imageZoom: zoom,
+      imageOffsetX: imageOffset.x,
+      imageOffsetY: imageOffset.y,
+    }}
+    onSuccess={handlePaymentSuccess}
+    onError={handlePaymentError}
+  />
+</div>
                   </div>
                 </form>
               </div>
