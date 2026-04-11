@@ -61,8 +61,8 @@ export default function RazorpayPayment({
         throw new Error("Please verify details before payment");
       }
 
-      if (!previewImage) {
-        throw new Error("Please click 'Verify Details & Continue' first");
+      if (!previewImage || typeof previewImage !== "string" || !previewImage.startsWith("data:image/")) {
+        throw new Error("Please click Verify Details first");
       }
 
       const numericAmount = Number(amount);
@@ -141,8 +141,8 @@ export default function RazorpayPayment({
                   order_id: response.razorpay_order_id,
                   payment_id: response.razorpay_payment_id,
                   signature: response.razorpay_signature,
-                  customerDetails: customerDetails,
-                  previewImage: previewImage,
+                  customerDetails,
+                  previewImage,
                 }),
               }
             );

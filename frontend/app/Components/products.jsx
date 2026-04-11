@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap-icons/font/bootstrap-icons.css";
+import { useRouter } from "next/navigation";
 import styles from "../assest/style/Products.module.css";
 import { shopData } from "../data/shopdata";
 import { useCart } from "../context/CartContext";
@@ -16,6 +15,7 @@ const Products = ({
   type = null,
 }) => {
   const { addToCart } = useCart();
+  const router = useRouter();
   const [addedItems, setAddedItems] = useState({});
   const [toasts, setToasts] = useState([]);
 
@@ -69,14 +69,8 @@ const Products = ({
   };
 
   const handleCustomize = (item, e) => {
-    e.preventDefault();
     e.stopPropagation();
-    localStorage.setItem("selectedProduct", JSON.stringify(item));
-    addToast("info", `🎨 Starting customization for ${item.name}`);
-
-    setTimeout(() => {
-      window.location.href = `${link}/${item.id}`;
-    }, 800);
+    router.push(`${link}/${item.id}`);
   };
 
   const ToastContainer = () => {

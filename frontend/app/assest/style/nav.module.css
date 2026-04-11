@@ -583,6 +583,7 @@
     box-shadow: var(--shadow-md);
     opacity: 0;
     visibility: hidden;
+    pointer-events: none;
     transform: translateY(-10px);
     transition: var(--transition);
     z-index: 99;
@@ -591,6 +592,7 @@
 .searchOverlay.active {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
     transform: translateY(0);
 }
 

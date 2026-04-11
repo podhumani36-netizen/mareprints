@@ -3,8 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import styles from "../../../assest/style/ProductClient.module.css";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
-// Bootstrap CSS and Icons are already loaded globally via globals.css — do NOT import again here.
-// Importing them here causes triple-loading (~1MB CSS), memory pressure, and OOM on low-end devices.
 
 export default function ProductClient({ product }) {
   const [currentStep, setCurrentStep] = useState(1);
@@ -83,8 +81,10 @@ export default function ProductClient({ product }) {
   const roomWallBackground =
     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
 
-  // Bootstrap JS is already loaded via layout.tsx <Script> tag — do NOT import it again here.
-  // Double-loading Bootstrap causes MutationObserver conflicts on iOS Safari that crash React hydration.
+  const resetPaymentState = useCallback(() => {
+    setMailPreviewImage("");
+    setIsPaymentReady(false);
+  }, []);
 
   useEffect(() => {
     setOrderId(`#ORD${Math.floor(Math.random() * 9000 + 1000)}`);
@@ -117,8 +117,8 @@ export default function ProductClient({ product }) {
     setSize(orientation === "portrait" ? "20x24" : "10x8");
     setZoom(1);
     setImageOffset({ x: 0, y: 0 });
-    setIsPaymentReady(false);
-  }, [orientation]);
+    resetPaymentState();
+  }, [orientation, resetPaymentState]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -127,6 +127,7 @@ export default function ProductClient({ product }) {
         x: e.clientX - dragStart.x,
         y: e.clientY - dragStart.y,
       });
+      resetPaymentState();
     };
 
     const handleTouchMove = (e) => {
@@ -136,6 +137,7 @@ export default function ProductClient({ product }) {
         x: touch.clientX - dragStart.x,
         y: touch.clientY - dragStart.y,
       });
+      resetPaymentState();
     };
 
     const stopDragging = () => setIsImageDragging(false);
@@ -149,11 +151,11 @@ export default function ProductClient({ product }) {
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", stopDragging);
-      window.removeEventListener("touchmove", handleTouchMove, { passive: true });
+      window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", stopDragging);
       window.removeEventListener("touchcancel", stopDragging);
     };
-  }, [isImageDragging, dragStart]);
+  }, [isImageDragging, dragStart, resetPaymentState]);
 
   const showNotification = (message, type = "info", title = "") => {
     let notificationTitle = title;
@@ -284,8 +286,8 @@ export default function ProductClient({ product }) {
       setUploadedImage(event.target.result);
       setZoom(1);
       setImageOffset({ x: 0, y: 0 });
+      resetPaymentState();
       setIsProcessing(false);
-      setIsPaymentReady(false);
     };
 
     reader.onerror = () => {
@@ -352,12 +354,12 @@ export default function ProductClient({ product }) {
 
   const handleZoomIn = () => {
     setZoom((prev) => Math.min(prev + 0.1, 3));
-    setIsPaymentReady(false);
+    resetPaymentState();
   };
 
   const handleZoomOut = () => {
     setZoom((prev) => Math.max(prev - 0.1, 1));
-    setIsPaymentReady(false);
+    resetPaymentState();
   };
 
   const handleRemoveImage = () => {
@@ -365,7 +367,7 @@ export default function ProductClient({ product }) {
     setZoom(1);
     setImageOffset({ x: 0, y: 0 });
     setCurrentStep(1);
-    setIsPaymentReady(false);
+    resetPaymentState();
     if (fileInputRef.current) fileInputRef.current.value = "";
     showNotification("Image removed successfully", "warning");
   };
@@ -398,6 +400,7 @@ export default function ProductClient({ product }) {
       x: touch.clientX - dragStart.x,
       y: touch.clientY - dragStart.y,
     });
+    resetPaymentState();
   };
 
   const handleImageTouchEnd = () => {
@@ -467,7 +470,7 @@ export default function ProductClient({ product }) {
     }
 
     if (name !== "paymentMethod") {
-      setIsPaymentReady(false);
+      resetPaymentState();
     }
   };
 
@@ -505,26 +508,42 @@ export default function ProductClient({ product }) {
     return errors;
   };
 
-const validateBeforePayment = async () => {
-  const errors = validateForm();
+  const validateBeforePayment = async () => {
+    const errors = validateForm();
 
-  if (Object.keys(errors).length > 0) {
-    setFormErrors(errors);
-    setIsPaymentReady(false);
-    showNotification("Please fill all required fields correctly", "error");
-    return false;
-  }
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      resetPaymentState();
+      showNotification("Please fill all required fields correctly", "error");
+      return false;
+    }
 
-  setFormErrors({});
+    if (!uploadedImage) {
+      resetPaymentState();
+      showNotification("Please upload an image first", "error");
+      return false;
+    }
 
-  const previewBase64 = await generateMailPreviewImage();
-  setMailPreviewImage(previewBase64);
-  setIsPaymentReady(true);
+    setFormErrors({});
 
-  showNotification("Details verified. Click Pay Now.", "success");
+    const previewBase64 = await generateMailPreviewImage();
 
-  return true;
-};
+    if (!previewBase64) {
+      resetPaymentState();
+      showNotification(
+        "Preview image generation failed. Please verify again.",
+        "error"
+      );
+      return false;
+    }
+
+    setMailPreviewImage(previewBase64);
+    setIsPaymentReady(true);
+
+    showNotification("Details verified. Click Pay Now.", "success");
+    return true;
+  };
+
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
     await validateBeforePayment();
@@ -533,11 +552,11 @@ const validateBeforePayment = async () => {
   const handlePaymentSuccess = () => {
     showNotification("Payment successful! Thank you for your order.", "success");
     openSuccessModal();
-    setIsPaymentReady(false);
+    resetPaymentState();
   };
 
-  const handlePaymentError = () => {
-    showNotification("Payment failed. Please try again.", "error");
+  const handlePaymentError = (message) => {
+    showNotification(message || "Payment failed. Please try again.", "error");
   };
 
   const goToStep = (step) => {
@@ -677,7 +696,7 @@ const validateBeforePayment = async () => {
               height: "34px",
               borderRadius: "8px",
               border: "1px solid #dbe3ee",
-               fontSize: "13px",
+              fontSize: "13px",
             }}
           >
             <i className="bi bi-plus-lg"></i>
@@ -690,12 +709,12 @@ const validateBeforePayment = async () => {
           onClick={() => {
             setZoom(1);
             setImageOffset({ x: 0, y: 0 });
-            setIsPaymentReady(false);
+            resetPaymentState();
           }}
           style={{
             borderRadius: "12px",
             padding: "8px 14px",
-             fontSize: "13px",
+            fontSize: "13px",
           }}
         >
           Reset Position
@@ -711,7 +730,7 @@ const validateBeforePayment = async () => {
           value={zoom}
           onChange={(e) => {
             setZoom(Number(e.target.value));
-            setIsPaymentReady(false);
+            resetPaymentState();
           }}
           style={{
             width: "100%",
@@ -726,20 +745,8 @@ const validateBeforePayment = async () => {
   const renderBetterPreview = (useWall = false) => {
     const dims = frameDimensions[size] || { width: 220, height: 280 };
     const [widthInch, heightInch] = size.split("x").map(Number);
-const depth = thickness === "3mm" ? 4 : thickness === "5mm" ? 5 : 7;  
-  const borderSize =
-      thickness === "3mm" ? "8px" : thickness === "5mm" ? "12px" : "16px";
-const getShadowByThickness = () => {
-  if (thickness === "3mm") {
-    return "0 10px 20px rgba(0,0,0,0.4)";
-  }
-  if (thickness === "5mm") {
-    return "0 20px 40px rgba(0,0,0,0.3)";
-  }
-  if (thickness === "8mm") {
-    return "0 35px 70px rgba(0,0,0,0.4)";
-  }
-};
+    const depth = thickness === "3mm" ? 4 : thickness === "5mm" ? 5 : 7;
+
     return (
       <div
         style={{
@@ -780,114 +787,94 @@ const getShadowByThickness = () => {
             pointerEvents: "none",
           }}
         />
-<div
-  style={{
-    position: "absolute",
-    left: "50%",
-    top: "45%",
-    width: `${dims.width}px`,
-    height: `${dims.height}px`,
-    transform: "translate(-50%, -50%)",
-    borderRadius: "0px",
-    overflow: "visible",
-    background: "transparent",
-    maxWidth: "92%",
-    maxHeight: "78%",
-  }}
->
-  {/* Back depth layer */}
-  <div
-    style={{
-      position: "absolute",
-      top: `${depth}px`,
-      left: `${depth}px`,
-      right: `-${depth}px`,
-      bottom: `-${depth}px`,
-      borderRadius: "0px",
-      background:
-        thickness === "3mm"
-          ? "linear-gradient(145deg, #d9d9d9,  #8f8f8f)"
-          : thickness === "5mm"
-          ? "linear-gradient(145deg, #cfcfcf, #8f8f8f)"
-          : "linear-gradient(145deg, #bdbdbd,  #8f8f8f)",
-      boxShadow: "0 18px 35px rgba(0,0,0,0.22)",
-      zIndex: 1,
-    }}
-  />
 
-  {/* Front frame */}
-  <div
-    style={{
-      position: "absolute",
-      inset: 0,
-      borderRadius: "0px",
-      background: "#ffffff",
-      boxShadow: "0 10px 24px rgba(0,0,0,0.16)",
-      overflow: "hidden",
-      zIndex: 2,
-    }}
-  >
-   <div
-  style={{
-    position: "relative",
-    width: "100%",
-    height: "100%",
-    overflow: "hidden",
-    cursor: uploadedImage
-      ? isImageDragging
-        ? "grabbing"
-        : "grab"
-      : "default",
-    background: "#f1f5f9",
-    touchAction: uploadedImage ? "none" : "auto",
-  }}
-  onMouseDown={uploadedImage ? handleImageMouseDown : undefined}
-  onTouchStart={uploadedImage ? handleImageTouchStart : undefined}
-  onTouchMove={uploadedImage ? handleImageTouchMove : undefined}
-  onTouchEnd={uploadedImage ? handleImageTouchEnd : undefined}
-  onTouchCancel={uploadedImage ? handleImageTouchEnd : undefined}
->
-     <img
-  src={uploadedImage || roomWallBackground}
-  alt="Frame preview"
-  draggable={false}
-  style={{
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    width: "100%",
-    height: "100%",
-    objectFit: "contain",
-    transform: `translate(calc(-50% + ${imageOffset.x}px), calc(-50% + ${imageOffset.y}px)) scale(${zoom})`,
-    transformOrigin: "center center",
-    transition: isImageDragging ? "none" : "transform 0.18s ease",
-    userSelect: "none",
-    touchAction: "none",
-    pointerEvents: "none",
-  }}
-/>
-
-      {uploadedImage && (
         <div
           style={{
             position: "absolute",
-            top: "12px",
-            right: "12px",
-            //background: "rgba(15,23,42,0.72)",
-            color: "#fff",
-            padding: "7px 12px",
-            borderRadius: "999px",
-            fontSize: "11px",
-            fontWeight: 500,
-            pointerEvents: "none",
+            left: "50%",
+            top: "45%",
+            width: `${dims.width}px`,
+            height: `${dims.height}px`,
+            transform: "translate(-50%, -50%)",
+            borderRadius: "0px",
+            overflow: "visible",
+            background: "transparent",
+            maxWidth: "92%",
+            maxHeight: "78%",
           }}
         >
-          {/* Drag to adjust */}
+          <div
+            style={{
+              position: "absolute",
+              top: `${depth}px`,
+              left: `${depth}px`,
+              right: `-${depth}px`,
+              bottom: `-${depth}px`,
+              borderRadius: "0px",
+              background:
+                thickness === "3mm"
+                  ? "linear-gradient(145deg, #d9d9d9, #8f8f8f)"
+                  : thickness === "5mm"
+                  ? "linear-gradient(145deg, #cfcfcf, #8f8f8f)"
+                  : "linear-gradient(145deg, #bdbdbd, #8f8f8f)",
+              boxShadow: "0 18px 35px rgba(0,0,0,0.22)",
+              zIndex: 1,
+            }}
+          />
+
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "0px",
+              background: "#ffffff",
+              boxShadow: "0 10px 24px rgba(0,0,0,0.16)",
+              overflow: "hidden",
+              zIndex: 2,
+            }}
+          >
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                height: "100%",
+                overflow: "hidden",
+                cursor: uploadedImage
+                  ? isImageDragging
+                    ? "grabbing"
+                    : "grab"
+                  : "default",
+                background: "#f1f5f9",
+                touchAction: uploadedImage ? "none" : "auto",
+              }}
+              onMouseDown={uploadedImage ? handleImageMouseDown : undefined}
+              onTouchStart={uploadedImage ? handleImageTouchStart : undefined}
+              onTouchMove={uploadedImage ? handleImageTouchMove : undefined}
+              onTouchEnd={uploadedImage ? handleImageTouchEnd : undefined}
+              onTouchCancel={uploadedImage ? handleImageTouchEnd : undefined}
+            >
+              <img
+                src={uploadedImage || roomWallBackground}
+                alt="Frame preview"
+                draggable={false}
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  transform: `translate(calc(-50% + ${imageOffset.x}px), calc(-50% + ${imageOffset.y}px)) scale(${zoom})`,
+                  transformOrigin: "center center",
+                  transition: isImageDragging ? "none" : "transform 0.18s ease",
+                  userSelect: "none",
+                  touchAction: "none",
+                  pointerEvents: "none",
+                }}
+              />
+            </div>
+          </div>
         </div>
-      )}
-    </div>
-  </div>
-</div>
 
         <div
           style={{
@@ -936,27 +923,28 @@ const getShadowByThickness = () => {
     );
   };
 
-const renderSummaryPreview = () => {
-  if (!uploadedImage) return null;
+  const renderSummaryPreview = () => {
+    if (!uploadedImage) return null;
 
-  return (
-    <div style={{ width: "100%", marginBottom: "16px" }}>
-      <img
-        src={uploadedImage}
-        alt="Your uploaded photo"
-        style={{
-          width: "100%",
-          maxHeight: "220px",
-          objectFit: "contain",
-          borderRadius: "12px",
-          background: "#f1f5f9",
-          display: "block",
-        }}
-      />
-    </div>
-  );
-};
- const renderStep1 = () => (
+    return (
+      <div style={{ width: "100%", marginBottom: "16px" }}>
+        <img
+          src={uploadedImage}
+          alt="Your uploaded photo"
+          style={{
+            width: "100%",
+            maxHeight: "220px",
+            objectFit: "contain",
+            borderRadius: "12px",
+            background: "#f1f5f9",
+            display: "block",
+          }}
+        />
+      </div>
+    );
+  };
+
+  const renderStep1 = () => (
     <div className={styles.stepContainer}>
       <div className="container">
         <div className="row g-4">
@@ -1144,23 +1132,24 @@ const renderSummaryPreview = () => {
                 <div className="row g-3 mt-1">
                   <div className="col-md-4">
                     <label style={labelStyle}>Orientation</label>
-                   <select
-  value={orientation}
-  onChange={(e) => {setOrientation(e.target.value)
-setIsPaymentReady(false);}}
-  style={{
-    width: "200px",
-    padding: "10px",
-    borderRadius: "6px",
-    border: "1px solid #ccc",
-    appearance: "none",
-
-    backgroundImage:
-      "url('data:image/svg+xml;utf8,<svg fill=\"black\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "right 10px center"
-  }}
->
+                    <select
+                      value={orientation}
+                      onChange={(e) => {
+                        setOrientation(e.target.value);
+                        resetPaymentState();
+                      }}
+                      style={{
+                        width: "200px",
+                        padding: "10px",
+                        borderRadius: "6px",
+                        border: "1px solid #ccc",
+                        appearance: "none",
+                        backgroundImage:
+                          "url('data:image/svg+xml;utf8,<svg fill=\"black\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "right 10px center",
+                      }}
+                    >
                       <option value="portrait">Portrait</option>
                       <option value="landscape">Landscape</option>
                     </select>
@@ -1172,7 +1161,7 @@ setIsPaymentReady(false);}}
                       value={size}
                       onChange={(e) => {
                         setSize(e.target.value);
-                        setIsPaymentReady(false);
+                        resetPaymentState();
                       }}
                       style={{
                         width: "200px",
@@ -1186,9 +1175,12 @@ setIsPaymentReady(false);}}
                         backgroundPosition: "right 10px center",
                       }}
                     >
-                      {sizeOptions[orientation].map((option) => (
-                        <option key={option} value={option}>
-                          {option}
+                      {(orientation === "portrait"
+                        ? sizeOptions.portrait
+                        : sizeOptions.landscape
+                      ).map((item) => (
+                        <option key={item} value={item}>
+                          {item}
                         </option>
                       ))}
                     </select>
@@ -1200,7 +1192,7 @@ setIsPaymentReady(false);}}
                       value={thickness}
                       onChange={(e) => {
                         setThickness(e.target.value);
-                        setIsPaymentReady(false);
+                        resetPaymentState();
                       }}
                       style={{
                         width: "200px",
@@ -1214,320 +1206,327 @@ setIsPaymentReady(false);}}
                         backgroundPosition: "right 10px center",
                       }}
                     >
-                      {thicknessOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
+                      {thicknessOptions.map((item) => (
+                        <option key={item} value={item}>
+                          {item}
                         </option>
                       ))}
                     </select>
                   </div>
-
-                  <div className="col-md-6">
-                    <label style={labelStyle}>Quantity</label>
-                    <div className="d-flex align-items-center gap-2">
-                      <button
-                        type="button"
-                        className="btn btn-light"
-                        onClick={() => {
-                          setQuantity((prev) => Math.max(1, prev - 1));
-                          setIsPaymentReady(false);
-                        }}
-                        style={{
-                          width: "40px",
-                          height: "40px",
-                          borderRadius: "10px",
-                          border: "1px solid #dbe3ee",
-                          fontWeight: 500,
-                        }}
-                      >
-                        -
-                      </button>
-
-                      <div
-                        style={{
-                          flex: 1,
-                          height: "40px",
-                          borderRadius: "12px",
-                          border: "1px solid #dbe3ee",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontWeight: 500,
-                          background: "#fff",
-                        }}
-                      >
-                        {quantity}
-                      </div>
-
-                      <button
-                        type="button"
-                        className="btn btn-light"
-                        onClick={() => {
-                          setQuantity((prev) => prev + 1);
-                          setIsPaymentReady(false);
-                        }}
-                        style={{
-                          width: "44px",
-                          height: "44px",
-                          borderRadius: "12px",
-                          border: "1px solid #dbe3ee",
-                          fontWeight: 500,
-                        }}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                 </div>
+                </div>
               </div>
             </div>
-          
+
             <div className="col-12 col-xl-4">
-               <div style={sectionCardStyle}>
-                  <h4
-                    style={{
-                      fontSize: "22px",
-                      fontWeight: 500,
-                      color: "#0f172a",
-                      marginBottom: "18px",
-                    }}
-                  >
-                    Order Summary
-                  </h4>
+              <div style={sectionCardStyle}>
+                <h4
+                  style={{
+                    fontSize: "18px",
+                    fontWeight: 800,
+                    color: "#0f172a",
+                    marginBottom: "16px",
+                  }}
+                >
+                  Delivery Details
+                </h4>
 
-                  {renderSummaryPreview()}
+                <form onSubmit={handleSubmitOrder}>
+                  <div className="row g-3">
+                    <div className="col-12">
+                      <label style={labelStyle}>Full Name</label>
+                      <input
+                        type="text"
+                        name="fullName"
+                        value={formData.fullName}
+                        onChange={handleInputChange}
+                        style={inputStyle}
+                        className="form-control"
+                      />
+                      {renderFieldError("fullName")}
+                    </div>
 
-                  <div className="mt-3 d-flex flex-column gap-2">
-                    <div className="d-flex justify-content-between">
-                      <span style={{ color: "#64748b" }}>Order ID</span>
-                      <span style={{ fontWeight: 700 }}>{orderId}</span>
+                    <div className="col-12">
+                      <label style={labelStyle}>Email</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        style={inputStyle}
+                        className="form-control"
+                      />
+                      {renderFieldError("email")}
                     </div>
-                    <div className="d-flex justify-content-between">
-                      <span style={{ color: "#64748b" }}>Orientation</span>
-                      <span style={{ fontWeight: 700, textTransform: "capitalize" }}>
-                        {orientation}
-                      </span>
+
+                    <div className="col-md-6">
+                      <label style={labelStyle}>Phone</label>
+                      <input
+                        type="text"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        style={inputStyle}
+                        className="form-control"
+                      />
+                      {renderFieldError("phone")}
                     </div>
-                    <div className="d-flex justify-content-between">
-                      <span style={{ color: "#64748b" }}>Size</span>
-                      <span style={{ fontWeight: 700 }}>{size}</span>
+
+                    <div className="col-md-6">
+                      <label style={labelStyle}>Alternate Phone</label>
+                      <input
+                        type="text"
+                        name="alternatePhone"
+                        value={formData.alternatePhone}
+                        onChange={handleInputChange}
+                        style={inputStyle}
+                        className="form-control"
+                      />
+                      {renderFieldError("alternatePhone")}
                     </div>
-                    <div className="d-flex justify-content-between">
-                      <span style={{ color: "#64748b" }}>Thickness</span>
-                      <span style={{ fontWeight: 700 }}>{thickness}</span>
+
+                    <div className="col-12">
+                      <label style={labelStyle}>Address</label>
+                      <textarea
+                        name="address"
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        style={inputStyle}
+                        className="form-control"
+                        rows={3}
+                      />
+                      {renderFieldError("address")}
                     </div>
-                    <div className="d-flex justify-content-between">
-                      <span style={{ color: "#64748b" }}>Quantity</span>
-                      <span style={{ fontWeight: 700 }}>{quantity}</span>
+
+                    <div className="col-12">
+                      <label style={labelStyle}>Alternate Address</label>
+                      <textarea
+                        name="alternateAddress"
+                        value={formData.alternateAddress}
+                        onChange={handleInputChange}
+                        style={inputStyle}
+                        className="form-control"
+                        rows={2}
+                      />
                     </div>
-                    <hr style={{ margin: "8px 0", opacity: 0.12 }} />
-                    <div className="d-flex justify-content-between align-items-center">
-                      <span
+
+                    <div className="col-md-4">
+                      <label style={labelStyle}>City</label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                        style={inputStyle}
+                        className="form-control"
+                      />
+                      {renderFieldError("city")}
+                    </div>
+
+                    <div className="col-md-4">
+                      <label style={labelStyle}>State</label>
+                      <input
+                        type="text"
+                        name="state"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                        style={inputStyle}
+                        className="form-control"
+                      />
+                      {renderFieldError("state")}
+                    </div>
+
+                    <div className="col-md-4">
+                      <label style={labelStyle}>Pincode</label>
+                      <input
+                        type="text"
+                        name="pincode"
+                        value={formData.pincode}
+                        onChange={handleInputChange}
+                        style={inputStyle}
+                        className="form-control"
+                      />
+                      {renderFieldError("pincode")}
+                    </div>
+
+                    <div className="col-12">
+                      <label style={labelStyle}>Check Delivery Availability</label>
+                      <div className="d-flex gap-2">
+                        <input
+                          type="text"
+                          value={pincode}
+                          onChange={handlePincodeChange}
+                          placeholder="Enter pincode"
+                          style={inputStyle}
+                          className="form-control"
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-outline-dark"
+                          onClick={handleCheckDelivery}
+                          disabled={deliveryStatus.isChecking}
+                        >
+                          {deliveryStatus.isChecking ? "Checking..." : "Check"}
+                        </button>
+                      </div>
+
+                      {deliveryStatus.message && (
+                        <div
+                          style={{
+                            marginTop: "8px",
+                            color:
+                              deliveryStatus.type === "success"
+                                ? "#16a34a"
+                                : "#dc2626",
+                            fontSize: "13px",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {deliveryStatus.message}
+                        </div>
+                      )}
+
+                      {estimatedDeliveryDate && (
+                        <div
+                          style={{
+                            marginTop: "4px",
+                            color: "#475569",
+                            fontSize: "13px",
+                          }}
+                        >
+                          Estimated delivery: {estimatedDeliveryDate}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="col-12">
+                      <label style={labelStyle}>Quantity</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={quantity}
+                        onChange={(e) => {
+                          const value = Math.max(1, Number(e.target.value) || 1);
+                          setQuantity(value);
+                          resetPaymentState();
+                        }}
+                        style={inputStyle}
+                        className="form-control"
+                      />
+                    </div>
+
+                    <div className="col-12">
+                      <div
                         style={{
-                          fontSize: "15px",
-                          color: "#0f172a",
-                          fontWeight: 700,
+                          border: "1px solid #e2e8f0",
+                          borderRadius: "16px",
+                          padding: "16px",
+                          background: "#f8fafc",
                         }}
                       >
-                        Total Amount
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "24px",
-                          color: "#0f172a",
-                          fontWeight: 800,
-                        }}
-                      >
-                        ₹{totalAmount}
-                      </span>
+                        <div
+                          style={{
+                            fontWeight: 800,
+                            fontSize: "16px",
+                            marginBottom: "12px",
+                            color: "#0f172a",
+                          }}
+                        >
+                          Order Summary
+                        </div>
+
+                        {renderSummaryPreview()}
+
+                        <div className="d-flex justify-content-between mb-2">
+                          <span>Product</span>
+                          <span>{product?.name || "Custom Print"}</span>
+                        </div>
+
+                        <div className="d-flex justify-content-between mb-2">
+                          <span>Orientation</span>
+                          <span>{orientation}</span>
+                        </div>
+
+                        <div className="d-flex justify-content-between mb-2">
+                          <span>Size</span>
+                          <span>{size}</span>
+                        </div>
+
+                        <div className="d-flex justify-content-between mb-2">
+                          <span>Thickness</span>
+                          <span>{thickness}</span>
+                        </div>
+
+                        <div className="d-flex justify-content-between mb-2">
+                          <span>Quantity</span>
+                          <span>{quantity}</span>
+                        </div>
+
+                        <hr />
+
+                        <div
+                          className="d-flex justify-content-between"
+                          style={{
+                            fontSize: "18px",
+                            fontWeight: 800,
+                            color: "#0f172a",
+                          }}
+                        >
+                          <span>Total</span>
+                          <span>₹{totalAmount}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="col-12">
+                      {!isPaymentReady ? (
+                        <button
+                          type="button"
+                          className="btn btn-primary w-100"
+                          onClick={validateBeforePayment}
+                        >
+                          Verify Details
+                        </button>
+                      ) : (
+                        <RazorpayPayment
+                          amount={calculatePrice()}
+                          buttonText={`Pay Now ₹${calculatePrice()}`}
+                          themeColor="#3496cb"
+                          previewImage={mailPreviewImage}
+                          disabled={!isPaymentReady}
+                          customerDetails={{
+                            orderId,
+                            productType: orientation,
+                            productName:
+                              product?.name ||
+                              (orientation === "portrait"
+                                ? "Custom Portrait Print"
+                                : "Custom Landscape Print"),
+                            name: formData.fullName,
+                            fullName: formData.fullName,
+                            email: formData.email,
+                            phone: formData.phone,
+                            alternatePhone: formData.alternatePhone,
+                            address: formData.address,
+                            alternateAddress: formData.alternateAddress,
+                            city: formData.city,
+                            state: formData.state,
+                            pincode: formData.pincode,
+                            orientation,
+                            size,
+                            thickness,
+                            quantity,
+                            amount: calculatePrice(),
+                            imageZoom: zoom,
+                            imageOffsetX: imageOffset.x,
+                            imageOffsetY: imageOffset.y,
+                          }}
+                          onSuccess={handlePaymentSuccess}
+                          onError={handlePaymentError}
+                        />
+                      )}
                     </div>
                   </div>
-                </div>
-              <div className="d-flex flex-column gap-4">
-                <div style={sectionCardStyle}>
-                  <h4
-                    style={{
-                      fontSize: "22px",
-                      fontWeight: 800,
-                      color: "#0f172a",
-                      marginBottom: "18px",
-                    }}
-                  >
-                   Contact & Delivery Details
-                  </h4>
-
-                  <form onSubmit={handleSubmitOrder}>
-                    <div className="row g-3">
-                      <div className="col-12">
-                        <label style={labelStyle}>Full Name</label>
-                        <input
-                          type="text"
-                          name="fullName"
-                          value={formData.fullName}
-                          onChange={handleInputChange}
-                          className="form-control"
-                          style={inputStyle}
-                          placeholder="Enter your full name"
-                        />
-                        {renderFieldError("fullName")}
-                      </div>
-
-                      <div className="col-12">
-                        <label style={labelStyle}>Email Address</label>
-                        <input
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className="form-control"
-                          style={inputStyle}
-                          placeholder="Enter your email"
-                        />
-                        {renderFieldError("email")}
-                      </div>
-
-                      <div className="col-md-6">
-                        <label style={labelStyle}>Phone Number</label>
-                        <input
-                          type="text"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          className="form-control"
-                          style={inputStyle}
-                          placeholder="10-digit phone"
-                        />
-                        {renderFieldError("phone")}
-                      </div>
-
-                      <div className="col-md-6">
-                        <label style={labelStyle}>Alternate Phone</label>
-                        <input
-                          type="text"
-                          name="alternatePhone"
-                          value={formData.alternatePhone}
-                          onChange={handleInputChange}
-                          className="form-control"
-                          style={inputStyle}
-                          placeholder="Optional"
-                        />
-                        {renderFieldError("alternatePhone")}
-                      </div>
-
-                      <div className="col-12">
-                        <label style={labelStyle}>Address</label>
-                        <textarea
-                          name="address"
-                          value={formData.address}
-                          onChange={handleInputChange}
-                          className="form-control"
-                          style={{ ...inputStyle, minHeight: "94px" }}
-                          placeholder="Enter your address"
-                        />
-                        {renderFieldError("address")}
-                      </div>
-
-                      {/* <div className="col-12">
-                        <label style={labelStyle}>Alternate Address</label>
-                        <textarea
-                          name="alternateAddress"
-                          value={formData.alternateAddress}
-                          onChange={handleInputChange}
-                          className="form-control"
-                          style={{ ...inputStyle, minHeight: "84px" }}
-                          placeholder="Optional"
-                        />
-                      </div> */}
-
-                      <div className="col-md-6">
-                        <label style={labelStyle}>City</label>
-                        <input
-                          type="text"
-                          name="city"
-                          value={formData.city}
-                          onChange={handleInputChange}
-                          className="form-control"
-                          style={inputStyle}
-                          placeholder="City"
-                        />
-                        {renderFieldError("city")}
-                      </div>
-
-                      <div className="col-md-6">
-                        <label style={labelStyle}>State</label>
-                        <input
-                          type="text"
-                          name="state"
-                          value={formData.state}
-                          onChange={handleInputChange}
-                          className="form-control"
-                          style={inputStyle}
-                          placeholder="State"
-                        />
-                        {renderFieldError("state")}
-                      </div>
-
-                      <div className="col-12">
-                        <label style={labelStyle}>Pincode</label>
-                        <input
-                          type="text"
-                          name="pincode"
-                          value={formData.pincode}
-                          onChange={handleInputChange}
-                          className="form-control"
-                          style={inputStyle}
-                          placeholder="6-digit pincode"
-                        />
-                        {renderFieldError("pincode")}
-                      </div>
-<div className="mt-4">
-  {!isPaymentReady ? (
-    <button
-      type="button"
-      className="btn btn-primary w-100"
-      onClick={validateBeforePayment}
-    >
-      Verify Details
-    </button>
-  ) : (
-    <RazorpayPayment
-      amount={calculatePrice()}
-      buttonText={`Pay Now ₹${calculatePrice()}`}
-      themeColor="#3496cb"
-      previewImage={mailPreviewImage}
-      customerDetails={{
-        orderId,
-        productType: "portrait",
-        productName: "Custom Portrait Print",
-        name: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        alternatePhone: formData.alternatePhone,
-        address: formData.address,
-        alternateAddress: formData.alternateAddress,
-        city: formData.city,
-        state: formData.state,
-        pincode: formData.pincode,
-        orientation,
-        size,
-        thickness,
-        quantity,
-        amount: calculatePrice(),
-        imageZoom: zoom,
-        imageOffsetX: imageOffset.x,
-        imageOffsetY: imageOffset.y,
-      }}
-      onSuccess={handlePaymentSuccess}
-      onError={handlePaymentError}
-    />
-  )}
-</div>
-                    </div>
-                  </form>
-                </div>
-
-               
-
+                </form>
               </div>
             </div>
           </div>
@@ -1575,7 +1574,6 @@ setIsPaymentReady(false);}}
       )}
 
       {renderStepIndicator()}
-
       {currentStep === 1 && renderStep1()}
       {currentStep === 2 && renderStep2()}
 
@@ -1599,38 +1597,15 @@ setIsPaymentReady(false);}}
                   fontSize: "32px",
                 }}
               >
-                <i className="bi bi-check2-circle"></i>
+                <i className="bi bi-check-lg"></i>
               </div>
 
-              <h4 id="successModalLabel" className="fw-bold mb-2">
+              <h4 id="successModalLabel" className="mb-2">
                 Payment Successful
               </h4>
-              <p className="text-muted mb-4">
-                Thank you for your order. Your payment was completed successfully.
+              <p className="text-muted mb-0">
+                Your order has been placed successfully.
               </p>
-
-              <div className="bg-light rounded-4 p-3 text-start mb-4">
-                <div className="d-flex justify-content-between mb-2">
-                  <span>Order ID</span>
-                  <span>{orderId}</span>
-                </div>
-                <div className="d-flex justify-content-between mb-2">
-                  <span>Amount Paid</span>
-                  <span>₹{calculatePrice()}</span>
-                </div>
-                <div className="d-flex justify-content-between">
-                  <span>Email</span>
-                  <span>{formData.email || "-"}</span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                className="btn btn-dark px-4 py-2 rounded-3"
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
             </div>
           </div>
         </div>

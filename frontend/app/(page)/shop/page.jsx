@@ -3,7 +3,6 @@
 import Link from "next/link";
 import styles from "../../assest/style/Shop.module.css";
 import { useState, useMemo, lazy, Suspense } from "react";
-import "bootstrap-icons/font/bootstrap-icons.css";
 import { shopData } from "../../data/shopdata";
 
 const Products = lazy(() => import("../../Components/products"));
