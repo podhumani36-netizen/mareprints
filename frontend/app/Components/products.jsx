@@ -369,11 +369,11 @@ const Products = ({
   }
 
   return (
-    <section className="container py-2">
+    <section className="py-2">
       <ToastContainer />
       <div className="row g-4">
         {displayData.map((item) => (
-          <div key={item.id} className="col-12 col-md-6 col-lg-3">
+          <div key={item.id} className="col-12 col-sm-6 col-md-4 col-lg-3">
             <Link
               href={`${link}/${item.id}`}
               style={{ textDecoration: "none" }}
