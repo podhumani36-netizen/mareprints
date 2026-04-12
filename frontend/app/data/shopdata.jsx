@@ -56,7 +56,7 @@ export const shopData = [
     category: "rounded_rect_portrait",
     name: "Rounded Portrait Print",
     image:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834379/ChatGPT_Image_Mar_18__2026__05_16_04_PM_i4t6od.png",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776026019/Roundport_ztelr7.pnghttps://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776026019/Roundport_ztelr7.png",
     themeColor: "#d62839",
     description: "Portrait acrylic print with elegant rounded corners",
     productType: "rounded_rect_portrait",
@@ -861,7 +861,7 @@ export const shopData = [
     category: "square_round_acrylic",
     name: "Square Round Acrylic Print",
     image:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__05_09_39_PM_kjzqvw.png",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776024239/suR_paox0w.png",
     themeColor: "#d62839",
     description: "Square acrylic print with softly rounded corners",
     productType: "square_round_acrylic",
@@ -911,7 +911,7 @@ export const shopData = [
     category: "rounded_rect_landscape",
     name: "Rounded Landscape Print",
     image:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834748/ChatGPT_Image_Mar_18__2026__05_22_03_PM_ytszql.png",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776025621/roundSq_kknrl9.png",
     themeColor: "#3496cb",
     description: "Wide-format acrylic print with elegant rounded corners",
     productType: "rounded_rect_landscape",
