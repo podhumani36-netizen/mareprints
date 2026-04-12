@@ -14,6 +14,9 @@ const portraitProducts = shopData.filter(
 const landscapeProducts = shopData.filter(
   (product) => product.type === "landscape",
 );
+const RounderPortrait = shopData.filter(
+  (product) => product.type === "RounderPortrait",
+);
 const cutoutProducts = shopData.filter((product) => product.type === "cutout");
 const squareProducts = shopData.filter((product) => product.type === "square");
 
@@ -104,7 +107,17 @@ export default function Home() {
             />
           </div>
         </div>
-
+        <div className="row">
+          <div className="col-12">
+            <h2>Framed Acrylic Photo RounderPortrait</h2>
+            <Products
+              title="RounderPortrait Frames"
+              data={RounderPortrait}
+              limit={8}
+              link="/product"
+            />
+          </div>
+        </div>
         <div className="row mt-4">
           <div className="col-12">
             <h2>Framed Acrylic Photo Landscape</h2>

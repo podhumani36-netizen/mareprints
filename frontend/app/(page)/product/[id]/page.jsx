@@ -4,6 +4,7 @@ import ProductClientLandscape from "./ProductClientLandscape";
 import ProductClientSquare from "./ProductClientSquare";
 import ProductClientCutout from "./ProductClientCutout";
 import ProductClient from "./ProductClient";
+import ProductClient from "./RounderPortrait";
 
 export async function generateStaticParams() {
   return shopData.map((product) => ({

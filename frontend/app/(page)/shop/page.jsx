@@ -126,6 +126,11 @@ const HeroVisual = () => {
         src: "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834379/ChatGPT_Image_Mar_18__2026__05_16_04_PM_i4t6od.png",
         alt: "Acrylic art piece",
       },
+       {
+        href: "/shop/framed-acrylic-RounderPortrait",
+        src: "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834379/ChatGPT_Image_Mar_18__2026__05_16_04_PM_i4t6od.png",
+        alt: "Acrylic art piece",
+      },
       {
         href: "/shop/framed-acrylic-landscape",
         src: "https://res.cloudinary.com/dsprfys3x/image/upload/v1773837286/ChatGPT_Image_Mar_18__2026__06_04_06_PM_ae1aln.png",
@@ -426,6 +431,12 @@ export default function Shop() {
         type: "Portrait",
         data: portraitProducts,
         limit: 8,
+      },
+       {
+        title: "Framed Acrylic Photo RounderPortrait",
+        type: "RounderPortrait",
+        data: roundedportraitProducts,
+        limit: 4,
       },
       {
         title: "Framed Acrylic Photo Landscape",
