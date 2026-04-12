@@ -450,12 +450,7 @@ export default function Shop() {
         limit: 4,
       },
       // All other types — each separately
-      {
-        title: "Framed Acrylic Photo Rounded Portrait",
-        type: "roundedportrait",
-        data: roundedportraitProducts,
-        limit: 4,
-      },
+  
       {
         title: "Framed Acrylic Photo Cutout",
         type: "cutout",

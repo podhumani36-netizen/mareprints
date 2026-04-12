@@ -134,43 +134,36 @@ export default function Home() {
       <div className="container">
         <div className="row mt-4">
           <div className="col-12">
-            <h2>Framed Acrylic Photo Rounded Portrait</h2>
-            <Products title="Rounded Portrait Frames" data={RounderPortrait} limit={8} link="/product" />
-          </div>
-        </div>
-
-        <div className="row mt-4">
-          <div className="col-12">
             <h2>Framed Acrylic Photo Cutout</h2>
-            <Products title="Cutout Frames" data={cutoutProducts} limit={8} link="/product" />
+            <Products title="Cutout Frames" data={cutoutProducts} limit={4} link="/product" />
           </div>
         </div>
 
         <div className="row mt-4">
           <div className="col-12">
             <h2>Circle Acrylic Print</h2>
-            <Products title="Circle Acrylic" data={circleAcrylicProducts} limit={8} link="/product" />
+            <Products title="Circle Acrylic" data={circleAcrylicProducts} limit={4} link="/product" />
           </div>
         </div>
 
         <div className="row mt-4">
           <div className="col-12">
             <h2>Square Round Acrylic Print</h2>
-            <Products title="Square Round Acrylic" data={squareRoundAcrylicProducts} limit={8} link="/product" />
+            <Products title="Square Round Acrylic" data={squareRoundAcrylicProducts} limit={4} link="/product" />
           </div>
         </div>
 
         <div className="row mt-4">
           <div className="col-12">
             <h2>Rounded Landscape Print</h2>
-            <Products title="Rounded Landscape" data={roundedRectLandscapeProducts} limit={8} link="/product" />
+            <Products title="Rounded Landscape" data={roundedRectLandscapeProducts} limit={4} link="/product" />
           </div>
         </div>
 
         <div className="row mt-4">
           <div className="col-12">
             <h2>Rounded Portrait Print</h2>
-            <Products title="Rounded Portrait" data={roundedRectPortraitProducts} limit={8} link="/product" />
+            <Products title="Rounded Portrait" data={roundedRectPortraitProducts} limit={4} link="/product" />
           </div>
         </div>
       </div>
