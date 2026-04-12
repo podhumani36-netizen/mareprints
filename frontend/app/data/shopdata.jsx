@@ -156,7 +156,7 @@ export const shopData = [
     category: "circle_acrylic",
     name: "Circle Acrylic Print",
     image:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__04_39_13_PM_avrfk5.png",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776023324/round_iwab9l.jpg",
     themeColor: "#3496cb",
     description: "Stunning circular acrylic print for a modern touch",
     productType: "circle_acrylic",
@@ -307,7 +307,7 @@ export const shopData = [
     category: "square",
     name: "Vintage Square Frame",
     image:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834814/ChatGPT_Image_Mar_18__2026__05_23_10_PM_o91lzb.png",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776023317/squre_qp6xre.jpg",
     themeColor: "#d62839",
     description: "Classic vintage square frame with antique finish",
     productType: "square",
@@ -457,7 +457,7 @@ export const shopData = [
     category: "heart_frame",
     name: "Heart Collage Frame",
     image:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834379/ChatGPT_Image_Mar_18__2026__05_16_04_PM_i4t6od.png",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1776023321/heart_py1vto.jpg",
     themeColor: "#e11d48",
     description: "Heart-shaped acrylic collage frame with 5 photo slots for cherished family memories",
     productType: "heart_frame",
