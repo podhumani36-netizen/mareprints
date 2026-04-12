@@ -109,15 +109,17 @@ export default function Home() {
       {/* Portrait & Landscape — primary rows */}
       <div className="futuristic-home container">
         <div className="row">
-          <div className="col-md-6">
-            <h2>Framed Acrylic Photo Portrait</h2>
-            <Products title="Portrait Frames" data={portraitProducts} limit={4} link="/product" />
-             <Products title="Rounded Portrait" data={roundedRectPortraitProducts} limit={4} link="/product" />
-          </div>
-        </div>
+  <div className="col-md-6">
+    <Products title="Portrait Frames" data={portraitProducts} limit={4} link="/product" />
+  </div>
+
+  <div className="col-md-6">
+    <Products title="Rounded Portrait" data={roundedRectPortraitProducts} limit={4} link="/product" />
+  </div>
+</div>
 
         <div className="row mt-4">
-          <div className="col-md-6">
+          <div className="col-12">
             <h2>Framed Acrylic Photo Landscape</h2>
             <Products title="Landscape Frames" data={landscapeProducts} limit={4} link="/product" />
              <Products title="Rounded Landscape" data={roundedRectLandscapeProducts} limit={4} link="/product" />
