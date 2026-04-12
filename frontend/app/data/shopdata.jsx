@@ -56,7 +56,7 @@ export const shopData = [
     category: "rounded_rect_portrait",
     name: "Rounded Portrait Print",
     image:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776026019/Roundport_ztelr7.pnghttps://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776026019/Roundport_ztelr7.png",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776026019/Roundport_ztelr7.png",
     themeColor: "#d62839",
     description: "Portrait acrylic print with elegant rounded corners",
     productType: "rounded_rect_portrait",
@@ -911,7 +911,7 @@ export const shopData = [
     category: "rounded_rect_landscape",
     name: "Rounded Landscape Print",
     image:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776025621/roundSq_kknrl9.png",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776025662/roundSq_iln1rq.png",
     themeColor: "#3496cb",
     description: "Wide-format acrylic print with elegant rounded corners",
     productType: "rounded_rect_landscape",
