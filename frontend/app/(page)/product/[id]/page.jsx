@@ -4,7 +4,6 @@ import ProductClientLandscape from "./ProductClientLandscape";
 import ProductClientSquare from "./ProductClientSquare";
 import ProductClientCutout from "./ProductClientCutout";
 import ProductClient from "./ProductClient";
-import RounderPortrait from "./RounderPortrait";
 import ProductClientCircleAcrylic from "./ProductClientCircleAcrylic";
 import ProductClientSquareRoundAcrylic from "./ProductClientSquareRoundAcrylic";
 import ProductClientRoundedRectLandscape from "./ProductClientRoundedRectLandscape";
@@ -50,8 +49,6 @@ export default async function ProductPage({ params }) {
   switch (productType.toLowerCase()) {
     case "landscape":
       return <ProductClientLandscape product={product} />;
-    case "rounderportrait":
-      return <RounderPortrait product={product} />;
     case "square":
       return <ProductClientSquare product={product} />;
     case "cutout":
