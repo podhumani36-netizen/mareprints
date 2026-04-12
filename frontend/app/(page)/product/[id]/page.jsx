@@ -8,7 +8,6 @@ import ProductClientCircleAcrylic from "./ProductClientCircleAcrylic";
 import ProductClientSquareRoundAcrylic from "./ProductClientSquareRoundAcrylic";
 import ProductClientRoundedRectLandscape from "./ProductClientRoundedRectLandscape";
 import ProductClientRoundedRectPortrait from "./ProductClientRoundedRectPortrait";
-import RounderPortrait from "./RounderPortrait";
 import ProductClientHeartFrame from "./ProductClientHeartFrame";
 
 export async function generateStaticParams() {
@@ -63,8 +62,8 @@ export default async function ProductPage({ params }) {
       return <ProductClientRoundedRectLandscape product={product} />;
     case "rounded_rect_portrait":
       return <ProductClientRoundedRectPortrait product={product} />;
-    case "roundedportrait":
-      return <RounderPortrait product={product} />;
+    // case "roundedportrait":
+    //   return <RounderPortrait product={product} />;
     case "heart_frame":
       return <ProductClientHeartFrame product={product} />;
     default:
