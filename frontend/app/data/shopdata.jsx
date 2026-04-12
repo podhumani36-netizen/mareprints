@@ -350,57 +350,57 @@ export const shopData = [
     infoImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
   },
-  {
-    id: 8,
-    title: "Modern Square Frame",
-    type: "square",
-    category: "square",
-    name: "Modern Square Frame",
-    image:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__04_24_25_PM_vb3420.png",
-    themeColor: "#3496cb",
-    description: "Contemporary square frame for social media photos",
-    productType: "square",
-    basePrice: 849,
-    priceIncrement: 150,
-    defaultSize: "12×12",
-    sizeOptions: ["8×8", "10×10", "12×12", "16×16", "20×20", "24×24", "30×30"],
-    frameDimensions: {
-      "8×8": { width: 180, height: 180 },
-      "10×10": { width: 210, height: 210 },
-      "12×12": { width: 240, height: 240 },
-      "16×16": { width: 300, height: 300 },
-      "20×20": { width: 360, height: 360 },
-      "24×24": { width: 420, height: 420 },
-      "30×30": { width: 510, height: 510 },
-    },
-    thicknessOptions: ["3mm", "5mm", "8mm"],
-    features: [
-      "Perfect square format",
-      "Social media ready",
-      "Modern design",
-      "Edge polished",
-      "Wall mounting included",
-    ],
-    tips: [
-      "Perfect for Instagram-style photos",
-      "Great for portraits and symmetrical compositions",
-      "Upload square-format images",
-      "Best for social media displays",
-    ],
-    badge: "Trending",
-    rating: 4.8,
-    reviews: 934,
-    inStock: true,
-    backgroundImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-    mockupBackground:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-    guideImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-    infoImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  },
+  // {
+  //   id: 8,
+  //   title: "Modern Square Frame",
+  //   type: "square",
+  //   category: "square",
+  //   name: "Modern Square Frame",
+  //   image:
+  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__04_24_25_PM_vb3420.png",
+  //   themeColor: "#3496cb",
+  //   description: "Contemporary square frame for social media photos",
+  //   productType: "square",
+  //   basePrice: 849,
+  //   priceIncrement: 150,
+  //   defaultSize: "12×12",
+  //   sizeOptions: ["8×8", "10×10", "12×12", "16×16", "20×20", "24×24", "30×30"],
+  //   frameDimensions: {
+  //     "8×8": { width: 180, height: 180 },
+  //     "10×10": { width: 210, height: 210 },
+  //     "12×12": { width: 240, height: 240 },
+  //     "16×16": { width: 300, height: 300 },
+  //     "20×20": { width: 360, height: 360 },
+  //     "24×24": { width: 420, height: 420 },
+  //     "30×30": { width: 510, height: 510 },
+  //   },
+  //   thicknessOptions: ["3mm", "5mm", "8mm"],
+  //   features: [
+  //     "Perfect square format",
+  //     "Social media ready",
+  //     "Modern design",
+  //     "Edge polished",
+  //     "Wall mounting included",
+  //   ],
+  //   tips: [
+  //     "Perfect for Instagram-style photos",
+  //     "Great for portraits and symmetrical compositions",
+  //     "Upload square-format images",
+  //     "Best for social media displays",
+  //   ],
+  //   badge: "Trending",
+  //   rating: 4.8,
+  //   reviews: 934,
+  //   inStock: true,
+  //   backgroundImage:
+  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
+  //   mockupBackground:
+  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
+  //   guideImage:
+  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
+  //   infoImage:
+  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
+  // },
   {
     id: 9,
     title: "Rounded Portrait Frame",
