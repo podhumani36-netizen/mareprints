@@ -112,6 +112,11 @@ export default function ProductClientHeartFrame({ product }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedDesign, setSelectedDesign] = useState(DESIGNS[0]);
   const [images, setImages] = useState(Array(5).fill(null));
+  const [imageZooms, setImageZooms] = useState(Array(5).fill(1));
+  const [imageOffsets, setImageOffsets] = useState(Array(5).fill(null).map(() => ({ x: 0, y: 0 })));
+  const [activeEditSlot, setActiveEditSlot] = useState(null);
+  const [isImageDragging, setIsImageDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderId, setOrderId] = useState("");
   const [quantity, setQuantity] = useState(1);
@@ -137,6 +142,39 @@ export default function ProductClientHeartFrame({ product }) {
   useEffect(() => {
     setOrderId(`#ORD${Math.floor(Math.random() * 9000 + 1000)}`);
   }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isImageDragging || activeEditSlot === null) return;
+      setImageOffsets((prev) => {
+        const next = [...prev];
+        next[activeEditSlot] = { x: e.clientX - dragStart.x, y: e.clientY - dragStart.y };
+        return next;
+      });
+    };
+    const handleTouchMove = (e) => {
+      if (!isImageDragging || activeEditSlot === null || !e.touches?.length) return;
+      const touch = e.touches[0];
+      setImageOffsets((prev) => {
+        const next = [...prev];
+        next[activeEditSlot] = { x: touch.clientX - dragStart.x, y: touch.clientY - dragStart.y };
+        return next;
+      });
+    };
+    const stopDragging = () => setIsImageDragging(false);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", stopDragging);
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("touchend", stopDragging);
+    window.addEventListener("touchcancel", stopDragging);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", stopDragging);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", stopDragging);
+      window.removeEventListener("touchcancel", stopDragging);
+    };
+  }, [isImageDragging, dragStart, activeEditSlot]);
 
   const showNotification = (message, type = "info", title = "") => {
     const titles = { success: "Success", error: "Error", warning: "Warning", info: "Info" };
@@ -191,7 +229,17 @@ export default function ProductClientHeartFrame({ product }) {
         img.crossOrigin = "anonymous";
         img.src = imgSrc;
         await new Promise((res) => { img.onload = res; img.onerror = res; });
-        const { dw, dh, dx, dy } = coverRect(img.width, img.height, geo.w * SCALE, geo.h * SCALE);
+        const slotZoom = imageZooms[i] ?? 1;
+        const slotOffset = imageOffsets[i] ?? { x: 0, y: 0 };
+        const base = coverRect(img.width, img.height, geo.w * SCALE, geo.h * SCALE);
+        const dw = base.dw * slotZoom;
+        const dh = base.dh * slotZoom;
+        const centerX = geo.x * SCALE + (geo.w * SCALE) / 2;
+        const centerY = geo.y * SCALE + (geo.h * SCALE) / 2;
+        const slotScaleX = (geo.w * SCALE) / geo.w;
+        const slotScaleY = (geo.h * SCALE) / geo.h;
+        const dx = centerX - dw / 2 + slotOffset.x * slotScaleX;
+        const dy = centerY - dh / 2 + slotOffset.y * slotScaleY;
 
         ctx.save();
         const hp = new Path2D(scaledPath);
@@ -201,7 +249,7 @@ export default function ProductClientHeartFrame({ product }) {
         ctx.clip();
         ctx.fillStyle = "#f0f0f0";
         ctx.fillRect(geo.x * SCALE, geo.y * SCALE, geo.w * SCALE, geo.h * SCALE);
-        ctx.drawImage(img, geo.x * SCALE + dx, geo.y * SCALE + dy, dw, dh);
+        ctx.drawImage(img, dx, dy, dw, dh);
         ctx.restore();
       }
 
@@ -228,6 +276,9 @@ export default function ProductClientHeartFrame({ product }) {
         next[slotIndex] = e.target.result;
         return next;
       });
+      setImageZooms((prev) => { const next = [...prev]; next[slotIndex] = 1; return next; });
+      setImageOffsets((prev) => { const next = [...prev]; next[slotIndex] = { x: 0, y: 0 }; return next; });
+      setActiveEditSlot(slotIndex);
       setIsProcessing(false);
       setIsPaymentReady(false);
       showNotification(`Photo ${slotIndex + 1} uploaded!`, "success");
@@ -237,11 +288,52 @@ export default function ProductClientHeartFrame({ product }) {
   };
 
   const handleSlotClick = (slotIndex) => {
+    if (images[slotIndex]) {
+      setActiveEditSlot(slotIndex);
+      return;
+    }
     activeSlotRef.current = slotIndex;
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
       fileInputRef.current.click();
     }
+  };
+
+  const handleSlotImageMouseDown = (e, slotIndex) => {
+    e.preventDefault();
+    setActiveEditSlot(slotIndex);
+    setIsImageDragging(true);
+    setDragStart({
+      x: e.clientX - imageOffsets[slotIndex].x,
+      y: e.clientY - imageOffsets[slotIndex].y,
+    });
+  };
+
+  const handleSlotImageTouchStart = (e, slotIndex) => {
+    if (!e.touches?.length) return;
+    const touch = e.touches[0];
+    setActiveEditSlot(slotIndex);
+    setIsImageDragging(true);
+    setDragStart({
+      x: touch.clientX - imageOffsets[slotIndex].x,
+      y: touch.clientY - imageOffsets[slotIndex].y,
+    });
+  };
+
+  const handleZoomIn = (slotIndex) => {
+    setImageZooms((prev) => { const next = [...prev]; next[slotIndex] = Math.min((next[slotIndex] ?? 1) + 0.1, 3); return next; });
+    setIsPaymentReady(false);
+  };
+
+  const handleZoomOut = (slotIndex) => {
+    setImageZooms((prev) => { const next = [...prev]; next[slotIndex] = Math.max((next[slotIndex] ?? 1) - 0.1, 0.5); return next; });
+    setIsPaymentReady(false);
+  };
+
+  const handleResetSlotTransform = (slotIndex) => {
+    setImageZooms((prev) => { const next = [...prev]; next[slotIndex] = 1; return next; });
+    setImageOffsets((prev) => { const next = [...prev]; next[slotIndex] = { x: 0, y: 0 }; return next; });
+    setIsPaymentReady(false);
   };
 
   const handleFileUpload = (e) => {
@@ -255,6 +347,9 @@ export default function ProductClientHeartFrame({ product }) {
   const handleRemoveSlot = (slotIndex, e) => {
     e.stopPropagation();
     setImages((prev) => { const next = [...prev]; next[slotIndex] = null; return next; });
+    setImageZooms((prev) => { const next = [...prev]; next[slotIndex] = 1; return next; });
+    setImageOffsets((prev) => { const next = [...prev]; next[slotIndex] = { x: 0, y: 0 }; return next; });
+    if (activeEditSlot === slotIndex) setActiveEditSlot(null);
     setIsPaymentReady(false);
     showNotification(`Photo ${slotIndex + 1} removed`, "warning");
   };
@@ -263,6 +358,9 @@ export default function ProductClientHeartFrame({ product }) {
   const handleDesignChange = (design) => {
     setSelectedDesign(design);
     setImages(Array(5).fill(null));
+    setImageZooms(Array(5).fill(1));
+    setImageOffsets(Array(5).fill(null).map(() => ({ x: 0, y: 0 })));
+    setActiveEditSlot(null);
     setIsPaymentReady(false);
   };
 
@@ -401,65 +499,89 @@ export default function ProductClientHeartFrame({ product }) {
               background: "#1a1a1a",
             }}
           >
-            {slotCells.map((cellStyle, i) => (
-              <div
-                key={i}
-                onClick={() => handleSlotClick(i)}
-                style={{
-                  position: "relative",
-                  overflow: "hidden",
-                  cursor: "pointer",
-                  ...cellStyle,
-                  border: displayImages[i] ? "1px solid rgba(201,162,39,0.3)" : "none",
-                }}
-              >
-                {displayImages[i] ? (
-                  <>
-                    <img
-                      src={displayImages[i]}
-                      alt={`Photo ${i + 1}`}
-                      style={{
-                        position: "absolute", inset: 0,
-                        width: "100%", height: "100%",
-                        objectFit: "cover",
-                        display: "block",
-                        pointerEvents: "none",
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={(e) => handleRemoveSlot(i, e)}
-                      style={{
-                        position: "absolute", top: "4px", right: "4px",
-                        width: "22px", height: "22px",
-                        borderRadius: "50%",
-                        background: "rgba(220,38,38,0.85)",
-                        border: "none", color: "white",
-                        fontSize: "11px", cursor: "pointer",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        zIndex: 10, lineHeight: 1,
-                      }}
-                    >
-                      <i className="bi bi-x" />
-                    </button>
-                  </>
-                ) : (
-                  <div style={{
-                    position: "absolute", inset: 0,
-                    display: "flex", flexDirection: "column",
-                    alignItems: "center", justifyContent: "center",
-                    gap: "4px",
-                    background: "rgba(255,255,255,0.06)",
-                    border: "1.5px dashed rgba(201,162,39,0.6)",
-                  }}>
-                    <i className="bi bi-plus-circle" style={{ fontSize: "18px", color: "#c9a227" }} />
-                    <span style={{ fontSize: "9px", color: "rgba(201,162,39,0.9)", fontWeight: 600, textAlign: "center", lineHeight: 1.2 }}>
-                      Photo {i + 1}
-                    </span>
-                  </div>
-                )}
-              </div>
-            ))}
+            {slotCells.map((cellStyle, i) => {
+              const slotZoom = imageZooms[i] ?? 1;
+              const slotOffset = imageOffsets[i] ?? { x: 0, y: 0 };
+              const isActive = activeEditSlot === i;
+              return (
+                <div
+                  key={i}
+                  onClick={() => handleSlotClick(i)}
+                  style={{
+                    position: "relative",
+                    overflow: "hidden",
+                    cursor: displayImages[i] ? (isImageDragging && isActive ? "grabbing" : "grab") : "pointer",
+                    touchAction: "none",
+                    ...cellStyle,
+                    border: isActive ? "2px solid rgba(201,162,39,0.8)" : displayImages[i] ? "1px solid rgba(201,162,39,0.3)" : "none",
+                  }}
+                  onMouseDown={displayImages[i] ? (e) => handleSlotImageMouseDown(e, i) : undefined}
+                  onTouchStart={displayImages[i] ? (e) => handleSlotImageTouchStart(e, i) : undefined}
+                >
+                  {displayImages[i] ? (
+                    <>
+                      <img
+                        src={displayImages[i]}
+                        alt={`Photo ${i + 1}`}
+                        draggable={false}
+                        style={{
+                          position: "absolute",
+                          top: "50%", left: "50%",
+                          width: "100%", height: "100%",
+                          objectFit: "cover",
+                          display: "block",
+                          transform: `translate(calc(-50% + ${slotOffset.x}px), calc(-50% + ${slotOffset.y}px)) scale(${slotZoom})`,
+                          transformOrigin: "center center",
+                          transition: isImageDragging && isActive ? "none" : "transform 0.18s ease",
+                          userSelect: "none",
+                          pointerEvents: "none",
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={(e) => handleRemoveSlot(i, e)}
+                        style={{
+                          position: "absolute", top: "4px", right: "4px",
+                          width: "22px", height: "22px",
+                          borderRadius: "50%",
+                          background: "rgba(220,38,38,0.85)",
+                          border: "none", color: "white",
+                          fontSize: "11px", cursor: "pointer",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          zIndex: 10, lineHeight: 1,
+                        }}
+                      >
+                        <i className="bi bi-x" />
+                      </button>
+                      {!isActive && (
+                        <div style={{
+                          position: "absolute", bottom: "3px", left: "50%", transform: "translateX(-50%)",
+                          fontSize: "8px", color: "rgba(255,255,255,0.7)", fontWeight: 500,
+                          background: "rgba(0,0,0,0.45)", borderRadius: "4px", padding: "1px 5px",
+                          pointerEvents: "none", whiteSpace: "nowrap",
+                        }}>
+                          tap to edit
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div style={{
+                      position: "absolute", inset: 0,
+                      display: "flex", flexDirection: "column",
+                      alignItems: "center", justifyContent: "center",
+                      gap: "4px",
+                      background: "rgba(255,255,255,0.06)",
+                      border: "1.5px dashed rgba(201,162,39,0.6)",
+                    }}>
+                      <i className="bi bi-plus-circle" style={{ fontSize: "18px", color: "#c9a227" }} />
+                      <span style={{ fontSize: "9px", color: "rgba(201,162,39,0.9)", fontWeight: 600, textAlign: "center", lineHeight: 1.2 }}>
+                        Photo {i + 1}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Gold border SVG overlay */}
@@ -497,6 +619,62 @@ export default function ProductClientHeartFrame({ product }) {
               {label}
             </span>
           ))}
+        </div>
+      </div>
+    );
+  };
+
+  // ── Zoom controls for active slot ────────────────────────────────────────
+  const renderZoomControls = () => {
+    if (activeEditSlot === null || !images[activeEditSlot]) return null;
+    const slotZoom = imageZooms[activeEditSlot] ?? 1;
+    return (
+      <div style={{
+        marginTop: "14px", background: "#ffffff",
+        border: "1px solid #e2e8f0", borderRadius: "16px",
+        padding: "14px 16px",
+        boxShadow: "0 4px 12px rgba(15,23,42,0.06)",
+      }}>
+        <div style={{ fontSize: "12px", fontWeight: 700, color: "#334155", marginBottom: "10px" }}>
+          <i className="bi bi-sliders me-2" style={{ color: "#c9a227" }} />
+          Editing Photo {activeEditSlot + 1} — drag to move, use controls to zoom
+        </div>
+        <div className="d-flex gap-2 flex-wrap align-items-center justify-content-between">
+          <div className="d-flex gap-2 align-items-center flex-wrap">
+            <button type="button" className="btn btn-light"
+              onClick={() => handleZoomOut(activeEditSlot)}
+              style={{ width: "34px", height: "34px", borderRadius: "8px", border: "1px solid #dbe3ee", fontSize: "13px" }}>
+              <i className="bi bi-dash-lg" />
+            </button>
+            <div style={{
+              minWidth: "60px", textAlign: "center", fontWeight: 500, fontSize: "13px",
+              color: "#0f172a", background: "#f8fafc", border: "1px solid #e2e8f0",
+              borderRadius: "12px", padding: "8px 12px",
+            }}>
+              {Math.round(slotZoom * 100)}%
+            </div>
+            <button type="button" className="btn btn-light"
+              onClick={() => handleZoomIn(activeEditSlot)}
+              style={{ width: "34px", height: "34px", borderRadius: "8px", border: "1px solid #dbe3ee", fontSize: "13px" }}>
+              <i className="bi bi-plus-lg" />
+            </button>
+          </div>
+          <button type="button" className="btn btn-outline-dark"
+            onClick={() => handleResetSlotTransform(activeEditSlot)}
+            style={{ borderRadius: "12px", padding: "8px 14px", fontSize: "13px" }}>
+            Reset Position
+          </button>
+        </div>
+        <div className="mt-3">
+          <input type="range" min="0.5" max="3" step="0.05"
+            value={slotZoom}
+            onChange={(e) => {
+              const val = Number(e.target.value);
+              setImageZooms((prev) => { const next = [...prev]; next[activeEditSlot] = val; return next; });
+              setIsPaymentReady(false);
+            }}
+            style={{ width: "100%", cursor: "pointer", accentColor: "#c9a227" }}
+          />
         </div>
       </div>
     );
@@ -575,6 +753,7 @@ export default function ProductClientHeartFrame({ product }) {
                   Click any slot in the heart to upload a photo
                 </p>
                 {renderHeartPreview(false)}
+                {renderZoomControls()}
                 <p style={{ fontSize: "12px", color: "#94a3b8", marginTop: "10px", textAlign: "center" }}>
                   {images.slice(0, selectedDesign.count).filter(Boolean).length} / {selectedDesign.count} photos uploaded
                 </p>
@@ -653,6 +832,7 @@ export default function ProductClientHeartFrame({ product }) {
                 </div>
 
                 {renderHeartPreview(true)}
+                {renderZoomControls()}
 
                 <div style={{ ...sectionCardStyle, marginTop: "20px" }}>
                   <div className="row g-3">
