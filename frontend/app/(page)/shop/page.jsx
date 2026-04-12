@@ -436,27 +436,29 @@ export default function Shop() {
 
   const productSections = useMemo(
     () => [
+      // Primary rows first
       {
         title: "Framed Acrylic Photo Portrait",
-        type: "Portrait",
+        type: "portrait",
         data: portraitProducts,
         limit: 8,
       },
-       {
-        title: "Framed Acrylic Photo RounderPortrait",
-        type: "RounderPortrait",
+      {
+        title: "Framed Acrylic Photo Landscape",
+        type: "landscape",
+        data: landscapeProducts,
+        limit: 8,
+      },
+      // All other types — each separately
+      {
+        title: "Framed Acrylic Photo Rounded Portrait",
+        type: "roundedportrait",
         data: roundedportraitProducts,
         limit: 4,
       },
       {
-        title: "Framed Acrylic Photo Landscape",
-        type: "Landscape",
-        data: landscapeProducts,
-        limit: 4,
-      },
-      {
         title: "Framed Acrylic Photo Cutout",
-        type: "Cutout",
+        type: "cutout",
         data: cutoutProducts,
         limit: 4,
       },

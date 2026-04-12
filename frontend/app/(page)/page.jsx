@@ -103,42 +103,19 @@ export default function Home() {
     <div>
       <Hero />
 
+      {/* Portrait & Landscape — primary rows */}
       <div className="futuristic-home container">
-        <div className="row">
-          <div className="col-12"></div>
-        </div>
-
         <div className="row">
           <div className="col-12">
             <h2>Framed Acrylic Photo Portrait</h2>
-            <Products
-              title="Portrait Frames"
-              data={portraitProducts}
-              limit={8}
-              link="/product"
-            />
+            <Products title="Portrait Frames" data={portraitProducts} limit={8} link="/product" />
           </div>
         </div>
-        <div className="row">
-          <div className="col-12">
-            <h2>Framed Acrylic Photo RounderPortrait</h2>
-            <Products
-              title="RounderPortrait Frames"
-              data={RounderPortrait}
-              limit={8}
-              link="/product"
-            />
-          </div>
-        </div>
+
         <div className="row mt-4">
           <div className="col-12">
             <h2>Framed Acrylic Photo Landscape</h2>
-            <Products
-              title="Landscape Frames"
-              data={landscapeProducts}
-              limit={8}
-              link="/product"
-            />
+            <Products title="Landscape Frames" data={landscapeProducts} limit={8} link="/product" />
           </div>
         </div>
       </div>
@@ -153,76 +130,47 @@ export default function Home() {
         </div>
       </div>
 
+      {/* All other types — each in its own row */}
       <div className="container">
         <div className="row mt-4">
           <div className="col-12">
-            <h2>Framed Acrylic Photo Cutout</h2>
-            <Products
-              title="Cutout Frames"
-              data={cutoutProducts}
-              limit={8}
-              link="/product"
-            />
+            <h2>Framed Acrylic Photo Rounded Portrait</h2>
+            <Products title="Rounded Portrait Frames" data={RounderPortrait} limit={8} link="/product" />
           </div>
         </div>
 
         <div className="row mt-4">
-          <div className="col-12 d-none">
-            <h2>Framed Acrylic Photo Nameplate</h2>
-            <Products
-              title="Square Frames"
-              data={squareProducts}
-              limit={8}
-              link="/product"
-            />
+          <div className="col-12">
+            <h2>Framed Acrylic Photo Cutout</h2>
+            <Products title="Cutout Frames" data={cutoutProducts} limit={8} link="/product" />
           </div>
         </div>
 
         <div className="row mt-4">
           <div className="col-12">
             <h2>Circle Acrylic Print</h2>
-            <Products
-              title="Circle Acrylic"
-              data={circleAcrylicProducts}
-              limit={8}
-              link="/product"
-            />
+            <Products title="Circle Acrylic" data={circleAcrylicProducts} limit={8} link="/product" />
           </div>
         </div>
 
         <div className="row mt-4">
           <div className="col-12">
             <h2>Square Round Acrylic Print</h2>
-            <Products
-              title="Square Round Acrylic"
-              data={squareRoundAcrylicProducts}
-              limit={8}
-              link="/product"
-            />
+            <Products title="Square Round Acrylic" data={squareRoundAcrylicProducts} limit={8} link="/product" />
           </div>
         </div>
 
         <div className="row mt-4">
           <div className="col-12">
             <h2>Rounded Landscape Print</h2>
-            <Products
-              title="Rounded Landscape"
-              data={roundedRectLandscapeProducts}
-              limit={8}
-              link="/product"
-            />
+            <Products title="Rounded Landscape" data={roundedRectLandscapeProducts} limit={8} link="/product" />
           </div>
         </div>
 
         <div className="row mt-4">
           <div className="col-12">
             <h2>Rounded Portrait Print</h2>
-            <Products
-              title="Rounded Portrait"
-              data={roundedRectPortraitProducts}
-              limit={8}
-              link="/product"
-            />
+            <Products title="Rounded Portrait" data={roundedRectPortraitProducts} limit={8} link="/product" />
           </div>
         </div>
       </div>
