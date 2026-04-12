@@ -401,55 +401,103 @@ export const shopData = [
     infoImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
   },
-  // {
-  //   id: 9,
-  //   title: "Rounded Portrait Frame",
-  //   type: "roundedportrait",
-  //   category: "roundedportrait",
-  //   name: "Rounded Portrait Frame",
-  //   image:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834379/ChatGPT_Image_Mar_18__2026__05_16_04_PM_i4t6od.png",
-  //   themeColor: "#3496cb",
-  //   description: "Elegant portrait acrylic frame with softly rounded corners",
-  //   productType: "roundedportrait",
-  //   basePrice: 849,
-  //   priceIncrement: 150,
-  //   defaultSize: "16x20",
-  //   sizeOptions: ["8x10", "11x14", "16x20", "20x24", "24x36"],
-  //   frameDimensions: {
-  //     "8x10": { width: 80, height: 100 },
-  //     "11x14": { width: 110, height: 140 },
-  //     "16x20": { width: 160, height: 200 },
-  //     "20x24": { width: 200, height: 240 },
-  //     "24x36": { width: 240, height: 360 },
-  //   },
-  //   thicknessOptions: ["3mm", "5mm", "8mm"],
-  //   features: [
-  //     "Portrait format with rounded corners",
-  //     "Premium acrylic material",
-  //     "UV protected coating",
-  //     "Easy wall mounting",
-  //     "Scratch resistant",
-  //   ],
-  //   tips: [
-  //     "Best for portrait and vertical photos",
-  //     "Upload high-resolution images",
-  //     "Ensure subject is sharp and clear",
-  //     "Minimum 300 DPI recommended",
-  //   ],
-  //   badge: "Popular",
-  //   rating: 4.8,
-  //   reviews: 489,
-  //   inStock: true,
-  //   backgroundImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-  //   mockupBackground:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-  //   guideImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-  //   infoImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  // },
+  {
+    id: 9,
+    title: "Rounded Portrait Frame",
+    type: "roundedportrait",
+    category: "roundedportrait",
+    name: "Rounded Portrait Frame",
+    image:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834379/ChatGPT_Image_Mar_18__2026__05_16_04_PM_i4t6od.png",
+    themeColor: "#3496cb",
+    description: "Elegant portrait acrylic frame with softly rounded corners",
+    productType: "roundedportrait",
+    basePrice: 849,
+    priceIncrement: 150,
+    defaultSize: "16x20",
+    sizeOptions: ["8x10", "11x14", "16x20", "20x24", "24x36"],
+    frameDimensions: {
+      "8x10": { width: 80, height: 100 },
+      "11x14": { width: 110, height: 140 },
+      "16x20": { width: 160, height: 200 },
+      "20x24": { width: 200, height: 240 },
+      "24x36": { width: 240, height: 360 },
+    },
+    thicknessOptions: ["3mm", "5mm", "8mm"],
+    features: [
+      "Portrait format with rounded corners",
+      "Premium acrylic material",
+      "UV protected coating",
+      "Easy wall mounting",
+      "Scratch resistant",
+    ],
+    tips: [
+      "Best for portrait and vertical photos",
+      "Upload high-resolution images",
+      "Ensure subject is sharp and clear",
+      "Minimum 300 DPI recommended",
+    ],
+    badge: "Popular",
+    rating: 4.8,
+    reviews: 489,
+    inStock: true,
+    backgroundImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
+    mockupBackground:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
+    guideImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
+    infoImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
+  },
+  {
+    id: 19,
+    title: "Heart Collage Frame",
+    type: "heart_frame",
+    category: "heart_frame",
+    name: "Heart Collage Frame",
+    image:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834379/ChatGPT_Image_Mar_18__2026__05_16_04_PM_i4t6od.png",
+    themeColor: "#e11d48",
+    description: "Heart-shaped acrylic collage frame with 5 photo slots for cherished family memories",
+    productType: "heart_frame",
+    basePrice: 1299,
+    priceIncrement: 200,
+    defaultSize: "12x12",
+    sizeOptions: ["8x8", "12x12", "16x16", "20x20"],
+    frameDimensions: {
+      "8x8":   { width: 160, height: 160 },
+      "12x12": { width: 240, height: 240 },
+      "16x16": { width: 320, height: 320 },
+      "20x20": { width: 400, height: 400 },
+    },
+    thicknessOptions: ["3mm", "5mm", "8mm"],
+    features: [
+      "Heart-shaped laser-cut acrylic frame",
+      "5 individual photo slots",
+      "Multiple frame color options",
+      "UV protected coating",
+      "Easy wall mounting",
+    ],
+    tips: [
+      "Upload up to 5 family or couple photos",
+      "Square images fill slots best",
+      "High-resolution images recommended",
+      "Choose a frame color to match your decor",
+    ],
+    badge: "Best Gift",
+    rating: 4.9,
+    reviews: 742,
+    inStock: true,
+    backgroundImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
+    mockupBackground:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
+    guideImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
+    infoImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
+  },
   // Cutout Products
   // {
   //   id: 10,

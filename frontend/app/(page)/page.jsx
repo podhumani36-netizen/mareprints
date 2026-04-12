@@ -31,6 +31,9 @@ const roundedRectLandscapeProducts = shopData.filter(
 const roundedRectPortraitProducts = shopData.filter(
   (product) => product.type === "rounded_rect_portrait",
 );
+const heartFrameProducts = shopData.filter(
+  (product) => product.type === "heart_frame",
+);
 
 const faqData = [
   {
@@ -164,6 +167,13 @@ export default function Home() {
           <div className="col-12">
             <h2>Rounded Portrait Print</h2>
             <Products title="Rounded Portrait" data={roundedRectPortraitProducts} limit={4} link="/product" />
+          </div>
+        </div>
+
+        <div className="row mt-4">
+          <div className="col-12">
+            <h2>Heart Collage Frame</h2>
+            <Products title="Heart Collage Frame" data={heartFrameProducts} limit={4} link="/product" />
           </div>
         </div>
       </div>

@@ -32,6 +32,9 @@ const roundedRectLandscapeProducts = shopData.filter(
 const roundedRectPortraitProducts = shopData.filter(
   (item) => String(item.type).toLowerCase() === "rounded_rect_portrait"
 );
+const heartFrameProducts = shopData.filter(
+  (item) => String(item.type).toLowerCase() === "heart_frame"
+);
 
 const useNewsletter = () => {
   const [email, setEmail] = useState("");
@@ -479,6 +482,12 @@ export default function Shop() {
         title: "Rounded Portrait Print",
         type: "rounded_rect_portrait",
         data: roundedRectPortraitProducts,
+        limit: 4,
+      },
+      {
+        title: "Heart Collage Frame",
+        type: "heart_frame",
+        data: heartFrameProducts,
         limit: 4,
       },
     ],
