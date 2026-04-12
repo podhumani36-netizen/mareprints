@@ -22,7 +22,7 @@ const SLOT_CONFIG = [
 const SIZE_OPTIONS = ["12x8", "16x12", "20x16", "24x18"];
 const BASE_PRICE = 1499;
 
-export default function ProductClientCollageFrame() {
+export default function ProductClientCollageFrame({ product }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [images, setImages] = useState(Array(6).fill(null));
   const [activeSlot, setActiveSlot] = useState(0);

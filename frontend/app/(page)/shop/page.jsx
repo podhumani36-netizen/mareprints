@@ -35,6 +35,9 @@ const roundedRectPortraitProducts = shopData.filter(
 const heartFrameProducts = shopData.filter(
   (item) => String(item.type).toLowerCase() === "heart_frame"
 );
+const collageFrameProducts = shopData.filter(
+  (item) => String(item.type).toLowerCase() === "collage_frame"
+);
 
 const useNewsletter = () => {
   const [email, setEmail] = useState("");
@@ -488,6 +491,12 @@ export default function Shop() {
         title: "Heart Collage Frame",
         type: "heart_frame",
         data: heartFrameProducts,
+        limit: 4,
+      },
+      {
+        title: "Grid Collage Frame",
+        type: "collage_frame",
+        data: collageFrameProducts,
         limit: 4,
       },
     ],

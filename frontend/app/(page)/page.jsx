@@ -34,6 +34,9 @@ const roundedRectPortraitProducts = shopData.filter(
 const heartFrameProducts = shopData.filter(
   (product) => product.type === "heart_frame",
 );
+const collageFrameProducts = shopData.filter(
+  (product) => product.type === "collage_frame",
+);
 
 const faqData = [
   {
@@ -109,20 +112,17 @@ export default function Home() {
       {/* Portrait & Landscape — primary rows */}
       <div className="futuristic-home container">
         <div className="row">
-  <div className="col-md-6">
-    <Products title="Portrait Frames" data={portraitProducts} limit={4} link="/product" />
-  </div>
-
-  <div className="col-12">
-    <Products title="Rounded Portrait" data={roundedRectPortraitProducts} limit={4} link="/product" />
-  </div>
-</div>
+          <div className="col-12">
+            <h2>Framed Acrylic Photo Portrait</h2>
+            <Products title="Portrait Frames" data={portraitProducts} limit={4} link="/product" />
+             <Products title="Rounded Portrait" data={roundedRectPortraitProducts} limit={4} link="/product" />
+          </div>
+        </div>
 
         <div className="row mt-4">
           <div className="col-12">
             <h2>Framed Acrylic Photo Landscape</h2>
             <Products title="Landscape Frames" data={landscapeProducts} limit={4} link="/product" />
-             <Products title="Rounded Landscape" data={roundedRectLandscapeProducts} limit={4} link="/product" />
           </div>
         </div>
       </div>
@@ -178,6 +178,13 @@ export default function Home() {
           <div className="col-12">
             <h2>Heart Collage Frame</h2>
             <Products title="Heart Collage Frame" data={heartFrameProducts} limit={4} link="/product" />
+          </div>
+        </div>
+
+        <div className="row mt-4">
+          <div className="col-12">
+            <h2>Grid Collage Frame</h2>
+            <Products title="Grid Collage Frame" data={collageFrameProducts} limit={4} link="/product" />
           </div>
         </div>
       </div>

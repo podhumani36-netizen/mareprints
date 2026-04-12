@@ -9,6 +9,7 @@ import ProductClientSquareRoundAcrylic from "./ProductClientSquareRoundAcrylic";
 import ProductClientRoundedRectLandscape from "./ProductClientRoundedRectLandscape";
 import ProductClientRoundedRectPortrait from "./ProductClientRoundedRectPortrait";
 import ProductClientHeartFrame from "./ProductClientHeartFrame";
+import ProductClientCollageFrame from "./ProductClientCollageFrame";
 
 export async function generateStaticParams() {
   return shopData.map((product) => ({
@@ -66,6 +67,8 @@ export default async function ProductPage({ params }) {
     //   return <RounderPortrait product={product} />;
     case "heart_frame":
       return <ProductClientHeartFrame product={product} />;
+    case "collage_frame":
+      return <ProductClientCollageFrame product={product} />;
     default:
       return <ProductClient product={product} />;
   }

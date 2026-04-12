@@ -1003,4 +1003,47 @@ export const shopData = [
   //   infoImage:
   //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
   //},
+  {
+    id: 20,
+    title: "Grid Collage Frame",
+    type: "collage_frame",
+    category: "collage_frame",
+    name: "Grid Collage Frame",
+    image:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834379/ChatGPT_Image_Mar_18__2026__05_16_04_PM_i4t6od.png",
+    themeColor: "#2563eb",
+    description: "6-photo grid collage acrylic frame — perfect for showcasing family memories in a 3×2 layout",
+    productType: "collage_frame",
+    basePrice: 1499,
+    priceIncrement: 200,
+    defaultSize: "16x12",
+    sizeOptions: ["12x8", "16x12", "20x16", "24x18"],
+    thicknessOptions: ["3mm", "5mm", "8mm"],
+    features: [
+      "6-photo 3×2 grid layout",
+      "Premium laser-cut acrylic",
+      "Multiple frame color options",
+      "UV protected coating",
+      "Easy wall mounting",
+      "Scratch resistant finish",
+    ],
+    tips: [
+      "Upload 6 photos for best results",
+      "Square or portrait photos fill slots best",
+      "High-resolution images recommended",
+      "Mix and match family photos",
+    ],
+    badge: "New",
+    rating: 4.8,
+    reviews: 321,
+    inStock: true,
+    backgroundImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
+    mockupBackground:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
+    guideImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
+    infoImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
+  },
 ];
