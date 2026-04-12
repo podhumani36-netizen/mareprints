@@ -14,13 +14,23 @@ const portraitProducts = shopData.filter(
 const roundedportraitProducts = shopData.filter(
   (item) => String(item.type).toLowerCase() === "roundedportrait"
 );
-
 const landscapeProducts = shopData.filter(
   (item) => String(item.type).toLowerCase() === "landscape"
 );
-
 const cutoutProducts = shopData.filter(
   (item) => String(item.type).toLowerCase() === "cutout"
+);
+const circleAcrylicProducts = shopData.filter(
+  (item) => String(item.type).toLowerCase() === "circle_acrylic"
+);
+const squareRoundAcrylicProducts = shopData.filter(
+  (item) => String(item.type).toLowerCase() === "square_round_acrylic"
+);
+const roundedRectLandscapeProducts = shopData.filter(
+  (item) => String(item.type).toLowerCase() === "rounded_rect_landscape"
+);
+const roundedRectPortraitProducts = shopData.filter(
+  (item) => String(item.type).toLowerCase() === "rounded_rect_portrait"
 );
 
 const useNewsletter = () => {
@@ -448,6 +458,30 @@ export default function Shop() {
         title: "Framed Acrylic Photo Cutout",
         type: "Cutout",
         data: cutoutProducts,
+        limit: 4,
+      },
+      {
+        title: "Circle Acrylic Print",
+        type: "circle_acrylic",
+        data: circleAcrylicProducts,
+        limit: 4,
+      },
+      {
+        title: "Square Round Acrylic Print",
+        type: "square_round_acrylic",
+        data: squareRoundAcrylicProducts,
+        limit: 4,
+      },
+      {
+        title: "Rounded Landscape Print",
+        type: "rounded_rect_landscape",
+        data: roundedRectLandscapeProducts,
+        limit: 4,
+      },
+      {
+        title: "Rounded Portrait Print",
+        type: "rounded_rect_portrait",
+        data: roundedRectPortraitProducts,
         limit: 4,
       },
     ],

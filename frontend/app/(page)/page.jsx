@@ -15,10 +15,22 @@ const landscapeProducts = shopData.filter(
   (product) => product.type === "landscape",
 );
 const RounderPortrait = shopData.filter(
-  (product) => product.type === "RounderPortrait",
+  (product) => product.type === "roundedportrait",
 );
 const cutoutProducts = shopData.filter((product) => product.type === "cutout");
 const squareProducts = shopData.filter((product) => product.type === "square");
+const circleAcrylicProducts = shopData.filter(
+  (product) => product.type === "circle_acrylic",
+);
+const squareRoundAcrylicProducts = shopData.filter(
+  (product) => product.type === "square_round_acrylic",
+);
+const roundedRectLandscapeProducts = shopData.filter(
+  (product) => product.type === "rounded_rect_landscape",
+);
+const roundedRectPortraitProducts = shopData.filter(
+  (product) => product.type === "rounded_rect_portrait",
+);
 
 const faqData = [
   {
@@ -160,6 +172,54 @@ export default function Home() {
             <Products
               title="Square Frames"
               data={squareProducts}
+              limit={8}
+              link="/product"
+            />
+          </div>
+        </div>
+
+        <div className="row mt-4">
+          <div className="col-12">
+            <h2>Circle Acrylic Print</h2>
+            <Products
+              title="Circle Acrylic"
+              data={circleAcrylicProducts}
+              limit={8}
+              link="/product"
+            />
+          </div>
+        </div>
+
+        <div className="row mt-4">
+          <div className="col-12">
+            <h2>Square Round Acrylic Print</h2>
+            <Products
+              title="Square Round Acrylic"
+              data={squareRoundAcrylicProducts}
+              limit={8}
+              link="/product"
+            />
+          </div>
+        </div>
+
+        <div className="row mt-4">
+          <div className="col-12">
+            <h2>Rounded Landscape Print</h2>
+            <Products
+              title="Rounded Landscape"
+              data={roundedRectLandscapeProducts}
+              limit={8}
+              link="/product"
+            />
+          </div>
+        </div>
+
+        <div className="row mt-4">
+          <div className="col-12">
+            <h2>Rounded Portrait Print</h2>
+            <Products
+              title="Rounded Portrait"
+              data={roundedRectPortraitProducts}
               limit={8}
               link="/product"
             />
