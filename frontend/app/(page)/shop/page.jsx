@@ -11,6 +11,9 @@ const Products = lazy(() => import("../../Components/products"));
 const portraitProducts = shopData.filter(
   (item) => String(item.type).toLowerCase() === "portrait"
 );
+const roundedportraitProducts = shopData.filter(
+  (item) => String(item.type).toLowerCase() === "roundedportrait"
+);
 
 const landscapeProducts = shopData.filter(
   (item) => String(item.type).toLowerCase() === "landscape"
@@ -40,7 +43,7 @@ const useNewsletter = () => {
       });
       return;
     }
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                            
     if (!validateEmail(email)) {
       setSubmitStatus({
         type: "error",

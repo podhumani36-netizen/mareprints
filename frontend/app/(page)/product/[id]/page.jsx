@@ -45,6 +45,8 @@ export default async function ProductPage({ params }) {
   switch (productType.toLowerCase()) {
     case "landscape":
       return <ProductClientLandscape product={product} />;
+    case "RounderPortrait":
+      return <RounderPortrait product={product} />;
     case "square":
       return <ProductClientSquare product={product} />;
     case "cutout":

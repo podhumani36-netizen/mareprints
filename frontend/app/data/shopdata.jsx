@@ -52,14 +52,14 @@ export const shopData = [
   {
     id: 2,
     title: "Modern Metal Frame",
-    type: "portrait",
-    category: "portrait",
+    type: "roundedportrait",
+    category: "roundedportrait",
     name: "Modern Metal Frame",
     image:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__05_09_39_PM_kjzqvw.png",
     themeColor: "#d62839",
     description: "Sleek metal frame for contemporary interiors",
-    productType: "portrait",
+    productType: "roundedportrait",
     basePrice: 849,
     priceIncrement: 150,
     defaultSize: "8x10",
