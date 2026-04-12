@@ -9,12 +9,12 @@ import { shopData } from "../data/shopdata";
 
 // ── Row 1: Photo frame products (portrait, landscape, rounded variants) ──────
 const photoFrameProducts = shopData.filter((p) =>
-  ["portrait", "landscape", "rounded_rect_portrait", "rounded_rect_landscape", "roundedportrait"].includes(p.type)
+  ["portrait", "rounded_rect_portrait","circle_acrylic","cutout" ].includes(p.type)
 );
 
 // ── Row 2: Acrylic shape prints ───────────────────────────────────────────────
 const acrylicShapeProducts = shopData.filter((p) =>
-  ["circle_acrylic", "square_round_acrylic", "square", "cutout"].includes(p.type)
+  [ "landscape","rounded_rect_landscape", "square_round_acrylic", "square", ].includes(p.type)
 );
 
 // ── Row 3: Special & collage frames ──────────────────────────────────────────
