@@ -339,7 +339,7 @@ export default function ProductClientHeartFrame({ product }) {
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { showNotification("File size must be less than 10MB", "error"); return; }
+    if (file.size > 10 * 1024 * 1024) { showNotification("File size must be less than 50MB", "error"); return; }
     if (!file.type.startsWith("image/")) { showNotification("Please upload an image file", "error"); return; }
     processFile(file, activeSlotRef.current);
   };

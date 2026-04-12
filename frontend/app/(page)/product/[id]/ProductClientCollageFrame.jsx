@@ -75,7 +75,7 @@ export default function ProductClientCollageFrame({ product }) {
 
   const processFile = (file, slotId) => {
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { showNotification("File too large (max 10MB)", "error"); return; }
+    if (file.size > 10 * 1024 * 1024) { showNotification("File too large (max 50MB)", "error"); return; }
     if (!file.type.startsWith("image/")) { showNotification("Please upload an image file", "error"); return; }
     setIsProcessing(true);
     const reader = new FileReader();
@@ -365,7 +365,7 @@ export default function ProductClientCollageFrame({ product }) {
               <ul className={styles.guideList}>
                 <li><i className="bi bi-check-circle-fill" /> 6 individual photo slots (3×2 grid)</li>
                 <li><i className="bi bi-check-circle-fill" /> Click any slot to upload its photo</li>
-                <li><i className="bi bi-check-circle-fill" /> Formats: JPG, PNG, GIF (max 10MB)</li>
+                <li><i className="bi bi-check-circle-fill" /> Formats: JPG, PNG, GIF (max 50MB)</li>
                 <li><i className="bi bi-check-circle-fill" /> Square photos fill slots best</li>
                 <li className={styles.warning}><i className="bi bi-exclamation-triangle-fill" /> At least 1 photo required</li>
               </ul>

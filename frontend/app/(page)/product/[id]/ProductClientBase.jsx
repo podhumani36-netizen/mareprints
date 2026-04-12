@@ -240,7 +240,7 @@ export default function ProductClientBase({
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith("image/")) {
-      if (file.size > 10 * 1024 * 1024) { showNotification("File size must be less than 10MB", "error"); return; }
+      if (file.size > 10 * 1024 * 1024) { showNotification("File size must be less than 50MB", "error"); return; }
       processFile(file);
     } else {
       showNotification("Please upload an image file", "error");
@@ -250,7 +250,7 @@ export default function ProductClientBase({
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { showNotification("File size must be less than 10MB", "error"); return; }
+    if (file.size > 10 * 1024 * 1024) { showNotification("File size must be less than 50MB", "error"); return; }
     if (!file.type.startsWith("image/")) { showNotification("Please upload an image file", "error"); return; }
     processFile(file);
   };
@@ -770,7 +770,7 @@ export default function ProductClientBase({
                       <i className="bi bi-folder2-open me-2" />
                       Browse Files
                     </button>
-                    <p className={styles.uploadHint}>Supported formats: JPG, PNG, GIF (Max 10MB)</p>
+                    <p className={styles.uploadHint}>Supported formats: JPG, PNG, GIF (Max 50MB)</p>
                     {isProcessing && (
                       <p style={{ marginTop: "10px", fontWeight: 600 }}>Processing image...</p>
                     )}
