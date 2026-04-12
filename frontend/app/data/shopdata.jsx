@@ -250,56 +250,56 @@ export const shopData = [
     infoImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
   },
-  {
-    id: 6,
-    title: "Collage Frame Set",
-    type: "landscape",
-    category: "landscape",
-    name: "Collage Frame Set",
-    image:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__04_30_04_PM_zht4xo.png",
-    themeColor: "#d62839",
-    description: "Set of 4 matching frames for photo collage",
-    productType: "landscape",
-    basePrice: 1299,
-    priceIncrement: 200,
-    defaultSize: "16×12",
-    sizeOptions: ["16×12", "18×12", "21×15", "30×20", "35×23", "48×36"],
-    frameDimensions: {
-      "16×12": { width: 280, height: 210 },
-      "18×12": { width: 300, height: 200 },
-      "21×15": { width: 340, height: 240 },
-      "30×20": { width: 460, height: 300 },
-      "35×23": { width: 520, height: 340 },
-      "48×36": { width: 680, height: 510 },
-    },
-    thicknessOptions: ["3mm", "5mm", "8mm"],
-    features: [
-      "Set of 4 frames",
-      "Create photo collages",
-      "Matching design",
-      "Wall mounting template included",
-      "Perfect for family photos",
-    ],
-    tips: [
-      "Create beautiful photo collages",
-      "Arrange photos in creative layouts",
-      "Perfect for family memories",
-      "Great for gallery walls",
-    ],
-    badge: "Value Pack",
-    rating: 4.9,
-    reviews: 856,
-    inStock: true,
-    backgroundImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-    mockupBackground:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-    guideImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-    infoImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  },
+  // {
+  //   id: 6,
+  //   title: "Collage Frame Set",
+  //   type: "landscape",
+  //   category: "landscape",
+  //   name: "Collage Frame Set",
+  //   image:
+  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__04_30_04_PM_zht4xo.png",
+  //   themeColor: "#d62839",
+  //   description: "Set of 4 matching frames for photo collage",
+  //   productType: "landscape",
+  //   basePrice: 1299,
+  //   priceIncrement: 200,
+  //   defaultSize: "16×12",
+  //   sizeOptions: ["16×12", "18×12", "21×15", "30×20", "35×23", "48×36"],
+  //   frameDimensions: {
+  //     "16×12": { width: 280, height: 210 },
+  //     "18×12": { width: 300, height: 200 },
+  //     "21×15": { width: 340, height: 240 },
+  //     "30×20": { width: 460, height: 300 },
+  //     "35×23": { width: 520, height: 340 },
+  //     "48×36": { width: 680, height: 510 },
+  //   },
+  //   thicknessOptions: ["3mm", "5mm", "8mm"],
+  //   features: [
+  //     "Set of 4 frames",
+  //     "Create photo collages",
+  //     "Matching design",
+  //     "Wall mounting template included",
+  //     "Perfect for family photos",
+  //   ],
+  //   tips: [
+  //     "Create beautiful photo collages",
+  //     "Arrange photos in creative layouts",
+  //     "Perfect for family memories",
+  //     "Great for gallery walls",
+  //   ],
+  //   badge: "Value Pack",
+  //   rating: 4.9,
+  //   reviews: 856,
+  //   inStock: true,
+  //   backgroundImage:
+  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
+  //   mockupBackground:
+  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
+  //   guideImage:
+  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
+  //   infoImage:
+  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
+  // },
 {
     id: 7,
     title: "Vintage Square Frame",
@@ -401,55 +401,55 @@ export const shopData = [
     infoImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
   },
-  {
-    id: 9,
-    title: "Rounded Portrait Frame",
-    type: "roundedportrait",
-    category: "roundedportrait",
-    name: "Rounded Portrait Frame",
-    image:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834379/ChatGPT_Image_Mar_18__2026__05_16_04_PM_i4t6od.png",
-    themeColor: "#3496cb",
-    description: "Elegant portrait acrylic frame with softly rounded corners",
-    productType: "roundedportrait",
-    basePrice: 849,
-    priceIncrement: 150,
-    defaultSize: "16x20",
-    sizeOptions: ["8x10", "11x14", "16x20", "20x24", "24x36"],
-    frameDimensions: {
-      "8x10": { width: 80, height: 100 },
-      "11x14": { width: 110, height: 140 },
-      "16x20": { width: 160, height: 200 },
-      "20x24": { width: 200, height: 240 },
-      "24x36": { width: 240, height: 360 },
-    },
-    thicknessOptions: ["3mm", "5mm", "8mm"],
-    features: [
-      "Portrait format with rounded corners",
-      "Premium acrylic material",
-      "UV protected coating",
-      "Easy wall mounting",
-      "Scratch resistant",
-    ],
-    tips: [
-      "Best for portrait and vertical photos",
-      "Upload high-resolution images",
-      "Ensure subject is sharp and clear",
-      "Minimum 300 DPI recommended",
-    ],
-    badge: "Popular",
-    rating: 4.8,
-    reviews: 489,
-    inStock: true,
-    backgroundImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-    mockupBackground:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-    guideImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-    infoImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  },
+  // {
+  //   id: 9,
+  //   title: "Rounded Portrait Frame",
+  //   type: "roundedportrait",
+  //   category: "roundedportrait",
+  //   name: "Rounded Portrait Frame",
+  //   image:
+  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834379/ChatGPT_Image_Mar_18__2026__05_16_04_PM_i4t6od.png",
+  //   themeColor: "#3496cb",
+  //   description: "Elegant portrait acrylic frame with softly rounded corners",
+  //   productType: "roundedportrait",
+  //   basePrice: 849,
+  //   priceIncrement: 150,
+  //   defaultSize: "16x20",
+  //   sizeOptions: ["8x10", "11x14", "16x20", "20x24", "24x36"],
+  //   frameDimensions: {
+  //     "8x10": { width: 80, height: 100 },
+  //     "11x14": { width: 110, height: 140 },
+  //     "16x20": { width: 160, height: 200 },
+  //     "20x24": { width: 200, height: 240 },
+  //     "24x36": { width: 240, height: 360 },
+  //   },
+  //   thicknessOptions: ["3mm", "5mm", "8mm"],
+  //   features: [
+  //     "Portrait format with rounded corners",
+  //     "Premium acrylic material",
+  //     "UV protected coating",
+  //     "Easy wall mounting",
+  //     "Scratch resistant",
+  //   ],
+  //   tips: [
+  //     "Best for portrait and vertical photos",
+  //     "Upload high-resolution images",
+  //     "Ensure subject is sharp and clear",
+  //     "Minimum 300 DPI recommended",
+  //   ],
+  //   badge: "Popular",
+  //   rating: 4.8,
+  //   reviews: 489,
+  //   inStock: true,
+  //   backgroundImage:
+  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
+  //   mockupBackground:
+  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
+  //   guideImage:
+  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
+  //   infoImage:
+  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
+  // },
   // Cutout Products
   // {
   //   id: 10,
