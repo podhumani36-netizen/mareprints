@@ -113,7 +113,7 @@ export default function Home() {
     <Products title="Portrait Frames" data={portraitProducts} limit={4} link="/product" />
   </div>
 
-  <div className="col-md-6">
+  <div className="col-12">
     <Products title="Rounded Portrait" data={roundedRectPortraitProducts} limit={4} link="/product" />
   </div>
 </div>
