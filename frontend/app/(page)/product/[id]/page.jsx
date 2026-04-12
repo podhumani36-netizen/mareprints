@@ -5,6 +5,10 @@ import ProductClientSquare from "./ProductClientSquare";
 import ProductClientCutout from "./ProductClientCutout";
 import ProductClient from "./ProductClient";
 import RounderPortrait from "./RounderPortrait";
+import ProductClientCircleAcrylic from "./ProductClientCircleAcrylic";
+import ProductClientSquareRoundAcrylic from "./ProductClientSquareRoundAcrylic";
+import ProductClientRoundedRectLandscape from "./ProductClientRoundedRectLandscape";
+import ProductClientRoundedRectPortrait from "./ProductClientRoundedRectPortrait";
 
 export async function generateStaticParams() {
   return shopData.map((product) => ({
@@ -52,6 +56,14 @@ export default async function ProductPage({ params }) {
       return <ProductClientSquare product={product} />;
     case "cutout":
       return <ProductClientCutout product={product} />;
+    case "circle_acrylic":
+      return <ProductClientCircleAcrylic product={product} />;
+    case "square_round_acrylic":
+      return <ProductClientSquareRoundAcrylic product={product} />;
+    case "rounded_rect_landscape":
+      return <ProductClientRoundedRectLandscape product={product} />;
+    case "rounded_rect_portrait":
+      return <ProductClientRoundedRectPortrait product={product} />;
     default:
       return <ProductClient product={product} />;
   }
