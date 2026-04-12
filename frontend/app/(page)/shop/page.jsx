@@ -441,13 +441,13 @@ export default function Shop() {
         title: "Framed Acrylic Photo Portrait",
         type: "portrait",
         data: portraitProducts,
-        limit: 8,
+        limit: 4,
       },
       {
         title: "Framed Acrylic Photo Landscape",
         type: "landscape",
         data: landscapeProducts,
-        limit: 8,
+        limit: 4,
       },
       // All other types — each separately
       {

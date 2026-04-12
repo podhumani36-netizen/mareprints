@@ -108,14 +108,14 @@ export default function Home() {
         <div className="row">
           <div className="col-12">
             <h2>Framed Acrylic Photo Portrait</h2>
-            <Products title="Portrait Frames" data={portraitProducts} limit={8} link="/product" />
+            <Products title="Portrait Frames" data={portraitProducts} limit={4} link="/product" />
           </div>
         </div>
 
         <div className="row mt-4">
           <div className="col-12">
             <h2>Framed Acrylic Photo Landscape</h2>
-            <Products title="Landscape Frames" data={landscapeProducts} limit={8} link="/product" />
+            <Products title="Landscape Frames" data={landscapeProducts} limit={4} link="/product" />
           </div>
         </div>
       </div>
