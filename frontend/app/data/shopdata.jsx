@@ -401,9 +401,58 @@ export const shopData = [
     infoImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
   },
+  {
+    id: 9,
+    title: "Rounded Portrait Frame",
+    type: "roundedportrait",
+    category: "roundedportrait",
+    name: "Rounded Portrait Frame",
+    image:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834379/ChatGPT_Image_Mar_18__2026__05_16_04_PM_i4t6od.png",
+    themeColor: "#3496cb",
+    description: "Elegant portrait acrylic frame with softly rounded corners",
+    productType: "roundedportrait",
+    basePrice: 849,
+    priceIncrement: 150,
+    defaultSize: "16x20",
+    sizeOptions: ["8x10", "11x14", "16x20", "20x24", "24x36"],
+    frameDimensions: {
+      "8x10": { width: 80, height: 100 },
+      "11x14": { width: 110, height: 140 },
+      "16x20": { width: 160, height: 200 },
+      "20x24": { width: 200, height: 240 },
+      "24x36": { width: 240, height: 360 },
+    },
+    thicknessOptions: ["3mm", "5mm", "8mm"],
+    features: [
+      "Portrait format with rounded corners",
+      "Premium acrylic material",
+      "UV protected coating",
+      "Easy wall mounting",
+      "Scratch resistant",
+    ],
+    tips: [
+      "Best for portrait and vertical photos",
+      "Upload high-resolution images",
+      "Ensure subject is sharp and clear",
+      "Minimum 300 DPI recommended",
+    ],
+    badge: "Popular",
+    rating: 4.8,
+    reviews: 489,
+    inStock: true,
+    backgroundImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
+    mockupBackground:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
+    guideImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
+    infoImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
+  },
   // Cutout Products
   // {
-  //   id: 9,
+  //   id: 10,
   //   title: " Shape Cutout",
   //   type: "cutout",
   //   category: "cutout",
@@ -756,105 +805,105 @@ export const shopData = [
   //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
   // },
 
-  // // Square Round Acrylic
-  // {
-  //   id: 16,
-  //   title: "Square Round Acrylic Print",
-  //   type: "square_round_acrylic",
-  //   category: "square_round_acrylic",
-  //   name: "Square Round Acrylic Print",
-  //   image:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__05_09_39_PM_kjzqvw.png",
-  //   themeColor: "#d62839",
-  //   description: "Square acrylic print with softly rounded corners",
-  //   productType: "square_round_acrylic",
-  //   basePrice: 899,
-  //   priceIncrement: 150,
-  //   defaultSize: "10x10",
-  //   sizeOptions: ["8x8", "10x10", "12x12", "16x16"],
-  //   frameDimensions: {
-  //     "8x8": { width: 160, height: 160 },
-  //     "10x10": { width: 200, height: 200 },
-  //     "12x12": { width: 240, height: 240 },
-  //     "16x16": { width: 320, height: 320 },
-  //   },
-  //   thicknessOptions: ["3mm", "5mm", "8mm"],
-  //   features: [
-  //     "Square format with rounded corners",
-  //     "Premium acrylic material",
-  //     "UV protected coating",
-  //     "Easy wall mounting",
-  //     "Scratch resistant",
-  //   ],
-  //   tips: [
-  //     "Great for Instagram-style photos",
-  //     "Upload high-resolution images",
-  //     "Works well with any subject",
-  //     "Minimum 300 DPI recommended",
-  //   ],
-  //   badge: "Popular",
-  //   rating: 4.7,
-  //   reviews: 415,
-  //   inStock: true,
-  //   backgroundImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-  //   mockupBackground:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-  //   guideImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-  //   infoImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  // },
+  // Square Round Acrylic
+  {
+    id: 16,
+    title: "Square Round Acrylic Print",
+    type: "square_round_acrylic",
+    category: "square_round_acrylic",
+    name: "Square Round Acrylic Print",
+    image:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__05_09_39_PM_kjzqvw.png",
+    themeColor: "#d62839",
+    description: "Square acrylic print with softly rounded corners",
+    productType: "square_round_acrylic",
+    basePrice: 899,
+    priceIncrement: 150,
+    defaultSize: "10x10",
+    sizeOptions: ["8x8", "10x10", "12x12", "16x16"],
+    frameDimensions: {
+      "8x8": { width: 160, height: 160 },
+      "10x10": { width: 200, height: 200 },
+      "12x12": { width: 240, height: 240 },
+      "16x16": { width: 320, height: 320 },
+    },
+    thicknessOptions: ["3mm", "5mm", "8mm"],
+    features: [
+      "Square format with rounded corners",
+      "Premium acrylic material",
+      "UV protected coating",
+      "Easy wall mounting",
+      "Scratch resistant",
+    ],
+    tips: [
+      "Great for Instagram-style photos",
+      "Upload high-resolution images",
+      "Works well with any subject",
+      "Minimum 300 DPI recommended",
+    ],
+    badge: "Popular",
+    rating: 4.7,
+    reviews: 415,
+    inStock: true,
+    backgroundImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
+    mockupBackground:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
+    guideImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
+    infoImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
+  },
 
-  // // Rounded Rect Landscape
-  // {
-  //   id: 17,
-  //   title: "Rounded Landscape Print",
-  //   type: "rounded_rect_landscape",
-  //   category: "rounded_rect_landscape",
-  //   name: "Rounded Landscape Print",
-  //   image:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834748/ChatGPT_Image_Mar_18__2026__05_22_03_PM_ytszql.png",
-  //   themeColor: "#3496cb",
-  //   description: "Wide-format acrylic print with elegant rounded corners",
-  //   productType: "rounded_rect_landscape",
-  //   basePrice: 799,
-  //   priceIncrement: 150,
-  //   defaultSize: "20x16",
-  //   sizeOptions: ["10x8", "14x11", "20x16", "24x20", "36x24"],
-  //   frameDimensions: {
-  //     "10x8": { width: 100, height: 80 },
-  //     "14x11": { width: 140, height: 110 },
-  //     "20x16": { width: 200, height: 160 },
-  //     "24x20": { width: 240, height: 200 },
-  //     "36x24": { width: 360, height: 240 },
-  //   },
-  //   thicknessOptions: ["3mm", "5mm", "8mm"],
-  //   features: [
-  //     "Landscape format with rounded corners",
-  //     "Premium acrylic material",
-  //     "UV protected coating",
-  //     "Easy wall mounting",
-  //     "Scratch resistant",
-  //   ],
-  //   tips: [
-  //     "Best for scenic and group photos",
-  //     "Upload high-resolution horizontal images",
-  //     "Minimum 300 DPI recommended",
-  //   ],
-  //   badge: "Best Seller",
-  //   rating: 4.8,
-  //   reviews: 528,
-  //   inStock: true,
-  //   backgroundImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-  //   mockupBackground:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-  //   guideImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-  //   infoImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  // },
+  // Rounded Rect Landscape
+  {
+    id: 17,
+    title: "Rounded Landscape Print",
+    type: "rounded_rect_landscape",
+    category: "rounded_rect_landscape",
+    name: "Rounded Landscape Print",
+    image:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834748/ChatGPT_Image_Mar_18__2026__05_22_03_PM_ytszql.png",
+    themeColor: "#3496cb",
+    description: "Wide-format acrylic print with elegant rounded corners",
+    productType: "rounded_rect_landscape",
+    basePrice: 799,
+    priceIncrement: 150,
+    defaultSize: "20x16",
+    sizeOptions: ["10x8", "14x11", "20x16", "24x20", "36x24"],
+    frameDimensions: {
+      "10x8": { width: 100, height: 80 },
+      "14x11": { width: 140, height: 110 },
+      "20x16": { width: 200, height: 160 },
+      "24x20": { width: 240, height: 200 },
+      "36x24": { width: 360, height: 240 },
+    },
+    thicknessOptions: ["3mm", "5mm", "8mm"],
+    features: [
+      "Landscape format with rounded corners",
+      "Premium acrylic material",
+      "UV protected coating",
+      "Easy wall mounting",
+      "Scratch resistant",
+    ],
+    tips: [
+      "Best for scenic and group photos",
+      "Upload high-resolution horizontal images",
+      "Minimum 300 DPI recommended",
+    ],
+    badge: "Best Seller",
+    rating: 4.8,
+    reviews: 528,
+    inStock: true,
+    backgroundImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
+    mockupBackground:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
+    guideImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
+    infoImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
+  },
 
   // // Rounded Rect Portrait
   // {
