@@ -112,6 +112,7 @@ export default function Home() {
           <div className="col-12">
             <h2>Framed Acrylic Photo Portrait</h2>
             <Products title="Portrait Frames" data={portraitProducts} limit={4} link="/product" />
+             <Products title="Rounded Portrait" data={roundedRectPortraitProducts} limit={4} link="/product" />
           </div>
         </div>
 
@@ -119,6 +120,7 @@ export default function Home() {
           <div className="col-12">
             <h2>Framed Acrylic Photo Landscape</h2>
             <Products title="Landscape Frames" data={landscapeProducts} limit={4} link="/product" />
+             <Products title="Rounded Landscape" data={roundedRectLandscapeProducts} limit={4} link="/product" />
           </div>
         </div>
       </div>
