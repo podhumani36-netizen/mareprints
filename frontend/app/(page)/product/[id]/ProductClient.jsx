@@ -260,36 +260,75 @@ export default function ProductClient() {
         img.onerror = reject;
       });
 
-      // Use the frame's actual aspect ratio so the canvas matches the live preview
       const dims = frameDimensions[size] || { width: 200, height: 250 };
-      const EXPORT_SCALE = 8; // 8× the on-screen frame px → high-res export
-      const canvasW = dims.width * EXPORT_SCALE;
-      const canvasH = dims.height * EXPORT_SCALE;
+      const S = 8; // export scale: 8× on-screen CSS pixels → high-res
+
+      const frameW  = dims.width  * S;
+      const frameH  = dims.height * S;
+      const depthPx = (thickness === "3mm" ? 4 : thickness === "5mm" ? 5 : 7) * S;
+      const PAD     = 5 * S;
 
       const canvas = document.createElement("canvas");
-      canvas.width = canvasW;
-      canvas.height = canvasH;
+      canvas.width  = frameW + depthPx + PAD * 2;
+      canvas.height = frameH + depthPx + PAD * 2;
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return "";
 
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvasW, canvasH);
 
-      // Match objectFit: contain used in the live preview (Math.min = contain)
-      const baseScale = Math.min(canvasW / img.width, canvasH / img.height);
+      // Neutral background (matches the studio/wall feel of the preview)
+      ctx.fillStyle = "#f1f5f9";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const fx = PAD;
+      const fy = PAD;
+
+      // 1. Depth / thickness layer — same gradient as live preview, offset bottom-right
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(fx + depthPx, fy + depthPx, frameW, frameH);
+      const depthGrad = ctx.createLinearGradient(
+        fx + depthPx, fy + depthPx,
+        fx + depthPx + frameW, fy + depthPx + frameH
+      );
+      depthGrad.addColorStop(0, thickness === "3mm" ? "#d9d9d9" : thickness === "5mm" ? "#cfcfcf" : "#bdbdbd");
+      depthGrad.addColorStop(1, "#8f8f8f");
+      ctx.fillStyle     = depthGrad;
+      ctx.shadowColor   = "rgba(0,0,0,0.22)";
+      ctx.shadowBlur    = 18;
+      ctx.shadowOffsetY = 18;
+      ctx.fill();
+      ctx.restore();
+
+      // 2. White front face with a soft drop-shadow
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(fx, fy, frameW, frameH);
+      ctx.fillStyle     = "#ffffff";
+      ctx.shadowColor   = "rgba(0,0,0,0.16)";
+      ctx.shadowBlur    = 24;
+      ctx.shadowOffsetY = 10;
+      ctx.fill();
+      ctx.restore();
+
+      // 3. User's image clipped to frame (rectangular)
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(fx, fy, frameW, frameH);
+      ctx.clip();
+
+      // objectFit: contain — same as the CSS in the live preview
+      const baseScale  = Math.min(frameW / img.width, frameH / img.height);
       const finalScale = baseScale * zoom;
-      const drawWidth = img.width * finalScale;
+      const drawWidth  = img.width  * finalScale;
       const drawHeight = img.height * finalScale;
-
-      // User dragged imageOffset.{x,y} px inside a dims.{width,height} px frame.
-      // Canvas is EXPORT_SCALE× larger, so scale offset by EXPORT_SCALE.
-      const dx = (canvasW - drawWidth) / 2 + imageOffset.x * EXPORT_SCALE;
-      const dy = (canvasH - drawHeight) / 2 + imageOffset.y * EXPORT_SCALE;
+      const dx = fx + (frameW - drawWidth)  / 2 + imageOffset.x * S;
+      const dy = fy + (frameH - drawHeight) / 2 + imageOffset.y * S;
 
       ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
+      ctx.restore();
 
       return canvas.toDataURL("image/png");
     } catch (error) {

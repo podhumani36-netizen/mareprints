@@ -182,29 +182,33 @@ export default function ProductClientCutout({ product }) {
         img.onerror = reject;
       });
 
-      const canvas = document.createElement("canvas");
-      const exportWidth = 1400;
-      const exportHeight = 1400;
+      const SIZE = 1400;
+      const PAD  = 60;
 
-      canvas.width = exportWidth;
-      canvas.height = exportHeight;
+      const canvas = document.createElement("canvas");
+      canvas.width  = SIZE + PAD * 2;
+      canvas.height = SIZE + PAD * 2;
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return "";
 
-      ctx.clearRect(0, 0, exportWidth, exportHeight);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
 
-      const scale = Math.min(
-        exportWidth / img.width,
-        exportHeight / img.height
-      );
+      // White background so the cutout shape reads clearly
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      const drawWidth = img.width * scale;
+      // Draw the cutout image (transparent PNG with bg removed) centered with a drop-shadow
+      const scale = Math.min(SIZE / img.width, SIZE / img.height);
+      const drawWidth  = img.width  * scale;
       const drawHeight = img.height * scale;
+      const dx = PAD + (SIZE - drawWidth)  / 2;
+      const dy = PAD + (SIZE - drawHeight) / 2;
 
-      const dx = (exportWidth - drawWidth) / 2;
-      const dy = (exportHeight - drawHeight) / 2;
-
+      ctx.shadowColor   = "rgba(0,0,0,0.28)";
+      ctx.shadowBlur    = 28;
+      ctx.shadowOffsetY = 14;
       ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
 
       return canvas.toDataURL("image/png");

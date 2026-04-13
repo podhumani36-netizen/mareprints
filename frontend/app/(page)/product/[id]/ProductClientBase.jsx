@@ -194,49 +194,104 @@ export default function ProductClientBase({
       const img = new Image();
       img.crossOrigin = "anonymous";
       img.src = uploadedImage;
-      await new Promise((res, rej) => {
-        img.onload = res;
-        img.onerror = rej;
-      });
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
 
-      // Use the frame's actual aspect ratio so the canvas matches the live preview
       const dims = frameDimensions[size] || { width: 200, height: 200 };
-      const EXPORT_SCALE = 8; // 8× the on-screen frame px → high-res export
-      const canvasW = dims.width * EXPORT_SCALE;
-      const canvasH = dims.height * EXPORT_SCALE;
+      const S = 8; // export scale: 8× on-screen CSS pixels → high-res
+
+      const frameW  = dims.width  * S;
+      const frameH  = dims.height * S;
+      const depthPx = (thickness === "3mm" ? 4 : thickness === "5mm" ? 5 : 7) * S;
+      const PAD     = 5 * S; // padding so drop-shadow is never clipped
 
       const canvas = document.createElement("canvas");
-      canvas.width = canvasW;
-      canvas.height = canvasH;
+      canvas.width  = frameW + depthPx + PAD * 2;
+      canvas.height = frameH + depthPx + PAD * 2;
       const ctx = canvas.getContext("2d");
       if (!ctx) return "";
 
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
 
-      if (circleClip) {
-        const r = Math.min(canvasW, canvasH) / 2;
+      // Neutral background (matches the studio/wall feel of the preview)
+      ctx.fillStyle = "#f1f5f9";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const fx = PAD; // frame top-left x
+      const fy = PAD; // frame top-left y
+
+      // Corner radius: circle → half-min-dimension, rounded-rect → scaled px, rect → 0
+      const radius = circleClip
+        ? Math.min(frameW, frameH) / 2
+        : frameRadius && frameRadius !== "0px"
+        ? Math.min(parseFloat(frameRadius) * S, frameW / 2, frameH / 2)
+        : 0;
+
+      // Trace the frame shape (circle / rounded-rect / rectangle)
+      const tracePath = (x, y, w, h) => {
         ctx.beginPath();
-        ctx.arc(canvasW / 2, canvasH / 2, r, 0, Math.PI * 2);
+        if (circleClip) {
+          ctx.arc(x + w / 2, y + h / 2, Math.min(w, h) / 2, 0, Math.PI * 2);
+        } else if (radius > 0) {
+          const r = radius;
+          ctx.moveTo(x + r, y);
+          ctx.lineTo(x + w - r, y);
+          ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+          ctx.lineTo(x + w, y + h - r);
+          ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+          ctx.lineTo(x + r, y + h);
+          ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+          ctx.lineTo(x, y + r);
+          ctx.quadraticCurveTo(x, y, x + r, y);
+        } else {
+          ctx.rect(x, y, w, h);
+        }
         ctx.closePath();
-        ctx.clip();
-      }
+      };
 
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvasW, canvasH);
+      // 1. Depth / thickness layer — same gradient as live preview, offset bottom-right
+      ctx.save();
+      tracePath(fx + depthPx, fy + depthPx, frameW, frameH);
+      const depthGrad = ctx.createLinearGradient(
+        fx + depthPx, fy + depthPx,
+        fx + depthPx + frameW, fy + depthPx + frameH
+      );
+      depthGrad.addColorStop(0, thickness === "3mm" ? "#d9d9d9" : thickness === "5mm" ? "#cfcfcf" : "#bdbdbd");
+      depthGrad.addColorStop(1, "#8f8f8f");
+      ctx.fillStyle = depthGrad;
+      ctx.shadowColor   = "rgba(0,0,0,0.22)";
+      ctx.shadowBlur    = 18;
+      ctx.shadowOffsetY = 18;
+      ctx.fill();
+      ctx.restore();
 
-      // Match objectFit: contain used in the live preview (Math.min = contain)
-      const baseScale = Math.min(canvasW / img.width, canvasH / img.height);
+      // 2. White front face (the print surface) with a soft drop-shadow
+      ctx.save();
+      tracePath(fx, fy, frameW, frameH);
+      ctx.fillStyle     = "#ffffff";
+      ctx.shadowColor   = "rgba(0,0,0,0.16)";
+      ctx.shadowBlur    = 24;
+      ctx.shadowOffsetY = 10;
+      ctx.fill();
+      ctx.restore();
+
+      // 3. User's image clipped to the exact frame shape
+      ctx.save();
+      tracePath(fx, fy, frameW, frameH);
+      ctx.clip();
+
+      // objectFit: contain — same as the CSS in the live preview
+      const baseScale  = Math.min(frameW / img.width, frameH / img.height);
       const finalScale = baseScale * zoom;
-      const drawWidth = img.width * finalScale;
+      const drawWidth  = img.width  * finalScale;
       const drawHeight = img.height * finalScale;
-
-      // User dragged imageOffset.{x,y} px inside a dims.{width,height} px frame.
-      // Canvas is EXPORT_SCALE× larger, so scale offset by EXPORT_SCALE.
-      const dx = (canvasW - drawWidth) / 2 + imageOffset.x * EXPORT_SCALE;
-      const dy = (canvasH - drawHeight) / 2 + imageOffset.y * EXPORT_SCALE;
+      // Offset: user dragged inside a dims.{width,height} px frame on screen → scale by S
+      const dx = fx + (frameW - drawWidth)  / 2 + imageOffset.x * S;
+      const dy = fy + (frameH - drawHeight) / 2 + imageOffset.y * S;
 
       ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
+      ctx.restore();
+
       return canvas.toDataURL("image/png");
     } catch (err) {
       console.error("Preview capture failed:", err);
