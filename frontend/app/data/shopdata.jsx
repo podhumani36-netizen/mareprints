@@ -301,57 +301,9 @@ export const shopData = [
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
   },
   
+ 
   {
     id: 7,
-    title: "Rounded Portrait Frame",
-    type: "roundedportrait",
-    category: "roundedportrait",
-    name: "Rounded Portrait Frame",
-    image:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834379/ChatGPT_Image_Mar_18__2026__05_16_04_PM_i4t6od.png",
-    themeColor: "#d62839",
-    description: "Elegant portrait acrylic frame with softly rounded corners",
-    productType: "roundedportrait",
-    basePrice: 849,
-    priceIncrement: 150,
-    defaultSize: "16x20",
-    sizeOptions: ["8x10", "11x14", "16x20", "20x24", "24x36"],
-    frameDimensions: {
-      "8x10": { width: 80, height: 100 },
-      "11x14": { width: 110, height: 140 },
-      "16x20": { width: 160, height: 200 },
-      "20x24": { width: 200, height: 240 },
-      "24x36": { width: 240, height: 360 },
-    },
-    thicknessOptions: ["3mm", "5mm", "8mm"],
-    features: [
-      "Portrait format with rounded corners",
-      "Premium acrylic material",
-      "UV protected coating",
-      "Easy wall mounting",
-      "Scratch resistant",
-    ],
-    tips: [
-      "Best for portrait and vertical photos",
-      "Upload high-resolution images",
-      "Ensure subject is sharp and clear",
-      "Minimum 300 DPI recommended",
-    ],
-    badge: "Popular",
-    rating: 4.8,
-    reviews: 489,
-    inStock: true,
-    backgroundImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-    mockupBackground:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-    guideImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-    infoImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  },
-  {
-    id: 19,
     title: "Heart Collage Frame",
     type: "heart_frame",
     category: "heart_frame",
@@ -400,7 +352,7 @@ export const shopData = [
   },
  
   {
-    id: 16,
+    id: 8,
     title: "Square Round Acrylic Print",
     type: "square_round_acrylic",
     category: "square_round_acrylic",
@@ -450,7 +402,7 @@ export const shopData = [
 
   // Rounded Rect Landscape
   {
-    id: 17,
+    id: 9,
     title: "Rounded Landscape Print",
     type: "rounded_rect_landscape",
     category: "rounded_rect_landscape",
@@ -498,7 +450,7 @@ export const shopData = [
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
   },
   {
-    id: 20,
+    id: 10,
     title: "Grid Collage Frame",
     type: "collage_frame",
     category: "collage_frame",

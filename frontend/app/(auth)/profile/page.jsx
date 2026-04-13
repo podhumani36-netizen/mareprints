@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
+  const router = useRouter();
+  const [user, setUser] = useState(null);
+  const [purchased, setPurchased] = useState([]);
 
   const [favorites] = useState([
     { id: 1, name: "Classic Wooden Frame", price: 3499, image: "https://res.cloudinary.com/dsprfys3x/image/upload/v1773848543/ChatGPT_Image_Mar_18__2026__06_11_53_PM_xfuyyc.png" },
@@ -16,10 +20,31 @@ export default function ProfilePage() {
     { id: 6, name: "Gold Ornate Frame", price: 3299, qty: 2, image: "https://res.cloudinary.com/dsprfys3x/image/upload/v1772770559/3d-rendered-photos-family-collage-templates-half-tone-different-designs_1096167-29794_wvwe0m.avif" },
   ]);
 
-  const [purchased] = useState([
-    { id: 7, order: "#123456", date: "Jan 15, 2024", status: "Delivered" },
-    { id: 8, order: "#123123", date: "Dec 20, 2023", status: "Shipped" },
-  ]);
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (_) {}
+    }
+
+    const storedOrders = localStorage.getItem("mareprints_orders");
+    if (storedOrders) {
+      try {
+        setPurchased(JSON.parse(storedOrders));
+      } catch (_) {}
+    }
+  }, []);
+
+  const displayName = user
+    ? `${user.first_name || ""} ${user.last_name || ""}`.trim() || user.email
+    : "";
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
@@ -33,8 +58,8 @@ export default function ProfilePage() {
               className="w-14 h-14 rounded-full border"
             />
             <div>
-              <h1 className="text-xl font-bold">Athula</h1>
-              <p className="text-gray-500 text-sm">Welcome back </p>
+              <h1 className="text-xl font-bold">{displayName || "User"}</h1>
+              <p className="text-gray-500 text-sm">{user?.email || ""}</p>
             </div>
           </div>
         </div>
@@ -89,27 +114,42 @@ export default function ProfilePage() {
         {/* ORDERS */}
         <div className="bg-white rounded-2xl shadow p-4">
           <h2 className="font-semibold mb-3">📦 Orders</h2>
-          <div style={{
-            display: "flex",
-            overflowX: "auto",
-            gap: "16px",
-            paddingBottom: "8px",
-            scrollbarWidth: "none",
-          }}>
-            {purchased.map((item) => (
-              <div key={item.id} style={{ minWidth: "200px", flexShrink: 0 }}
-                className="bg-gray-50 rounded-xl p-4 shadow-sm">
-                <p className="font-semibold">{item.order}</p>
-                <p className="text-xs text-gray-500">{item.date}</p>
-                <span className={`text-xs px-2 py-1 rounded-full mt-2 inline-block 
-                  ${item.status === "Delivered"
-                    ? "bg-green-100 text-green-600"
-                    : "bg-yellow-100 text-yellow-600"}`}>
-                  {item.status}
-                </span>
-              </div>
-            ))}
-          </div>
+          {purchased.length === 0 ? (
+            <p className="text-gray-400 text-sm">No orders yet.</p>
+          ) : (
+            <div style={{
+              display: "flex",
+              overflowX: "auto",
+              gap: "16px",
+              paddingBottom: "8px",
+              scrollbarWidth: "none",
+            }}>
+              {purchased.map((item) => (
+                <div key={item.id} style={{ minWidth: "220px", flexShrink: 0 }}
+                  className="bg-gray-50 rounded-xl p-4 shadow-sm">
+                  <p className="font-semibold">{item.order}</p>
+                  <p className="text-xs text-gray-500 mb-1">{item.date}</p>
+                  {item.productName && (
+                    <p className="text-sm text-gray-700 mb-1">{item.productName}</p>
+                  )}
+                  {item.size && (
+                    <p className="text-xs text-gray-500 mb-1">{item.size} · {item.thickness} · Qty {item.quantity}</p>
+                  )}
+                  {item.amount && (
+                    <p className="text-sm font-semibold text-blue-600 mb-2">₹{item.amount}</p>
+                  )}
+                  <span className={`text-xs px-2 py-1 rounded-full inline-block
+                    ${item.status === "Delivered"
+                      ? "bg-green-100 text-green-600"
+                      : item.status === "Confirmed"
+                      ? "bg-blue-100 text-blue-600"
+                      : "bg-yellow-100 text-yellow-600"}`}>
+                    {item.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
       </div>

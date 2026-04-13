@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import styles from "../../../assest/style/ProductClient.module.css";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 export default function ProductClient() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [zoom, setZoom] = useState(1);
@@ -91,6 +93,26 @@ export default function ProductClient() {
 
   useEffect(() => {
     setOrderId(`#ORD${Math.floor(Math.random() * 9000 + 1000)}`);
+  }, []);
+
+  // Pre-fill form with logged-in user data
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        try {
+          const user = JSON.parse(stored);
+          setFormData((prev) => ({
+            ...prev,
+            fullName:
+              prev.fullName ||
+              `${user.first_name || ""} ${user.last_name || ""}`.trim(),
+            email: prev.email || user.email || "",
+            phone: prev.phone || user.phone || "",
+          }));
+        } catch (_) {}
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -533,7 +555,30 @@ const validateBeforePayment = async () => {
     await validateBeforePayment();
   };
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = (paymentData) => {
+    // Save order to localStorage so it appears in order history
+    if (typeof window !== "undefined") {
+      const existing = localStorage.getItem("mareprints_orders");
+      const orders = existing ? JSON.parse(existing) : [];
+      const newOrder = {
+        id: Date.now(),
+        order: orderId,
+        date: new Date().toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        }),
+        status: "Confirmed",
+        productName: "Custom Acrylic Print",
+        size,
+        thickness,
+        quantity,
+        amount: calculatePrice(),
+        payment_id: paymentData?.razorpay_payment_id || "",
+      };
+      orders.unshift(newOrder);
+      localStorage.setItem("mareprints_orders", JSON.stringify(orders));
+    }
     showNotification("Payment successful! Thank you for your order.", "success");
     openSuccessModal();
     setIsPaymentReady(false);
@@ -547,6 +592,16 @@ const validateBeforePayment = async () => {
     if (step === 2 && !uploadedImage) {
       showNotification("Please upload an image first", "warning");
       return;
+    }
+    if (step === 2) {
+      const isLoggedIn =
+        typeof window !== "undefined" &&
+        localStorage.getItem("isLoggedIn") === "true";
+      if (!isLoggedIn) {
+        showNotification("Please log in to continue", "warning");
+        router.push("/login");
+        return;
+      }
     }
     setCurrentStep(step);
   };
