@@ -286,7 +286,7 @@ const Header = () => {
                 <i className="bi bi-phone"></i>
                 <span className={styles.actionText}>+91 8148040202</span>
               </Link>
-
+{/* 
               <Link
                 href="/cart"
                 className={`${styles.actionBtn} ${styles.cartBtn}`}
@@ -300,7 +300,7 @@ const Header = () => {
                 <span className={`${styles.actionText} d-none d-md-inline`}>
                   Cart
                 </span>
-              </Link>
+              </Link> */}
 
               {/* <Link
               
@@ -364,7 +364,7 @@ const Header = () => {
                       <Link href="/profile" className={styles.dropdownLink}>
                         <i className="bi bi-bag-check"></i> My Orders
                       </Link>
-                      <Link
+                      {/* <Link
                         href="/cart"
                         className={`${styles.actionBtn} ${styles.cartBtn}`}
                       >
@@ -377,7 +377,7 @@ const Header = () => {
                         <span className={`${styles.actionText} d-none d-md-inline`}>
                           Cart
                         </span>
-                      </Link>
+                      </Link> */}
                     </div>
 
                     <div className={styles.dropdownDivider}></div>
