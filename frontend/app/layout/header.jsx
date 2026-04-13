@@ -358,12 +358,12 @@ const Header = () => {
                     <div className={styles.dropdownDivider}></div>
 
                     <div className={styles.dropdownLinks}>
-                      {/* <Link href="/profile" className={`${styles.dropdownLink} `}>
+                      <Link href="/profile" className={`${styles.dropdownLink}`}>
                         <i className="bi bi-person"></i> My Profile
-                      </Link> */}
-                      {/* <Link href="/orders" className={styles.dropdownLink}>
-          <i className="bi bi-bag-check"></i> My Orders
-        </Link> */}
+                      </Link>
+                      <Link href="/profile" className={styles.dropdownLink}>
+                        <i className="bi bi-bag-check"></i> My Orders
+                      </Link>
                       <Link
                         href="/cart"
                         className={`${styles.actionBtn} ${styles.cartBtn}`}
@@ -561,14 +561,14 @@ const Header = () => {
                   </div>
                 </div>
                 <div className={styles.mobileActions}>
-                  {/* <Link href="/profile" className={styles.mobileAction}>
+                  <Link href="/profile" className={styles.mobileAction}>
                     <i className="bi bi-person"></i>
                     <span>My Profile</span>
-                  </Link> */}
-                  {/* <Link href="/orders" className={styles.mobileAction}>
-          <i className="bi bi-bag-check"></i>
-          <span>My Orders</span>
-        </Link> */}
+                  </Link>
+                  <Link href="/profile" className={styles.mobileAction}>
+                    <i className="bi bi-bag-check"></i>
+                    <span>My Orders</span>
+                  </Link>
                   {/* <Link
                     href="/cart"
                     className={`${styles.actionBtn} ${styles.cartBtn}`}

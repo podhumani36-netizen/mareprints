@@ -18,7 +18,7 @@ const HEART_W = 300;
 const HEART_H = 280;
 
 const SIZE_OPTIONS = ["8x8", "12x12", "16x16", "20x20"];
-const BASE_PRICE = 1199;
+const BASE_PRICE = 1;
 
 // ── Design templates ──────────────────────────────────────────────────────────
 // Each template defines photo count, grid CSS, and per-slot cell styles
