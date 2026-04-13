@@ -95,9 +95,15 @@ export default function ProductClient() {
     setOrderId(`#ORD${Math.floor(Math.random() * 9000 + 1000)}`);
   }, []);
 
-  // Pre-fill form with logged-in user data
+  // Auth guard + pre-fill form with logged-in user data
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+      if (!isLoggedIn) {
+        router.push("/login");
+        return;
+      }
+
       const stored = localStorage.getItem("user");
       if (stored) {
         try {
@@ -1234,8 +1240,7 @@ setIsPaymentReady(false);}}
                     <label style={labelStyle}>Size</label>
                     <select
   value={size}
-  onChange={(e) => {setOrientation(e.target.value)
-setIsPaymentReady(false);}}
+  onChange={(e) => { setSize(e.target.value); setIsPaymentReady(false); }}
   style={{
     width: "200px",
     padding: "10px",
@@ -1249,15 +1254,6 @@ setIsPaymentReady(false);}}
     backgroundPosition: "right 10px center"
   }}
 >
-                    {/* <select
-                      className="form-select"
-                      value={size}
-                      onChange={(e) => {
-                        setSize(e.target.value);
-                        setIsPaymentReady(false);
-                      }}
-                      style={inputStyle}
-                    > */}
                       {sizeOptions[orientation].map((option) => (
                         <option key={option} value={option}>
                           {option}
@@ -1270,9 +1266,7 @@ setIsPaymentReady(false);}}
                     <label style={labelStyle}>Thickness</label>
                     <select
   value={thickness}
-  onChange={(e) => {setOrientation(e.target.value)
-setIsPaymentReady(false);}
-  }
+  onChange={(e) => { setThickness(e.target.value); setIsPaymentReady(false); }}
   style={{
     width: "200px",
     padding: "10px",
@@ -1286,17 +1280,6 @@ setIsPaymentReady(false);}
     backgroundPosition: "right 10px center"
   }}
 >
-
-{/* </select>
-                    <select
-                      className="form-select"
-                      value={thickness}
-                      onChange={(e) => {
-                        setThickness(e.target.value);
-                        setIsPaymentReady(false);
-                      }}
-                      style={inputStyle}
-                    > */}
                       {thicknessOptions.map((option) => (
                         <option key={option} value={option}>
                           {option}
