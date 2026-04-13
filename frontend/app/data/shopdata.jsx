@@ -208,7 +208,7 @@ export const shopData = [
     name: " Shape Cutout",
     image:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773848543/ChatGPT_Image_Mar_18__2026__06_11_53_PM_xfuyyc.png",
-    themeColor: "#3496cb",
+    themeColor: "#d62839",
     description: "Romantic heart-shaped acrylic cutout for special moments",
     productType: "cutout",
     basePrice: 1099,
@@ -250,58 +250,8 @@ export const shopData = [
     infoImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
   },
-  // {
-  //   id: 6,
-  //   title: "Collage Frame Set",
-  //   type: "landscape",
-  //   category: "landscape",
-  //   name: "Collage Frame Set",
-  //   image:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__04_30_04_PM_zht4xo.png",
-  //   themeColor: "#d62839",
-  //   description: "Set of 4 matching frames for photo collage",
-  //   productType: "landscape",
-  //   basePrice: 1299,
-  //   priceIncrement: 200,
-  //   defaultSize: "16×12",
-  //   sizeOptions: ["16×12", "18×12", "21×15", "30×20", "35×23", "48×36"],
-  //   frameDimensions: {
-  //     "16×12": { width: 280, height: 210 },
-  //     "18×12": { width: 300, height: 200 },
-  //     "21×15": { width: 340, height: 240 },
-  //     "30×20": { width: 460, height: 300 },
-  //     "35×23": { width: 520, height: 340 },
-  //     "48×36": { width: 680, height: 510 },
-  //   },
-  //   thicknessOptions: ["3mm", "5mm", "8mm"],
-  //   features: [
-  //     "Set of 4 frames",
-  //     "Create photo collages",
-  //     "Matching design",
-  //     "Wall mounting template included",
-  //     "Perfect for family photos",
-  //   ],
-  //   tips: [
-  //     "Create beautiful photo collages",
-  //     "Arrange photos in creative layouts",
-  //     "Perfect for family memories",
-  //     "Great for gallery walls",
-  //   ],
-  //   badge: "Value Pack",
-  //   rating: 4.9,
-  //   reviews: 856,
-  //   inStock: true,
-  //   backgroundImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-  //   mockupBackground:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-  //   guideImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-  //   infoImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  // },
-{
-    id: 7,
+ {
+    id: 6,
     title: "Vintage Square Frame",
     type: "square",
     category: "square",
@@ -350,66 +300,16 @@ export const shopData = [
     infoImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
   },
-  // {
-  //   id: 8,
-  //   title: "Modern Square Frame",
-  //   type: "square",
-  //   category: "square",
-  //   name: "Modern Square Frame",
-  //   image:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__04_24_25_PM_vb3420.png",
-  //   themeColor: "#3496cb",
-  //   description: "Contemporary square frame for social media photos",
-  //   productType: "square",
-  //   basePrice: 849,
-  //   priceIncrement: 150,
-  //   defaultSize: "12×12",
-  //   sizeOptions: ["8×8", "10×10", "12×12", "16×16", "20×20", "24×24", "30×30"],
-  //   frameDimensions: {
-  //     "8×8": { width: 180, height: 180 },
-  //     "10×10": { width: 210, height: 210 },
-  //     "12×12": { width: 240, height: 240 },
-  //     "16×16": { width: 300, height: 300 },
-  //     "20×20": { width: 360, height: 360 },
-  //     "24×24": { width: 420, height: 420 },
-  //     "30×30": { width: 510, height: 510 },
-  //   },
-  //   thicknessOptions: ["3mm", "5mm", "8mm"],
-  //   features: [
-  //     "Perfect square format",
-  //     "Social media ready",
-  //     "Modern design",
-  //     "Edge polished",
-  //     "Wall mounting included",
-  //   ],
-  //   tips: [
-  //     "Perfect for Instagram-style photos",
-  //     "Great for portraits and symmetrical compositions",
-  //     "Upload square-format images",
-  //     "Best for social media displays",
-  //   ],
-  //   badge: "Trending",
-  //   rating: 4.8,
-  //   reviews: 934,
-  //   inStock: true,
-  //   backgroundImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-  //   mockupBackground:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-  //   guideImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-  //   infoImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  // },
+  
   {
-    id: 9,
+    id: 7,
     title: "Rounded Portrait Frame",
     type: "roundedportrait",
     category: "roundedportrait",
     name: "Rounded Portrait Frame",
     image:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834379/ChatGPT_Image_Mar_18__2026__05_16_04_PM_i4t6od.png",
-    themeColor: "#3496cb",
+    themeColor: "#d62839",
     description: "Elegant portrait acrylic frame with softly rounded corners",
     productType: "roundedportrait",
     basePrice: 849,
@@ -458,7 +358,7 @@ export const shopData = [
     name: "Heart Collage Frame",
     image:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1776023321/heart_py1vto.jpg",
-    themeColor: "#e11d48",
+    themeColor: "#3496cb",
     description: "Heart-shaped acrylic collage frame with 5 photo slots for cherished family memories",
     productType: "heart_frame",
     basePrice: 1299,
@@ -498,362 +398,7 @@ export const shopData = [
     infoImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
   },
-  // Cutout Products
-  // {
-  //   id: 10,
-  //   title: " Shape Cutout",
-  //   type: "cutout",
-  //   category: "cutout",
-  //   name: " Shape Cutout",
-  //   image:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773848543/ChatGPT_Image_Mar_18__2026__06_11_53_PM_xfuyyc.png",
-  //   themeColor: "#3496cb",
-  //   description: "Romantic heart-shaped acrylic cutout for special moments",
-  //   productType: "cutout",
-  //   basePrice: 1099,
-  //   cutoutPremium: 199,
-  //   priceIncrement: 200,
-  //   defaultSize: "8x10",
-  //   sizeOptions: ["8x10", "11x14", "16x20", "20x24"],
-  //   frameDimensions: {
-  //     "8x10": { width: 180, height: 220 },
-  //     "11x14": { width: 220, height: 280 },
-  //     "16x20": { width: 280, height: 340 },
-  //     "20x24": { width: 320, height: 380 },
-  //   },
-  //   thicknessOptions: ["3mm", "5mm", "8mm"],
-  //   cutoutShapes: ["heart", "circle", "star", "diamond"],
-  //   features: [
-  //     "Heart-shaped cutout design",
-  //     "Perfect for romantic photos",
-  //     "Unique gift idea",
-  //     "Eye-catching display",
-  //     "Customizable size",
-  //   ],
-  //   tips: [
-  //     "Perfect for wedding and engagement photos",
-  //     "Center the subject in the heart",
-  //     "Great for Valentine's Day gifts",
-  //     "Create unique romantic displays",
-  //   ],
-  //   badge: "Romantic",
-  //   rating: 4.9,
-  //   reviews: 567,
-  //   inStock: true,
-  //   backgroundImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-  //   mockupBackground:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-  //   guideImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-  //   infoImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  // },
-  // {
-  //   id: 10,
-  //   title: "Star Shape Cutout",
-  //   type: "cutout",
-  //   category: "cutout",
-  //   name: "Star Shape Cutout",
-  //   image:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773837359/ChatGPT_Image_Mar_18__2026__06_05_47_PM_ofmxc6.png",
-  //   themeColor: "#d62839",
-  //   description: "Celebratory star-shaped acrylic cutout for achievements",
-  //   productType: "cutout",
-  //   basePrice: 1099,
-  //   cutoutPremium: 199,
-  //   priceIncrement: 200,
-  //   defaultSize: "8x10",
-  //   sizeOptions: ["8x10", "11x14", "16x20", "20x24"],
-  //   frameDimensions: {
-  //     "8x10": { width: 180, height: 220 },
-  //     "11x14": { width: 220, height: 280 },
-  //     "16x20": { width: 280, height: 340 },
-  //     "20x24": { width: 320, height: 380 },
-  //   },
-  //   thicknessOptions: ["3mm", "5mm", "8mm"],
-  //   cutoutShapes: ["star", "circle", "heart", "diamond"],
-  //   features: [
-  //     "Star-shaped cutout design",
-  //     "Perfect for achievements",
-  //     "Celebratory display",
-  //     "Kids' favorite",
-  //     "Unique gift",
-  //   ],
-  //   tips: [
-  //     "Great for children's photos",
-  //     "Perfect for graduation photos",
-  //     "Celebrate achievements",
-  //     "Fun and playful design",
-  //   ],
-  //   badge: "Celebratory",
-  //   rating: 4.7,
-  //   reviews: 423,
-  //   inStock: true,
-  //   backgroundImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-  //   mockupBackground:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-  //   guideImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-  //   infoImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  // },
-  // {
-  //   id: 11,
-  //   title: "Circle Shape Cutout",
-  //   type: "cutout",
-  //   category: "cutout",
-  //   name: "Circle Shape Cutout",
-  //   image:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773848543/ChatGPT_Image_Mar_18__2026__06_11_53_PM_xfuyyc.png",
-  //   themeColor: "#3496cb",
-  //   description: "Classic circular acrylic cutout for timeless appeal",
-  //   productType: "cutout",
-  //   basePrice: 999,
-  //   cutoutPremium: 149,
-  //   priceIncrement: 180,
-  //   defaultSize: "8x10",
-  //   sizeOptions: ["8x10", "11x14", "16x20", "20x24"],
-  //   frameDimensions: {
-  //     "8x10": { width: 180, height: 220 },
-  //     "11x14": { width: 220, height: 280 },
-  //     "16x20": { width: 280, height: 340 },
-  //     "20x24": { width: 320, height: 380 },
-  //   },
-  //   thicknessOptions: ["3mm", "5mm", "8mm"],
-  //   cutoutShapes: ["circle", "heart", "star", "diamond"],
-  //   features: [
-  //     "Classic circular design",
-  //     "Timeless appeal",
-  //     "Versatile display",
-  //     "Smooth edges",
-  //     "Perfect for all photos",
-  //   ],
-  //   tips: [
-  //     "Works with any photo style",
-  //     "Perfect for portraits",
-  //     "Classic and elegant look",
-  //     "Great for all occasions",
-  //   ],
-  //   badge: "Classic",
-  //   rating: 4.8,
-  //   reviews: 789,
-  //   inStock: true,
-  //   backgroundImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-  //   mockupBackground:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-  //   guideImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-  //   infoImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  // },
-  // {
-  //   id: 12,
-  //   title: "Diamond Shape Cutout",
-  //   type: "cutout",
-  //   category: "cutout",
-  //   name: "Diamond Shape Cutout",
-  //   image:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773837286/ChatGPT_Image_Mar_18__2026__06_04_06_PM_ae1aln.png",
-  //   themeColor: "#d62839",
-  //   description: "Elegant diamond-shaped acrylic cutout for luxury display",
-  //   productType: "cutout",
-  //   basePrice: 1199,
-  //   cutoutPremium: 249,
-  //   priceIncrement: 220,
-  //   defaultSize: "8x10",
-  //   sizeOptions: ["8x10", "11x14", "16x20", "20x24"],
-  //   frameDimensions: {
-  //     "8x10": { width: 180, height: 220 },
-  //     "11x14": { width: 220, height: 280 },
-  //     "16x20": { width: 280, height: 340 },
-  //     "20x24": { width: 320, height: 380 },
-  //   },
-  //   thicknessOptions: ["3mm", "5mm", "8mm"],
-  //   cutoutShapes: ["diamond", "circle", "heart", "star"],
-  //   features: [
-  //     "Elegant diamond shape",
-  //     "Luxurious appearance",
-  //     "Unique design",
-  //     "Premium finish",
-  //     "Eye-catching display",
-  //   ],
-  //   tips: [
-  //     "Perfect for luxury photos",
-  //     "Great for special occasions",
-  //     "Elegant and sophisticated",
-  //     "Unique gift idea",
-  //   ],
-  //   badge: "Luxury",
-  //   rating: 4.9,
-  //   reviews: 345,
-  //   inStock: true,
-  //   backgroundImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-  //   mockupBackground:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-  //   guideImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-  //   infoImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  // },
-
-  // // Square Products
-  // {
-  //   id: 13,
-  //   title: "Modern Square Frame",
-  //   type: "square",
-  //   category: "square",
-  //   name: "Modern Square Frame",
-  //   image:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__04_24_25_PM_vb3420.png",
-  //   themeColor: "#3496cb",
-  //   description: "Contemporary square frame for social media photos",
-  //   productType: "square",
-  //   basePrice: 849,
-  //   priceIncrement: 150,
-  //   defaultSize: "12×12",
-  //   sizeOptions: ["8×8", "10×10", "12×12", "16×16", "20×20", "24×24", "30×30"],
-  //   frameDimensions: {
-  //     "8×8": { width: 180, height: 180 },
-  //     "10×10": { width: 210, height: 210 },
-  //     "12×12": { width: 240, height: 240 },
-  //     "16×16": { width: 300, height: 300 },
-  //     "20×20": { width: 360, height: 360 },
-  //     "24×24": { width: 420, height: 420 },
-  //     "30×30": { width: 510, height: 510 },
-  //   },
-  //   thicknessOptions: ["3mm", "5mm", "8mm"],
-  //   features: [
-  //     "Perfect square format",
-  //     "Social media ready",
-  //     "Modern design",
-  //     "Edge polished",
-  //     "Wall mounting included",
-  //   ],
-  //   tips: [
-  //     "Perfect for Instagram-style photos",
-  //     "Great for portraits and symmetrical compositions",
-  //     "Upload square-format images",
-  //     "Best for social media displays",
-  //   ],
-  //   badge: "Trending",
-  //   rating: 4.8,
-  //   reviews: 934,
-  //   inStock: true,
-  //   backgroundImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-  //   mockupBackground:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-  //   guideImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-  //   infoImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  // },
-  // {
-  //   id: 14,
-  //   title: "Vintage Square Frame",
-  //   type: "square",
-  //   category: "square",
-  //   name: "Vintage Square Frame",
-  //   image:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834814/ChatGPT_Image_Mar_18__2026__05_23_10_PM_o91lzb.png",
-  //   themeColor: "#d62839",
-  //   description: "Classic vintage square frame with antique finish",
-  //   productType: "square",
-  //   basePrice: 949,
-  //   priceIncrement: 150,
-  //   defaultSize: "12×12",
-  //   sizeOptions: ["8×8", "10×10", "12×12", "16×16", "20×20", "24×24"],
-  //   frameDimensions: {
-  //     "8×8": { width: 180, height: 180 },
-  //     "10×10": { width: 210, height: 210 },
-  //     "12×12": { width: 240, height: 240 },
-  //     "16×16": { width: 300, height: 300 },
-  //     "20×20": { width: 360, height: 360 },
-  //     "24×24": { width: 420, height: 420 },
-  //   },
-  //   thicknessOptions: ["3mm", "5mm", "8mm"],
-  //   features: [
-  //     "Vintage square design",
-  //     "Antique finish",
-  //     "Classic appeal",
-  //     "Ornate details",
-  //     "Timeless style",
-  //   ],
-  //   tips: [
-  //     "Perfect for vintage photos",
-  //     "Great for heritage images",
-  //     "Classic square format",
-  //     "Matches antique decor",
-  //   ],
-  //   badge: "Vintage",
-  //   rating: 4.7,
-  //   reviews: 567,
-  //   inStock: true,
-  //   backgroundImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-  //   mockupBackground:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-  //   guideImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-  //   infoImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  // },
-
-  // // Circle Acrylic
-  // {
-  //   id: 15,
-  //   title: "Circle Acrylic Print",
-  //   type: "circle_acrylic",
-  //   category: "circle_acrylic",
-  //   name: "Circle Acrylic Print",
-  //   image:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__04_39_13_PM_avrfk5.png",
-  //   themeColor: "#3496cb",
-  //   description: "Stunning circular acrylic print for a modern touch",
-  //   productType: "circle_acrylic",
-  //   basePrice: 899,
-  //   priceIncrement: 150,
-  //   defaultSize: "10x10",
-  //   sizeOptions: ["8x8", "10x10", "12x12", "16x16"],
-  //   frameDimensions: {
-  //     "8x8": { width: 160, height: 160 },
-  //     "10x10": { width: 200, height: 200 },
-  //     "12x12": { width: 240, height: 240 },
-  //     "16x16": { width: 320, height: 320 },
-  //   },
-  //   thicknessOptions: ["3mm", "5mm", "8mm"],
-  //   features: [
-  //     "Circular acrylic material",
-  //     "UV protected coating",
-  //     "Easy wall mounting",
-  //     "Scratch resistant",
-  //     "Vibrant color print",
-  //   ],
-  //   tips: [
-  //     "Works best with centered subjects",
-  //     "Upload high-resolution images",
-  //     "Ensure subject is in the middle",
-  //     "Minimum 300 DPI recommended",
-  //   ],
-  //   badge: "New",
-  //   rating: 4.8,
-  //   reviews: 320,
-  //   inStock: true,
-  //   backgroundImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-  //   mockupBackground:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-  //   guideImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-  //   infoImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  // },
-
-  // Square Round Acrylic
+ 
   {
     id: 16,
     title: "Square Round Acrylic Print",
@@ -862,7 +407,7 @@ export const shopData = [
     name: "Square Round Acrylic Print",
     image:
       "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776024239/suR_paox0w.png",
-    themeColor: "#d62839",
+    themeColor: "#3496cb",
     description: "Square acrylic print with softly rounded corners",
     productType: "square_round_acrylic",
     basePrice: 899,
@@ -912,7 +457,7 @@ export const shopData = [
     name: "Rounded Landscape Print",
     image:
       "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776025662/roundSq_iln1rq.png",
-    themeColor: "#3496cb",
+    themeColor: "#d62839",
     description: "Wide-format acrylic print with elegant rounded corners",
     productType: "rounded_rect_landscape",
     basePrice: 799,
@@ -942,100 +487,6 @@ export const shopData = [
     badge: "Best Seller",
     rating: 4.8,
     reviews: 528,
-    inStock: true,
-    backgroundImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-    mockupBackground:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-    guideImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-    infoImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  },
-
-  // // Rounded Rect Portrait
-  // {
-  //   id: 18,
-  //   title: "Rounded Portrait Print",
-  //   type: "rounded_rect_portrait",
-  //   category: "rounded_rect_portrait",
-  //   name: "Rounded Portrait Print",
-  //   image:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834379/ChatGPT_Image_Mar_18__2026__05_16_04_PM_i4t6od.png",
-  //   themeColor: "#d62839",
-  //   description: "Portrait acrylic print with elegant rounded corners",
-  //   productType: "rounded_rect_portrait",
-  //   basePrice: 799,
-  //   priceIncrement: 150,
-  //   defaultSize: "16x20",
-  //   sizeOptions: ["8x10", "11x14", "16x20", "20x24", "24x36"],
-  //   frameDimensions: {
-  //     "8x10": { width: 80, height: 100 },
-  //     "11x14": { width: 110, height: 140 },
-  //     "16x20": { width: 160, height: 200 },
-  //     "20x24": { width: 200, height: 240 },
-  //     "24x36": { width: 240, height: 360 },
-  //   },
-  //   thicknessOptions: ["3mm", "5mm", "8mm"],
-  //   features: [
-  //     "Portrait format with rounded corners",
-  //     "Premium acrylic material",
-  //     "UV protected coating",
-  //     "Easy wall mounting",
-  //     "Scratch resistant",
-  //   ],
-  //   tips: [
-  //     "Best for portrait and vertical photos",
-  //     "Upload high-resolution images",
-  //     "Ensure subject is sharp and clear",
-  //     "Minimum 300 DPI recommended",
-  //   ],
-  //   badge: "Premium",
-  //   rating: 4.9,
-  //   reviews: 612,
-  //   inStock: true,
-  //   backgroundImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
-  //   mockupBackground:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
-  //   guideImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
-  //   infoImage:
-  //     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
-  //},
-  {
-    id: 20,
-    title: "Grid Collage Frame",
-    type: "collage_frame",
-    category: "collage_frame",
-    name: "Grid Collage Frame",
-    image:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834379/ChatGPT_Image_Mar_18__2026__05_16_04_PM_i4t6od.png",
-    themeColor: "#2563eb",
-    description: "6-photo grid collage acrylic frame — perfect for showcasing family memories in a 3×2 layout",
-    productType: "collage_frame",
-    basePrice: 1499,
-    priceIncrement: 200,
-    defaultSize: "16x12",
-    sizeOptions: ["12x8", "16x12", "20x16", "24x18"],
-    thicknessOptions: ["3mm", "5mm", "8mm"],
-    features: [
-      "6-photo 3×2 grid layout",
-      "Premium laser-cut acrylic",
-      "Multiple frame color options",
-      "UV protected coating",
-      "Easy wall mounting",
-      "Scratch resistant finish",
-    ],
-    tips: [
-      "Upload 6 photos for best results",
-      "Square or portrait photos fill slots best",
-      "High-resolution images recommended",
-      "Mix and match family photos",
-    ],
-    badge: "New",
-    rating: 4.8,
-    reviews: 321,
     inStock: true,
     backgroundImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
