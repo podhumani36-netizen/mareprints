@@ -10,9 +10,13 @@ export default function PurchasedList({ items }) {
           <p className="text-xs text-gray-500">{item.date}</p>
 
           <span
-            className={`text-xs px-2 py-1 rounded-full mt-2 inline-block 
+            className={`text-xs px-2 py-1 rounded-full mt-2 inline-block
               ${item.status === "Delivered"
                 ? "bg-green-100 text-green-600"
+                : item.status === "Confirmed"
+                ? "bg-blue-100 text-blue-600"
+                : item.status === "Shipped"
+                ? "bg-purple-100 text-purple-600"
                 : "bg-yellow-100 text-yellow-600"}`}
           >
             {item.status}

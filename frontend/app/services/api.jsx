@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8000/api";
+const API_BASE_URL = "https://mareprints.com/api";
 
 class ApiService {
   constructor() {
@@ -68,6 +68,9 @@ class ApiService {
     });
     this.removeToken();
     this.removeUser();
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("isLoggedIn");
+    }
   }
 
   async verifyEmail(token) {
@@ -140,7 +143,10 @@ class ApiService {
   }
 
   isAuthenticated() {
-    return !!this.getToken();
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("isLoggedIn") === "true" || !!this.getToken();
+    }
+    return false;
   }
 }
 

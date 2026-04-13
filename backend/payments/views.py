@@ -29,7 +29,7 @@ def build_customer_email_message(customer_details, razorpay_order_id, payment_id
     return f"""
     <html>
     <body style="font-family: Arial, sans-serif; color: #222; line-height: 1.6;">
-        <h2 style="color:#2C7FB8;"Order placed Successful 🎉</h2>
+        <h2 style="color:#2C7FB8;">Order Placed Successfully 🎉</h2>
 
         <p>Dear {customer_details.get('name') or customer_details.get('fullName', 'Customer')},</p>
         <p>Thank you for your order with MARE Prints!</p>

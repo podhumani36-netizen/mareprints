@@ -260,13 +260,15 @@ export default function ProductClient() {
         img.onerror = reject;
       });
 
-      const isPortrait = orientation === "portrait";
-      const exportWidth = isPortrait ? 1600 : 2000;
-      const exportHeight = isPortrait ? 2000 : 1600;
+      // Use the frame's actual aspect ratio so the canvas matches the live preview
+      const dims = frameDimensions[size] || { width: 200, height: 250 };
+      const EXPORT_SCALE = 8; // 8× the on-screen frame px → high-res export
+      const canvasW = dims.width * EXPORT_SCALE;
+      const canvasH = dims.height * EXPORT_SCALE;
 
       const canvas = document.createElement("canvas");
-      canvas.width = exportWidth;
-      canvas.height = exportHeight;
+      canvas.width = canvasW;
+      canvas.height = canvasH;
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return "";
@@ -274,28 +276,18 @@ export default function ProductClient() {
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
       ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, exportWidth, exportHeight);
+      ctx.fillRect(0, 0, canvasW, canvasH);
 
-      const baseScale = Math.max(
-        exportWidth / img.width,
-        exportHeight / img.height
-      );
-
+      // Match objectFit: contain used in the live preview (Math.min = contain)
+      const baseScale = Math.min(canvasW / img.width, canvasH / img.height);
       const finalScale = baseScale * zoom;
       const drawWidth = img.width * finalScale;
       const drawHeight = img.height * finalScale;
 
-      const previewDims =
-        frameDimensions[size] ||
-        (isPortrait
-          ? { width: 220, height: 275 }
-          : { width: 275, height: 220 });
-
-      const offsetScaleX = exportWidth / previewDims.width;
-      const offsetScaleY = exportHeight / previewDims.height;
-
-      const dx = (exportWidth - drawWidth) / 2 + imageOffset.x * offsetScaleX;
-      const dy = (exportHeight - drawHeight) / 2 + imageOffset.y * offsetScaleY;
+      // User dragged imageOffset.{x,y} px inside a dims.{width,height} px frame.
+      // Canvas is EXPORT_SCALE× larger, so scale offset by EXPORT_SCALE.
+      const dx = (canvasW - drawWidth) / 2 + imageOffset.x * EXPORT_SCALE;
+      const dy = (canvasH - drawHeight) / 2 + imageOffset.y * EXPORT_SCALE;
 
       ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
 
@@ -1563,9 +1555,10 @@ setIsPaymentReady(false);}}
       previewImage={mailPreviewImage}
       customerDetails={{
         orderId,
-        productType: "portrait",
-        productName: "Custom Portrait Print",
+        productType: orientation,
+        productName: `Custom Acrylic Print (${orientation} ${size})`,
         name: formData.fullName,
+        fullName: formData.fullName,
         email: formData.email,
         phone: formData.phone,
         alternatePhone: formData.alternatePhone,

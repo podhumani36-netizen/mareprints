@@ -80,9 +80,7 @@ export const CartProvider = ({ children }) => {
   };
 
   const clearCart = () => {
-    if (window.confirm("Are you sure you want to clear your cart?")) {
-      setCartItems([]);
-    }
+    setCartItems([]);
   };
 
   const getItemCount = () => {

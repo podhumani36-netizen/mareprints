@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import styles from "../../../assest/style/ProductClient.module.css";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -23,6 +24,7 @@ export default function ProductClientBase({
   exportHeight = 1600,
   circleClip = false,
 }) {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [zoom, setZoom] = useState(1);
@@ -82,6 +84,29 @@ export default function ProductClientBase({
   // ── Order ID ──────────────────────────────────────────────────────────────
   useEffect(() => {
     setOrderId(`#ORD${Math.floor(Math.random() * 9000 + 1000)}`);
+  }, []);
+
+  // ── Auth guard + pre-fill form ────────────────────────────────────────────
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+      if (!isLoggedIn) {
+        router.push("/login");
+        return;
+      }
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        try {
+          const user = JSON.parse(stored);
+          setFormData((prev) => ({
+            ...prev,
+            fullName: prev.fullName || `${user.first_name || ""} ${user.last_name || ""}`.trim(),
+            email: prev.email || user.email || "",
+            phone: prev.phone || user.phone || "",
+          }));
+        } catch (_) {}
+      }
+    }
   }, []);
 
   // ── Draw uploaded image to hidden canvas ──────────────────────────────────
@@ -174,9 +199,15 @@ export default function ProductClientBase({
         img.onerror = rej;
       });
 
+      // Use the frame's actual aspect ratio so the canvas matches the live preview
+      const dims = frameDimensions[size] || { width: 200, height: 200 };
+      const EXPORT_SCALE = 8; // 8× the on-screen frame px → high-res export
+      const canvasW = dims.width * EXPORT_SCALE;
+      const canvasH = dims.height * EXPORT_SCALE;
+
       const canvas = document.createElement("canvas");
-      canvas.width = exportWidth;
-      canvas.height = exportHeight;
+      canvas.width = canvasW;
+      canvas.height = canvasH;
       const ctx = canvas.getContext("2d");
       if (!ctx) return "";
 
@@ -184,26 +215,26 @@ export default function ProductClientBase({
       ctx.imageSmoothingQuality = "high";
 
       if (circleClip) {
-        const cx = exportWidth / 2;
-        const cy = exportHeight / 2;
-        const r = Math.min(exportWidth, exportHeight) / 2;
+        const r = Math.min(canvasW, canvasH) / 2;
         ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.arc(canvasW / 2, canvasH / 2, r, 0, Math.PI * 2);
         ctx.closePath();
         ctx.clip();
       }
 
       ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, exportWidth, exportHeight);
+      ctx.fillRect(0, 0, canvasW, canvasH);
 
-      const baseScale = Math.max(exportWidth / img.width, exportHeight / img.height);
+      // Match objectFit: contain used in the live preview (Math.min = contain)
+      const baseScale = Math.min(canvasW / img.width, canvasH / img.height);
       const finalScale = baseScale * zoom;
       const drawWidth = img.width * finalScale;
       const drawHeight = img.height * finalScale;
 
-      const previewDims = frameDimensions[size] || { width: exportWidth / 10, height: exportHeight / 10 };
-      const dx = (exportWidth - drawWidth) / 2 + imageOffset.x * (exportWidth / previewDims.width);
-      const dy = (exportHeight - drawHeight) / 2 + imageOffset.y * (exportHeight / previewDims.height);
+      // User dragged imageOffset.{x,y} px inside a dims.{width,height} px frame.
+      // Canvas is EXPORT_SCALE× larger, so scale offset by EXPORT_SCALE.
+      const dx = (canvasW - drawWidth) / 2 + imageOffset.x * EXPORT_SCALE;
+      const dy = (canvasH - drawHeight) / 2 + imageOffset.y * EXPORT_SCALE;
 
       ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
       return canvas.toDataURL("image/png");
@@ -356,9 +387,30 @@ export default function ProductClientBase({
     return true;
   };
 
-  const handleSubmitOrder  = async (e) => { e.preventDefault(); await validateBeforePayment(); };
-  const handlePaymentSuccess = () => { showNotification("Payment successful! Thank you for your order.", "success"); openSuccessModal(); setIsPaymentReady(false); };
-  const handlePaymentError   = () => showNotification("Payment failed. Please try again.", "error");
+  const handleSubmitOrder = async (e) => { e.preventDefault(); await validateBeforePayment(); };
+  const handlePaymentSuccess = (paymentData) => {
+    if (typeof window !== "undefined") {
+      const existing = localStorage.getItem("mareprints_orders");
+      const orders = existing ? JSON.parse(existing) : [];
+      orders.unshift({
+        id: Date.now(),
+        order: orderId,
+        date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+        status: "Confirmed",
+        productName: `Custom Acrylic Print (${productOrientation} ${size})`,
+        size,
+        thickness,
+        quantity,
+        amount: calculatePrice(),
+        payment_id: paymentData?.razorpay_payment_id || "",
+      });
+      localStorage.setItem("mareprints_orders", JSON.stringify(orders));
+    }
+    showNotification("Payment successful! Thank you for your order.", "success");
+    openSuccessModal();
+    setIsPaymentReady(false);
+  };
+  const handlePaymentError = () => showNotification("Payment failed. Please try again.", "error");
 
   const goToStep = (step) => {
     if (step === 2 && !uploadedImage) { showNotification("Please upload an image first", "warning"); return; }
@@ -994,9 +1046,22 @@ export default function ProductClientBase({
                   ) : (
                     <RazorpayPayment
                       amount={totalAmount}
-                      customerDetails={formData}
+                      customerDetails={{
+                        ...formData,
+                        name: formData.fullName,
+                        orderId,
+                        productType: productOrientation,
+                        productName: `Custom Acrylic Print (${productOrientation} ${size})`,
+                        orientation: productOrientation,
+                        size,
+                        thickness,
+                        quantity,
+                        amount: totalAmount,
+                        imageZoom: zoom,
+                        imageOffsetX: imageOffset.x,
+                        imageOffsetY: imageOffset.y,
+                      }}
                       previewImage={mailPreviewImage}
-                      productDetails={{ orientation: productOrientation, size, thickness, quantity, orderId, zoom, imageOffset }}
                       onSuccess={handlePaymentSuccess}
                       onError={handlePaymentError}
                     />

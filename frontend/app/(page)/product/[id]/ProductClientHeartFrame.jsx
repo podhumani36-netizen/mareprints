@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import styles from "../../../assest/style/ProductClient.module.css";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -109,6 +110,7 @@ function coverRect(imgW, imgH, boxW, boxH) {
 }
 
 export default function ProductClientHeartFrame({ product }) {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedDesign, setSelectedDesign] = useState(DESIGNS[0]);
   const [images, setImages] = useState(Array(5).fill(null));
@@ -141,6 +143,29 @@ export default function ProductClientHeartFrame({ product }) {
 
   useEffect(() => {
     setOrderId(`#ORD${Math.floor(Math.random() * 9000 + 1000)}`);
+  }, []);
+
+  // Auth guard + pre-fill form with logged-in user data
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+      if (!isLoggedIn) {
+        router.push("/login");
+        return;
+      }
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        try {
+          const user = JSON.parse(stored);
+          setFormData((prev) => ({
+            ...prev,
+            fullName: prev.fullName || `${user.first_name || ""} ${user.last_name || ""}`.trim(),
+            email: prev.email || user.email || "",
+            phone: prev.phone || user.phone || "",
+          }));
+        } catch (_) {}
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -412,7 +437,28 @@ export default function ProductClientHeartFrame({ product }) {
   };
 
   const handleSubmitOrder = async (e) => { e.preventDefault(); await validateBeforePayment(); };
-  const handlePaymentSuccess = () => { showNotification("Payment successful!", "success"); openSuccessModal(); setIsPaymentReady(false); };
+  const handlePaymentSuccess = (paymentData) => {
+    if (typeof window !== "undefined") {
+      const existing = localStorage.getItem("mareprints_orders");
+      const orders = existing ? JSON.parse(existing) : [];
+      orders.unshift({
+        id: Date.now(),
+        order: orderId,
+        date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+        status: "Confirmed",
+        productName: `Heart Frame (${selectedDesign.label})`,
+        size,
+        thickness,
+        quantity,
+        amount: calculatePrice(),
+        payment_id: paymentData?.razorpay_payment_id || "",
+      });
+      localStorage.setItem("mareprints_orders", JSON.stringify(orders));
+    }
+    showNotification("Payment successful!", "success");
+    openSuccessModal();
+    setIsPaymentReady(false);
+  };
   const handlePaymentError = () => showNotification("Payment failed. Please try again.", "error");
 
   const goToStep = (step) => {
@@ -944,9 +990,20 @@ export default function ProductClientHeartFrame({ product }) {
                   ) : (
                     <RazorpayPayment
                       amount={totalAmount}
-                      customerDetails={formData}
+                      customerDetails={{
+                        ...formData,
+                        name: formData.fullName,
+                        orderId,
+                        productType: "heart_frame",
+                        productName: `Heart Frame (${selectedDesign.label})`,
+                        orientation: "heart_frame",
+                        design: selectedDesign.label,
+                        size,
+                        thickness,
+                        quantity,
+                        amount: totalAmount,
+                      }}
                       previewImage={mailPreviewImage}
-                      productDetails={{ orientation: "heart_frame", design: selectedDesign.label, size, thickness, quantity, orderId }}
                       onSuccess={handlePaymentSuccess}
                       onError={handlePaymentError}
                     />

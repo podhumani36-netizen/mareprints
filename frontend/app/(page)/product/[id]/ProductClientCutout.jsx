@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import styles from "../../../assest/style/ProductClient.module.css";
 import GPayButton from "../../../Components/GPayButton";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
@@ -8,6 +9,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 export default function ProductClientCutout({ product }) {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [originalImage, setOriginalImage] = useState(null);
@@ -79,6 +81,29 @@ export default function ProductClientCutout({ product }) {
 
   useEffect(() => {
     setOrderId(`#ORD${Math.floor(Math.random() * 100000)}`);
+  }, []);
+
+  // Auth guard + pre-fill form with logged-in user data
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+      if (!isLoggedIn) {
+        router.push("/login");
+        return;
+      }
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        try {
+          const user = JSON.parse(stored);
+          setFormData((prev) => ({
+            ...prev,
+            fullName: prev.fullName || `${user.first_name || ""} ${user.last_name || ""}`.trim(),
+            email: prev.email || user.email || "",
+            phone: prev.phone || user.phone || "",
+          }));
+        } catch (_) {}
+      }
+    }
   }, []);
 
   const showNotification = (message, type = "info", title = "") => {
@@ -463,7 +488,24 @@ export default function ProductClientCutout({ product }) {
     await validateBeforePayment();
   };
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = (paymentData) => {
+    if (typeof window !== "undefined") {
+      const existing = localStorage.getItem("mareprints_orders");
+      const orders = existing ? JSON.parse(existing) : [];
+      orders.unshift({
+        id: Date.now(),
+        order: orderId,
+        date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+        status: "Confirmed",
+        productName: product?.name || "Cutout Print",
+        size,
+        thickness,
+        quantity,
+        amount: calculatePrice() + (product?.cutoutPremium || 199),
+        payment_id: paymentData?.razorpay_payment_id || "",
+      });
+      localStorage.setItem("mareprints_orders", JSON.stringify(orders));
+    }
     showNotification("Payment successful! Thank you for your order.", "success");
     openSuccessModal();
     setIsPaymentReady(false);

@@ -64,6 +64,7 @@ const Header = () => {
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("user");
+    localStorage.removeItem("auth_token");
     setIsLoggedIn(false);
     setUser(null);
     setIsDropdownOpen(false);
@@ -75,7 +76,7 @@ const Header = () => {
   useEffect(() => {
     const updateCartCount = () => {
       try {
-        const savedCart = localStorage.getItem("cart");
+        const savedCart = localStorage.getItem("frameCart");
         if (savedCart) {
           const cartItems = JSON.parse(savedCart);
           const totalItems = cartItems.reduce(
