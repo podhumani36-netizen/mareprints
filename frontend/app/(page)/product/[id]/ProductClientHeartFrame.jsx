@@ -217,7 +217,7 @@ export default function ProductClientHeartFrame({ product }) {
   const calculatePrice = useCallback(() => {
     let price = BASE_PRICE;
     const idx = SIZE_OPTIONS.indexOf(size);
-    if (idx > 0) price += idx * 150;
+    if (idx > 0) price += idx * 1;
     if (thickness === "5mm") price += 150;
     if (thickness === "8mm") price += 300;
     price += (selectedDesign.count - 1) * 100;

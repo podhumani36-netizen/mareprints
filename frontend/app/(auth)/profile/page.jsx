@@ -53,10 +53,6 @@ export default function ProfilePage() {
         {/* HEADER */}
         <div className="bg-white rounded-2xl shadow-md p-4 flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
-            <img
-              src="/images/avatar.png"
-              className="w-14 h-14 rounded-full border"
-            />
             <div>
               <h1 className="text-xl font-bold">{displayName || "User"}</h1>
               <p className="text-gray-500 text-sm">{user?.email || ""}</p>
@@ -64,7 +60,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* FAVORITES */}
+        {/* FAVORITES
         <div className="bg-white rounded-2xl shadow p-4 mb-6">
           <div className="w-full aspect-square bg-white rounded-lg flex items-center justify-center p-2 overflow-hidden">
           <h2 className="font-semibold mb-3">❤️ Favorites</h2>
@@ -87,10 +83,10 @@ export default function ProfilePage() {
             ))}
           </div>
           </div>
-        </div>
+        </div> */}
 
         {/* CART */}
-        <div className="bg-white rounded-2xl shadow p-4 mb-6">
+        {/* <div className="bg-white rounded-2xl shadow p-4 mb-6">
           <h2 className="font-semibold mb-3">🛒 Cart</h2>
           <div style={{
             display: "flex",
@@ -109,7 +105,7 @@ export default function ProfilePage() {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* ORDERS */}
         <div className="bg-white rounded-2xl shadow p-4">
