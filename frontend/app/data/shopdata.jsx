@@ -450,6 +450,56 @@ export const shopData = [
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
   },
   {
+    id: 11,
+    title: "Decorative Frame Prints",
+    type: "png_frame",
+    category: "png_frame",
+    name: "Decorative Frame Prints",
+    image:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__04_39_13_PM_avrfk5.png",
+    themeColor: "#3496cb",
+    description:
+      "Choose from 16 beautiful decorative frames — tree, floral, heart, grid & more. Upload your photo and get a stunning framed print.",
+    productType: "png_frame",
+    basePrice: 1299,
+    priceIncrement: 150,
+    defaultSize: "16x20",
+    sizeOptions: ["8x10", "11x14", "16x20", "20x24", "24x36"],
+    frameDimensions: {
+      "8x10": { width: 180, height: 220 },
+      "11x14": { width: 220, height: 280 },
+      "16x20": { width: 280, height: 340 },
+      "20x24": { width: 320, height: 380 },
+      "24x36": { width: 360, height: 480 },
+    },
+    thicknessOptions: ["3mm", "5mm", "8mm"],
+    features: [
+      "16 unique decorative frame designs",
+      "Premium acrylic material",
+      "UV protected coating",
+      "Easy wall mounting",
+      "Scratch resistant finish",
+    ],
+    tips: [
+      "Pick a frame that matches your photo theme",
+      "Upload high-resolution images (min 300 DPI)",
+      "Use the zoom & drag tool to position your photo",
+      "Portrait photos work best with portrait frames",
+    ],
+    badge: "New",
+    rating: 4.9,
+    reviews: 142,
+    inStock: true,
+    backgroundImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
+    mockupBackground:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg",
+    guideImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png",
+    infoImage:
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
+  },
+  {
     id: 10,
     title: "Grid Collage Frame",
     type: "collage_frame",

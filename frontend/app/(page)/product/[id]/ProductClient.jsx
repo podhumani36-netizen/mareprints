@@ -35,6 +35,8 @@ export default function ProductClient() {
   const dropZoneRef = useRef(null);
 
   const [orientation, setOrientation] = useState("portrait");
+
+  
   const [size, setSize] = useState("16x20");
   const [thickness, setThickness] = useState("3mm");
   const [pincode, setPincode] = useState("");

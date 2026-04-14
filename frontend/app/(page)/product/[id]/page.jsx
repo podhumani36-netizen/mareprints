@@ -10,6 +10,7 @@ import ProductClientRoundedRectLandscape from "./ProductClientRoundedRectLandsca
 import ProductClientRoundedRectPortrait from "./ProductClientRoundedRectPortrait";
 import ProductClientHeartFrame from "./ProductClientHeartFrame";
 import ProductClientCollageFrame from "./ProductClientCollageFrame";
+import ProductClientPNGFrame from "./ProductClientPNGFrame";
 
 export async function generateStaticParams() {
   return shopData.map((product) => ({
@@ -69,6 +70,8 @@ export default async function ProductPage({ params }) {
       return <ProductClientHeartFrame product={product} />;
     case "collage_frame":
       return <ProductClientCollageFrame product={product} />;
+    case "png_frame":
+      return <ProductClientPNGFrame product={product} />;
     default:
       return <ProductClient product={product} />;
   }
