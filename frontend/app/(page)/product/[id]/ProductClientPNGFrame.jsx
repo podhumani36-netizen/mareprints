@@ -69,6 +69,11 @@ export default function ProductClientPNGFrame({ product }) {
   const [slotImages,    setSlotImages]    = useState([]);    // data-URLs, one per slot
   const [activeSlot,    setActiveSlot]    = useState(0);
 
+  // ── Frame natural dimensions (loaded on frame select) ─────────────────────
+  // Used to set an EXPLICIT pixel height on the composite container so that
+  // percentage top/height on absolutely-positioned slot children resolve correctly.
+  const [frameNatural, setFrameNatural] = useState({ w: 300, h: 300 });
+
   // ── Upload helpers ─────────────────────────────────────────────────────────
   const [isDragging,   setIsDragging]   = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -143,6 +148,17 @@ export default function ProductClientPNGFrame({ product }) {
     setSlotImages(new Array(newSlots.length).fill(null));
     setActiveSlot(0);
     setIsPaymentReady(false);
+  }, [selectedFrame]);
+
+  // ── Measure the frame PNG's natural dimensions on selection ───────────────
+  // We need an explicit pixel height on the composite container so CSS can
+  // correctly resolve percentage top/height on absolutely-positioned slots.
+  useEffect(() => {
+    if (!selectedFrame) return;
+    const img = new Image();
+    img.onload  = () => setFrameNatural({ w: img.naturalWidth, h: img.naturalHeight });
+    img.onerror = () => setFrameNatural({ w: 300, h: 300 });
+    img.src = `/frames/${selectedFrame.file}`;
   }, [selectedFrame]);
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -356,34 +372,34 @@ export default function ProductClientPNGFrame({ product }) {
     formErrors[field] ? <div style={{ marginTop: 6, fontSize: 13, color: "#dc2626", fontWeight: 600 }}>{formErrors[field]}</div> : null;
 
   // ── Frame composite preview ────────────────────────────────────────────────
-  // Mirrors ProductClientCollageFrame layout: inline-block frame centered via
-  // flexbox on the wall/plain container. Spacer img drives the container height
-  // from the frame PNG's natural aspect ratio; slots + overlay are absolute.
+  // The container is given EXPLICIT pixel dimensions derived from the frame
+  // PNG's natural size (measured by the useEffect above). This ensures CSS
+  // correctly resolves percentage top/height on absolutely-positioned slot
+  // children — when a container has height:auto (content-derived) those
+  // percentages can collapse to 0. Explicit px height removes all ambiguity.
   const renderComposite = ({ interactive = false, wallBg = false } = {}) => {
     if (!selectedFrame) return null;
+
+    // Scale frame to a fixed display width while preserving natural aspect ratio.
+    const DISPLAY_W = 300;
+    const DISPLAY_H = Math.round(DISPLAY_W * frameNatural.h / frameNatural.w);
 
     const frameBlock = (
       <div style={{
         position: "relative",
-        display: "inline-block",
+        width:  `${DISPLAY_W}px`,
+        height: `${DISPLAY_H}px`,          // ← explicit height: % children resolve correctly
+        flexShrink: 0,
         boxShadow: "0 20px 50px rgba(0,0,0,0.35)",
       }}>
-        {/* Spacer: display:block + height:auto locks the container to the
-            frame PNG's natural aspect ratio so percentage slots align exactly */}
-        <img
-          src={`/frames/${selectedFrame.file}`}
-          alt=""
-          aria-hidden="true"
-          style={{ display: "block", width: "300px", maxWidth: "90vw", height: "auto", visibility: "hidden" }}
-        />
-
-        {/* Slot photos — absolutely positioned at predefined percentage coords */}
+        {/* Slot photos — absolutely positioned at predefined percentage coords.
+            Both top/height are % of a known px height, so they're unambiguous. */}
         {slots.map((slot, i) => (
           <div
             key={slot.id}
             onClick={interactive ? () => handleSlotClick(i) : undefined}
             style={{
-              position: "absolute",
+              position:     "absolute",
               left:         `${slot.x}%`,
               top:          `${slot.y}%`,
               width:        `${slot.w}%`,
@@ -437,7 +453,9 @@ export default function ProductClientPNGFrame({ product }) {
           </div>
         ))}
 
-        {/* Frame PNG overlay — on top of all slot photos */}
+        {/* Frame PNG overlay — covers the container exactly (objectFit:fill is
+            lossless here because the container already matches the natural ratio).
+            z-index 10 keeps it on top; transparent cutouts reveal slot photos. */}
         <img
           src={`/frames/${selectedFrame.file}`}
           alt={selectedFrame.label}
@@ -453,16 +471,21 @@ export default function ProductClientPNGFrame({ product }) {
 
     return (
       <div style={{
-        position: "relative", width: "100%",
-        minHeight: wallBg ? "460px" : undefined,
-        borderRadius: "28px", overflow: "hidden",
+        position: "relative",
+        width: "100%",
+        minHeight: wallBg ? "460px" : "380px",
+        borderRadius: "28px",
+        overflow: "hidden",
         border: "1px solid #e2e8f0",
         background: wallBg ? undefined : "#f8fafc",
         backgroundImage: wallBg ? `url(${WALL_MOCKUP})` : undefined,
         backgroundSize: wallBg ? "cover" : undefined,
         backgroundPosition: wallBg ? "center" : undefined,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "20px 0 48px",
+        // Flex centering — matches ProductClientCollageFrame's approach
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px 12px 48px",
       }}>
         {wallBg && (
           <div style={{
@@ -647,7 +670,7 @@ export default function ProductClientPNGFrame({ product }) {
             <div className={styles.uploadCard}>
               <div
                 className={`${styles.uploadZone} ${isDragging ? styles.dragging : ""}`}
-                style={{ minHeight: 420, padding: 20, display: "flex", flexDirection: "column", gap: 12, alignItems: "stretch" }}
+                style={{ minHeight: 420, padding: 20, display: "flex", flexDirection: "column", gap: 12, alignItems: "center" }}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
