@@ -321,8 +321,8 @@ export default function ProductClient() {
       ctx.rect(fx, fy, frameW, frameH);
       ctx.clip();
 
-      // objectFit: contain — same as the CSS in the live preview
-      const baseScale  = Math.min(frameW / img.width, frameH / img.height);
+      // objectFit: cover — same as the CSS in the live preview
+      const baseScale  = Math.max(frameW / img.width, frameH / img.height);
       const finalScale = baseScale * zoom;
       const drawWidth  = img.width  * finalScale;
       const drawHeight = img.height * finalScale;
@@ -881,15 +881,15 @@ const getShadowByThickness = () => {
   style={{
     position: "absolute",
     left: "50%",
-    top: "45%",
+    top: "50%",
     width: `${dims.width}px`,
     height: `${dims.height}px`,
     transform: "translate(-50%, -50%)",
     borderRadius: "0px",
     overflow: "visible",
     background: "transparent",
-    maxWidth: "92%",
-    maxHeight: "78%",
+    maxWidth: "88%",
+    maxHeight: "82%",
   }}
 >
   {/* Back depth layer */}
@@ -945,7 +945,7 @@ const getShadowByThickness = () => {
   onTouchCancel={uploadedImage ? handleImageTouchEnd : undefined}
 >
      <img
-  src={uploadedImage || roomWallBackground}
+  src={uploadedImage}
   alt="Frame preview"
   draggable={false}
   style={{
@@ -954,7 +954,7 @@ const getShadowByThickness = () => {
     left: "50%",
     width: "100%",
     height: "100%",
-    objectFit: "contain",
+    objectFit: "cover",
     transform: `translate(calc(-50% + ${imageOffset.x}px), calc(-50% + ${imageOffset.y}px)) scale(${zoom})`,
     transformOrigin: "center center",
     transition: isImageDragging ? "none" : "transform 0.18s ease",
