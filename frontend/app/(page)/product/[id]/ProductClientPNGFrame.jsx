@@ -356,23 +356,113 @@ export default function ProductClientPNGFrame({ product }) {
     formErrors[field] ? <div style={{ marginTop: 6, fontSize: 13, color: "#dc2626", fontWeight: 600 }}>{formErrors[field]}</div> : null;
 
   // ── Frame composite preview ────────────────────────────────────────────────
-  // Uses a hidden spacer image to lock the frame's natural aspect ratio, then
-  // absolutely positions each slot photo and the frame PNG overlay on top.
+  // Mirrors ProductClientCollageFrame layout: inline-block frame centered via
+  // flexbox on the wall/plain container. Spacer img drives the container height
+  // from the frame PNG's natural aspect ratio; slots + overlay are absolute.
   const renderComposite = ({ interactive = false, wallBg = false } = {}) => {
     if (!selectedFrame) return null;
-    const dims  = frameDimensions[size] || { width: 280, height: 340 };
-    const depth = thickness === "3mm" ? 4 : thickness === "5mm" ? 5 : 7;
+
+    const frameBlock = (
+      <div style={{
+        position: "relative",
+        display: "inline-block",
+        boxShadow: "0 20px 50px rgba(0,0,0,0.35)",
+      }}>
+        {/* Spacer: display:block + height:auto locks the container to the
+            frame PNG's natural aspect ratio so percentage slots align exactly */}
+        <img
+          src={`/frames/${selectedFrame.file}`}
+          alt=""
+          aria-hidden="true"
+          style={{ display: "block", width: "300px", maxWidth: "90vw", height: "auto", visibility: "hidden" }}
+        />
+
+        {/* Slot photos — absolutely positioned at predefined percentage coords */}
+        {slots.map((slot, i) => (
+          <div
+            key={slot.id}
+            onClick={interactive ? () => handleSlotClick(i) : undefined}
+            style={{
+              position: "absolute",
+              left:         `${slot.x}%`,
+              top:          `${slot.y}%`,
+              width:        `${slot.w}%`,
+              height:       `${slot.h}%`,
+              borderRadius: `${slot.r}%`,
+              overflow:     "hidden",
+              cursor:       interactive ? "pointer" : "default",
+              background:   slotImages[i] ? "transparent" : "#dce7f3",
+              outline:      interactive && activeSlot === i ? "2px solid #0ea5e9" : "none",
+              outlineOffset: "-2px",
+              zIndex:       1,
+              transition:   "outline-color 0.15s",
+            }}
+          >
+            {slotImages[i] ? (
+              <>
+                <img
+                  src={slotImages[i]}
+                  alt={`Slot ${i + 1}`}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
+                {interactive && (
+                  <button
+                    type="button"
+                    onClick={(e) => handleRemoveSlotImage(i, e)}
+                    title="Remove photo"
+                    style={{
+                      position: "absolute", top: 3, right: 3,
+                      width: 16, height: 16, borderRadius: "50%",
+                      border: "none", background: "rgba(0,0,0,0.65)",
+                      color: "#fff", fontSize: 8, cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      padding: 0, zIndex: 20, lineHeight: 1,
+                    }}
+                  >✕</button>
+                )}
+              </>
+            ) : interactive ? (
+              <div style={{
+                width: "100%", height: "100%",
+                display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center",
+                gap: 2, color: "#475569", userSelect: "none",
+              }}>
+                <i className="bi bi-plus-circle" style={{ fontSize: 13 }} />
+                <span style={{ fontSize: 7, fontWeight: 700, lineHeight: 1.2, textAlign: "center" }}>
+                  {i + 1}
+                </span>
+              </div>
+            ) : null}
+          </div>
+        ))}
+
+        {/* Frame PNG overlay — on top of all slot photos */}
+        <img
+          src={`/frames/${selectedFrame.file}`}
+          alt={selectedFrame.label}
+          style={{
+            position: "absolute", inset: 0,
+            width: "100%", height: "100%",
+            objectFit: "fill", display: "block",
+            zIndex: 10, pointerEvents: "none",
+          }}
+        />
+      </div>
+    );
 
     return (
       <div style={{
         position: "relative", width: "100%",
-        minHeight: wallBg ? "540px" : undefined,
+        minHeight: wallBg ? "460px" : undefined,
         borderRadius: "28px", overflow: "hidden",
-        background: wallBg ? undefined : "linear-gradient(180deg,#fff 0%,#f8fafc 100%)",
+        border: "1px solid #e2e8f0",
+        background: wallBg ? undefined : "#f8fafc",
         backgroundImage: wallBg ? `url(${WALL_MOCKUP})` : undefined,
         backgroundSize: wallBg ? "cover" : undefined,
         backgroundPosition: wallBg ? "center" : undefined,
-        border: "1px solid #e2e8f0",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "20px 0 48px",
       }}>
         {wallBg && (
           <div style={{
@@ -382,118 +472,11 @@ export default function ProductClientPNGFrame({ product }) {
           }} />
         )}
 
-        {/* Acrylic block */}
+        {frameBlock}
+
+        {/* Info pills */}
         <div style={{
-          position: "absolute", left: "50%", top: "46%",
-          transform: "translate(-50%,-50%)",
-          width: `${dims.width}px`, height: `${dims.height}px`,
-          maxWidth: "90%", maxHeight: "80%", overflow: "visible",
-        }}>
-          {/* depth shadow */}
-          <div style={{
-            position: "absolute",
-            top: `${depth}px`, left: `${depth}px`, right: `-${depth}px`, bottom: `-${depth}px`,
-            background: thickness === "3mm" ? "linear-gradient(145deg,#d9d9d9,#8f8f8f)"
-              : thickness === "5mm" ? "linear-gradient(145deg,#cfcfcf,#8f8f8f)"
-              : "linear-gradient(145deg,#bdbdbd,#8f8f8f)",
-            boxShadow: "0 18px 35px rgba(0,0,0,0.22)", zIndex: 1,
-          }} />
-
-          {/* white face */}
-          <div style={{
-            position: "absolute", inset: 0, background: "#ffffff",
-            boxShadow: "0 10px 24px rgba(0,0,0,0.16)", overflow: "hidden", zIndex: 2,
-          }}>
-            {/* Composite: spacer + slot photos + frame overlay */}
-            <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
-
-              {/* Invisible spacer — preserves the frame PNG's natural aspect ratio */}
-              <img
-                src={`/frames/${selectedFrame.file}`}
-                alt=""
-                aria-hidden="true"
-                style={{ width: "100%", height: "100%", display: "block", objectFit: "fill", visibility: "hidden" }}
-              />
-
-              {/* Slot photos — absolutely positioned using the predefined percentage coords */}
-              <div style={{ position: "absolute", inset: 0 }}>
-                {slots.map((slot, i) => (
-                  <div
-                    key={slot.id}
-                    onClick={interactive ? () => handleSlotClick(i) : undefined}
-                    style={{
-                      position: "absolute",
-                      left:         `${slot.x}%`,
-                      top:          `${slot.y}%`,
-                      width:        `${slot.w}%`,
-                      height:       `${slot.h}%`,
-                      borderRadius: `${slot.r}%`,
-                      overflow:     "hidden",
-                      cursor:       interactive ? "pointer" : "default",
-                      background:   slotImages[i] ? "transparent" : "#dce7f3",
-                      outline:      interactive && activeSlot === i ? "2px solid #0ea5e9" : "none",
-                      outlineOffset: "-2px",
-                      transition:   "outline-color 0.15s",
-                    }}
-                  >
-                    {slotImages[i] ? (
-                      <>
-                        <img
-                          src={slotImages[i]}
-                          alt={`Slot ${i + 1}`}
-                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                        />
-                        {interactive && (
-                          <button
-                            type="button"
-                            onClick={(e) => handleRemoveSlotImage(i, e)}
-                            title="Remove photo"
-                            style={{
-                              position: "absolute", top: 3, right: 3,
-                              width: 16, height: 16, borderRadius: "50%",
-                              border: "none", background: "rgba(0,0,0,0.65)",
-                              color: "#fff", fontSize: 8, cursor: "pointer",
-                              display: "flex", alignItems: "center", justifyContent: "center",
-                              padding: 0, zIndex: 20, lineHeight: 1,
-                            }}
-                          >✕</button>
-                        )}
-                      </>
-                    ) : interactive ? (
-                      <div style={{
-                        width: "100%", height: "100%",
-                        display: "flex", flexDirection: "column",
-                        alignItems: "center", justifyContent: "center",
-                        gap: 2, color: "#475569", userSelect: "none",
-                      }}>
-                        <i className="bi bi-plus-circle" style={{ fontSize: 13 }} />
-                        <span style={{ fontSize: 7, fontWeight: 700, lineHeight: 1.2, textAlign: "center" }}>
-                          {i + 1}
-                        </span>
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-
-              {/* Frame PNG overlay — drawn last so it sits on top of all photos */}
-              <img
-                src={`/frames/${selectedFrame.file}`}
-                alt={selectedFrame.label}
-                style={{
-                  position: "absolute", inset: 0,
-                  width: "100%", height: "100%",
-                  objectFit: "fill", display: "block",
-                  zIndex: 10, pointerEvents: "none",
-                }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Status pills */}
-        <div style={{
-          position: "absolute", bottom: 18, left: "50%",
+          position: "absolute", bottom: 14, left: "50%",
           transform: "translateX(-50%)",
           display: "flex", gap: 8, flexWrap: "wrap",
           justifyContent: "center", width: "100%", padding: "0 12px",
