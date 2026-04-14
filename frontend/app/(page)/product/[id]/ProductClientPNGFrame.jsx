@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../../../assest/style/ProductClient.module.css";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
-import { collageFrameSlots, FRAME_SLOT_MAP } from "../../../data/collageFrameSlots";
+import { FRAME_SLOTS, FRAME_SLOT_MAP } from "../../../data/collageFrameSlots";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
@@ -33,7 +33,7 @@ const FRAMES = [
 /** Returns the slot array for a given frame file, or [] if unknown. */
 function getSlotsForFrame(file) {
   const key = FRAME_SLOT_MAP[file];
-  return key && collageFrameSlots[key] ? collageFrameSlots[key].slots : [];
+  return key && FRAME_SLOTS[key] ? FRAME_SLOTS[key] : [];
 }
 
 // ── Canvas helper: clip path with optional rounded corners ─────────────────────
@@ -213,12 +213,12 @@ export default function ProductClientPNGFrame({ product }) {
         const slot = slots[i];
 
         // Convert percentage coords → pixels
-        const sx = (slot.x / 100) * W;
-        const sy = (slot.y / 100) * H;
-        const sw = (slot.w / 100) * W;
-        const sh = (slot.h / 100) * H;
+        const sx = (slot.left   / 100) * W;
+        const sy = (slot.top    / 100) * H;
+        const sw = (slot.width  / 100) * W;
+        const sh = (slot.height / 100) * H;
         // Radius as % of the slot's smaller dimension
-        const sr = (slot.r / 100) * Math.min(sw, sh);
+        const sr = ((slot.r || 0) / 100) * Math.min(sw, sh);
 
         const photo = new Image();
         photo.src = slotImages[i];
@@ -400,11 +400,11 @@ export default function ProductClientPNGFrame({ product }) {
             onClick={interactive ? () => handleSlotClick(i) : undefined}
             style={{
               position:     "absolute",
-              left:         `${slot.x}%`,
-              top:          `${slot.y}%`,
-              width:        `${slot.w}%`,
-              height:       `${slot.h}%`,
-              borderRadius: `${slot.r}%`,
+              left:         `${slot.left}%`,
+              top:          `${slot.top}%`,
+              width:        `${slot.width}%`,
+              height:       `${slot.height}%`,
+              borderRadius: `${slot.r || 0}%`,
               overflow:     "hidden",
               cursor:       interactive ? "pointer" : "default",
               background:   slotImages[i] ? "transparent" : "#dce7f3",
