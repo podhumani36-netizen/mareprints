@@ -38,6 +38,9 @@ const heartFrameProducts = shopData.filter(
 const collageFrameProducts = shopData.filter(
   (item) => String(item.type).toLowerCase() === "collage_frame"
 );
+const pngFrameProducts = shopData.filter(
+  (item) => String(item.type).toLowerCase() === "png_frame"
+);
 
 const useNewsletter = () => {
   const [email, setEmail] = useState("");
@@ -497,6 +500,12 @@ export default function Shop() {
         title: "Grid Collage Frame",
         type: "collage_frame",
         data: collageFrameProducts,
+        limit: 4,
+      },
+      {
+        title: "Decorative Frame Prints",
+        type: "png_frame",
+        data: pngFrameProducts,
         limit: 4,
       },
     ],

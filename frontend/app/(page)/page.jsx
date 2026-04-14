@@ -19,7 +19,7 @@ const acrylicShapeProducts = shopData.filter((p) =>
 
 // ── Row 3: Special & collage frames ──────────────────────────────────────────
 const specialFrameProducts = shopData.filter((p) =>
-  ["heart_frame", "collage_frame"].includes(p.type)
+  ["heart_frame", "collage_frame", "png_frame"].includes(p.type)
 );
 
 const faqData = [
