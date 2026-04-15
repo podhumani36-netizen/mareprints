@@ -833,8 +833,8 @@ const validateBeforePayment = async () => {
     </div>
   );
 
-  // Heart clip-path using percentage polygon
-  const heartClip = "polygon(50% 5%,66% 20%,83% 18%,95% 32%,95% 48%,82% 62%,65% 74%,50% 88%,35% 74%,18% 62%,5% 48%,5% 32%,17% 18%,34% 20%)";
+  // Heart uses smooth SVG clipPath (defined once in the return JSX)
+  const heartClip = "url(#pcHeartClip)";
 
   const renderBetterPreview = (useWall = false) => {
     const isCircle = orientation === "circle";
@@ -870,18 +870,14 @@ const validateBeforePayment = async () => {
       : { width: "auto", height: "88%" };
 
     return (
-      <div style={{
-        position: "relative",
-        width: "100%",
-        aspectRatio: "4 / 3",
-        borderRadius: "20px",
-        overflow: "hidden",
-        background: useWall
-          ? `url('https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg') center/cover no-repeat`
-          : "linear-gradient(160deg,#eef2f7 0%,#dde4ee 100%)",
-        boxShadow: "0 4px 24px rgba(15,23,42,0.10)",
-        userSelect: "none",
-      }}>
+      <div
+        className={styles.previewBox}
+        style={{
+          background: useWall
+            ? `url('https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg') center/cover no-repeat`
+            : "linear-gradient(160deg,#eef2f7 0%,#dde4ee 100%)",
+        }}
+      >
 
         {/* Vignette */}
         {useWall && (
@@ -1234,10 +1230,7 @@ const renderSummaryPreview = () => {
           <div className="row g-3 align-items-start">
 
             {/* ── LEFT: sticky live preview ── */}
-            <div
-              className="col-12 col-lg-5"
-              style={{ position: "sticky", top: "12px", alignSelf: "flex-start" }}
-            >
+            <div className={`col-12 col-lg-5 ${styles.step2PreviewCol}`}>
               <div style={{ ...sectionCardStyle, padding: "clamp(12px,3vw,20px)" }}>
                 {sectionHeader("bi-display", "Live Preview", "Drag · pinch or slide to zoom")}
                 {renderBetterPreview(true)}
@@ -1619,6 +1612,15 @@ const renderSummaryPreview = () => {
   return (
     <>
       <canvas ref={canvasRef} style={{ display: "none" }} />
+
+      {/* SVG clip-path defs — heart uses smooth bezier in objectBoundingBox coords */}
+      <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }} aria-hidden="true">
+        <defs>
+          <clipPath id="pcHeartClip" clipPathUnits="objectBoundingBox">
+            <path d="M 0.5 0.26 C 0.5 0.20, 0.45 0.12, 0.35 0.12 C 0.19 0.12, 0.08 0.26, 0.08 0.42 C 0.08 0.59, 0.21 0.71, 0.50 0.88 C 0.79 0.71, 0.92 0.59, 0.92 0.42 C 0.92 0.26, 0.81 0.12, 0.65 0.12 C 0.55 0.12, 0.50 0.20, 0.50 0.26 Z" />
+          </clipPath>
+        </defs>
+      </svg>
 
       {showToast.visible && (
         <div

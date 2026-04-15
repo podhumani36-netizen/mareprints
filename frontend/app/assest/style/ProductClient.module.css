@@ -1815,3 +1815,42 @@
     position: static !important;
   }
 }
+
+/* ── Live preview box ── */
+.previewBox {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.10);
+    user-select: none;
+}
+
+/* ── Step 2 sticky preview column ── */
+.step2PreviewCol {
+    position: sticky;
+    top: 12px;
+    align-self: flex-start;
+    z-index: 40;
+}
+
+/* Mobile: compact sticky preview */
+@media (max-width: 991px) {
+    .step2PreviewCol {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: #fff;
+        padding: 8px;
+        margin: 0 -12px;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.10);
+    }
+
+    .previewBox {
+        aspect-ratio: unset;
+        height: 44vh;
+        border-radius: 16px;
+    }
+}
