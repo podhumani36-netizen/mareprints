@@ -291,10 +291,12 @@ export default function ProductClientCollageFrame({ product }) {
   // ── Shared styles ─────────────────────────────────────────────────────────
   const inputStyle = {
     borderRadius: "8px", border: "1px solid #dbe3ee", background: "#ffffff",
-    boxShadow: "none", padding: "12px 14px", fontSize: "15px",
+    boxShadow: "none",
+    padding: "clamp(9px,2vw,12px) clamp(10px,2.5vw,14px)",
+    fontSize: "clamp(13px,2.5vw,15px)",
     transition: "border-color 0.2s ease",
   };
-  const labelStyle = { fontSize: "12px", fontWeight: 700, color: "#334155", marginBottom: "8px", display: "block" };
+  const labelStyle = { fontSize: "clamp(10px,2vw,12px)", fontWeight: 700, color: "#334155", marginBottom: "6px", display: "block" };
   const sectionCard = { background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "20px", padding: "clamp(14px,3vw,24px)", boxShadow: "0 10px 30px rgba(15,23,42,0.05)" };
   const renderFieldError = (field) =>
     formErrors[field] ? <div style={{ marginTop: "6px", fontSize: "13px", color: "#dc2626", fontWeight: 600 }}>{formErrors[field]}</div> : null;
@@ -638,10 +640,10 @@ export default function ProductClientCollageFrame({ product }) {
               <div style={sectionCard}>
                 <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
                   <div>
-                    <h3 style={{ margin: 0, fontSize: "clamp(20px,4vw,28px)", fontWeight: 800, color: "#0f172a" }}>
+                    <h3 style={{ margin: 0, fontSize: "clamp(15px,3.5vw,26px)", fontWeight: 800, color: "#0f172a" }}>
                       Live Preview
                     </h3>
-                    <p style={{ margin: "6px 0 0", fontSize: 14, color: "#64748b" }}>
+                    <p style={{ margin: "4px 0 0", fontSize: "clamp(11px,2vw,13px)", color: "#64748b" }}>
                       Review your collage frame
                     </p>
                   </div>
@@ -734,10 +736,10 @@ export default function ProductClientCollageFrame({ product }) {
 
                 {/* Order summary */}
                 <div style={{ ...sectionCard, marginBottom: 20 }}>
-                  <h4 style={{ marginBottom: 18, fontWeight: 800, color: "#0f172a", fontSize: "clamp(16px,3vw,20px)" }}>
+                  <h4 style={{ marginBottom: 14, fontWeight: 800, color: "#0f172a", fontSize: "clamp(13px,2.5vw,18px)" }}>
                     Order Summary
                   </h4>
-                  <div style={{ display: "grid", gap: 10, fontSize: 15, color: "#334155" }}>
+                  <div style={{ display: "grid", gap: 8, fontSize: "clamp(12px,2.5vw,14px)", color: "#334155" }}>
                     {[
                       ["Product", "Photo Collage Frame"],
                       ["Photos", `${filledCount} / ${SLOT_COUNT} uploaded`],
@@ -752,14 +754,14 @@ export default function ProductClientCollageFrame({ product }) {
                     ))}
                     <div className="d-flex justify-content-between" style={{ paddingTop: 4 }}>
                       <span style={{ fontWeight: 700, color: "#0f172a" }}>Total Amount</span>
-                      <strong style={{ color: "#2563eb", fontSize: 18 }}>₹{total}</strong>
+                      <strong style={{ color: "#2563eb", fontSize: "clamp(15px,3vw,18px)" }}>₹{total}</strong>
                     </div>
                   </div>
                 </div>
 
                 {/* Customer details */}
                 <div style={{ ...sectionCard, marginBottom: 20 }}>
-                  <h4 style={{ marginBottom: 18, fontWeight: 800, color: "#0f172a", fontSize: "clamp(16px,3vw,20px)" }}>
+                  <h4 style={{ marginBottom: 14, fontWeight: 800, color: "#0f172a", fontSize: "clamp(13px,2.5vw,18px)" }}>
                     Customer Details
                   </h4>
                   <div className="row g-3">
@@ -818,7 +820,7 @@ export default function ProductClientCollageFrame({ product }) {
                       type="submit"
                       style={{
                         width: "100%", borderRadius: "14px",
-                        padding: "14px 18px", fontWeight: 700, fontSize: 16,
+                        padding: "clamp(11px,2.5vw,14px) 18px", fontWeight: 700, fontSize: "clamp(13px,2.5vw,16px)",
                         background: "linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%)",
                         color: "#fff", border: "none", cursor: "pointer",
                         boxShadow: "0 4px 14px rgba(37,99,235,0.35)",

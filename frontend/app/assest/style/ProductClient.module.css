@@ -1364,14 +1364,54 @@
     }
 
     .stepLabel {
-        font-size: 0.8rem;
+        font-size: 0.78rem;
     }
 
     .stepNumber {
-        width: 24px;
-        height: 24px;
-        font-size: 0.8rem;
+        width: 22px;
+        height: 22px;
+        font-size: 0.78rem;
         flex-shrink: 0;
+    }
+
+    /* ── Text sizes ── */
+    .guideTitle,
+    .optionsTitle,
+    .summaryTitle,
+    .formTitle,
+    .previewTitle {
+        font-size: 0.95rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .sectionTitle {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .guideList li {
+        font-size: 0.82rem;
+        padding: 0.55rem 0.65rem;
+        gap: 0.55rem;
+    }
+
+    .guideList li i {
+        font-size: 0.85rem;
+    }
+
+    .nextButton {
+        font-size: 0.88rem;
+        padding: 0.82rem;
+    }
+
+    .browseButton {
+        font-size: 0.88rem;
+        padding: 0.7rem 1.4rem;
+        margin-bottom: 1rem;
+    }
+
+    .uploadHint {
+        font-size: 0.78rem;
     }
 
     /* Cards */
@@ -1467,18 +1507,15 @@
         padding: 6px;
         margin-bottom: 16px;
         box-shadow: 0 6px 24px rgba(15, 23, 42, 0.13);
-        /* Prevent the outer card's border-radius from clipping the sticky bar */
         overflow: visible;
     }
 
-    /* Compact preview height inside the sticky bar */
-    .step2PreviewWrapper .previewArea {
-        min-height: 240px;
-    }
+    /* Let previewArea keep its own responsive min-height (set in the 768 / 480
+       breakpoints below) so the full frame is always visible — no override here */
 
-    /* Remove the extra margin-top on editor controls when inside sticky bar */
+    /* Tighten the gap between preview and editor controls */
     .step2PreviewWrapper > *:last-child {
-        margin-top: 8px;
+        margin-top: 6px;
     }
 }
 
@@ -1489,40 +1526,70 @@
     }
 
     .stepLabel {
-        font-size: 0.72rem;
+        font-size: 0.68rem;
     }
 
     .stepButton {
-        padding: 0.4rem 0.6rem;
+        padding: 0.38rem 0.55rem;
+        gap: 0.4rem;
+    }
+
+    .stepNumber {
+        width: 20px;
+        height: 20px;
+        font-size: 0.7rem;
     }
 
     .uploadZone {
-        min-height: 300px;
+        min-height: 280px;
     }
 
     .uploadPrompt {
-        padding: 1.25rem 0.75rem;
+        padding: 1rem 0.75rem;
     }
 
     .uploadIcon {
-        width: 60px;
-        height: 60px;
+        width: 56px;
+        height: 56px;
     }
 
     .uploadIcon i {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
     }
 
     .uploadTitle {
-        font-size: 1.05rem;
+        font-size: 0.95rem;
+    }
+
+    .uploadSubtitle {
+        font-size: 0.8rem;
+    }
+
+    .guideTitle,
+    .optionsTitle,
+    .summaryTitle,
+    .formTitle,
+    .previewTitle {
+        font-size: 0.88rem !important;
+    }
+
+    .guideList li {
+        font-size: 0.78rem;
+        padding: 0.45rem 0.55rem;
+    }
+
+    .nextButton,
+    .browseButton {
+        font-size: 0.82rem;
+        padding: 0.7rem 1.2rem;
     }
 
     .previewArea {
-        min-height: 340px;
+        min-height: 300px;
     }
 
     .uploadCard {
-        padding: 0.75rem;
+        padding: 0.65rem;
     }
 }
 
