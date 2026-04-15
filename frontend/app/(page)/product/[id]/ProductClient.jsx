@@ -67,6 +67,7 @@ export default function ProductClient() {
     landscape: ["10x8", "12x10", "16x12", "18x16", "22x18", "24x20", "30x20", "34x23", "custom"],
     circle:    ["12x12", "15x15", "18x18", "22x22", "custom"],
     square:    ["12x12", "15x15", "18x18", "22x22", "custom"],
+    heart:     ["12x12", "15x15", "18x18", "22x22", "custom"],
   };
 
   const thicknessOptions = ["3mm", "5mm", "8mm"];
@@ -164,7 +165,7 @@ export default function ProductClient() {
   useEffect(() => {
     if (orientation === "portrait") setSize("20x24");
     else if (orientation === "landscape") setSize("24x20");
-    else setSize("18x18"); // circle / square
+    else setSize("18x18"); // circle / square / heart
     setCustomSize({ width: "", height: "" });
     setZoom(1);
     setImageOffset({ x: 0, y: 0 });
@@ -311,11 +312,25 @@ export default function ProductClient() {
       const fx = PAD;
       const fy = PAD;
 
+      const drawHeartPath = (ctx, x, y, w, h) => {
+        const mx = x + w / 2;
+        ctx.moveTo(mx, y + h * 0.88);
+        ctx.bezierCurveTo(x + w * 0.1, y + h * 0.70, x, y + h * 0.55, x, y + h * 0.35);
+        ctx.bezierCurveTo(x, y + h * 0.10, x + w * 0.20, y, x + w * 0.40, y);
+        ctx.bezierCurveTo(x + w * 0.46, y, mx, y + h * 0.25, mx, y + h * 0.25);
+        ctx.bezierCurveTo(mx, y + h * 0.25, x + w * 0.54, y, x + w * 0.60, y);
+        ctx.bezierCurveTo(x + w * 0.80, y, x + w, y + h * 0.10, x + w, y + h * 0.35);
+        ctx.bezierCurveTo(x + w, y + h * 0.55, x + w * 0.90, y + h * 0.70, mx, y + h * 0.88);
+        ctx.closePath();
+      };
+
       // 1. Depth / thickness layer — same gradient as live preview, offset bottom-right
       ctx.save();
       ctx.beginPath();
       if (orientation === "circle") {
         ctx.ellipse(fx + depthPx + frameW / 2, fy + depthPx + frameH / 2, frameW / 2, frameH / 2, 0, 0, Math.PI * 2);
+      } else if (orientation === "heart") {
+        drawHeartPath(ctx, fx + depthPx, fy + depthPx, frameW, frameH);
       } else {
         ctx.rect(fx + depthPx, fy + depthPx, frameW, frameH);
       }
@@ -337,6 +352,8 @@ export default function ProductClient() {
       ctx.beginPath();
       if (orientation === "circle") {
         ctx.ellipse(fx + frameW / 2, fy + frameH / 2, frameW / 2, frameH / 2, 0, 0, Math.PI * 2);
+      } else if (orientation === "heart") {
+        drawHeartPath(ctx, fx, fy, frameW, frameH);
       } else {
         ctx.rect(fx, fy, frameW, frameH);
       }
@@ -352,6 +369,8 @@ export default function ProductClient() {
       ctx.beginPath();
       if (orientation === "circle") {
         ctx.ellipse(fx + frameW / 2, fy + frameH / 2, frameW / 2, frameH / 2, 0, 0, Math.PI * 2);
+      } else if (orientation === "heart") {
+        drawHeartPath(ctx, fx, fy, frameW, frameH);
       } else {
         ctx.rect(fx, fy, frameW, frameH);
       }
@@ -761,351 +780,233 @@ const validateBeforePayment = async () => {
   );
 
   const renderEditorControls = () => (
-    <div
-      style={{
-        marginTop: "10px",
-        padding: "10px",
-        background: "#ffffff",
-        border: "1px solid #e2e8f0",
-        borderRadius: "20px",
-        boxShadow: "0 10px 24px rgba(15,23,42,0.05)",
-      }}
-    >
-      <div className="d-flex gap-2 flex-wrap align-items-center justify-content-between">
-        <div className="d-flex gap-2 align-items-center flex-wrap">
-          <button
-            type="button"
-            className="btn btn-light"
-            onClick={handleZoomOut}
-            style={{
-              width: "34px",
-              height: "34px",
-              borderRadius: "8px",
-              border: "1px solid #dbe3ee",
-              fontSize: "13px",
-            }}
-          >
-            <i className="bi bi-dash-lg"></i>
-          </button>
+    <div style={{
+      marginTop: "10px",
+      padding: "10px 14px",
+      background: "#f8fafc",
+      border: "1px solid #e2e8f0",
+      borderRadius: "14px",
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+      flexWrap: "wrap",
+    }}>
+      {/* Zoom out */}
+      <button type="button" onClick={handleZoomOut} style={{
+        width: "34px", height: "34px", borderRadius: "8px",
+        border: "1.5px solid #e2e8f0", background: "#fff",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: "14px", cursor: "pointer", color: "#334155", flexShrink: 0,
+      }}><i className="bi bi-dash-lg" /></button>
 
-          <div
-            style={{
-              minWidth: "60px",
-              textAlign: "center",
-              fontWeight: 500,
-              fontSize: "13px",
-              color: "#0f172a",
-              background: "#f8fafc",
-              border: "1px solid #e2e8f0",
-              borderRadius: "12px",
-              padding: "10px 12px",
-            }}
-          >
-            {Math.round(zoom * 100)}%
-          </div>
-
-          <button
-            type="button"
-            className="btn btn-light"
-            onClick={handleZoomIn}
-            style={{
-              width: "34px",
-              height: "34px",
-              borderRadius: "8px",
-              border: "1px solid #dbe3ee",
-               fontSize: "13px",
-            }}
-          >
-            <i className="bi bi-plus-lg"></i>
-          </button>
-        </div>
-
-        <button
-          type="button"
-          className="btn btn-outline-dark"
-          onClick={() => {
-            setZoom(1);
-            setImageOffset({ x: 0, y: 0 });
-            setIsPaymentReady(false);
-          }}
-          style={{
-            borderRadius: "12px",
-            padding: "8px 14px",
-             fontSize: "13px",
-          }}
-        >
-          Reset Position
-        </button>
-      </div>
-
-      <div className="mt-3">
+      {/* Zoom slider */}
+      <div style={{ flex: 1, minWidth: "80px", display: "flex", alignItems: "center", gap: "8px" }}>
         <input
-          type="range"
-          min="1"
-          max="3"
-          step="0.05"
-          value={zoom}
-          onChange={(e) => {
-            setZoom(Number(e.target.value));
-            setIsPaymentReady(false);
-          }}
-          style={{
-            width: "100%",
-            cursor: "pointer",
-            accentColor: "#0f172a",
-          }}
+          type="range" min="1" max="3" step="0.05" value={zoom}
+          onChange={(e) => { setZoom(Number(e.target.value)); setIsPaymentReady(false); }}
+          style={{ flex: 1, cursor: "pointer", accentColor: "#2563eb" }}
         />
+        <span style={{
+          fontSize: "11px", fontWeight: 700, color: "#2563eb",
+          background: "#eff6ff", border: "1px solid #bfdbfe",
+          borderRadius: "6px", padding: "3px 7px", whiteSpace: "nowrap",
+        }}>{Math.round(zoom * 100)}%</span>
       </div>
+
+      {/* Zoom in */}
+      <button type="button" onClick={handleZoomIn} style={{
+        width: "34px", height: "34px", borderRadius: "8px",
+        border: "1.5px solid #e2e8f0", background: "#fff",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: "14px", cursor: "pointer", color: "#334155", flexShrink: 0,
+      }}><i className="bi bi-plus-lg" /></button>
+
+      {/* Reset */}
+      <button type="button" onClick={() => { setZoom(1); setImageOffset({ x: 0, y: 0 }); setIsPaymentReady(false); }} style={{
+        height: "34px", borderRadius: "8px",
+        border: "1.5px solid #e2e8f0", background: "#fff",
+        padding: "0 12px", fontSize: "12px", fontWeight: 600,
+        cursor: "pointer", color: "#475569", whiteSpace: "nowrap", flexShrink: 0,
+      }}>
+        <i className="bi bi-arrow-counterclockwise me-1" />Reset
+      </button>
     </div>
   );
 
+  // Heart clip-path using percentage polygon
+  const heartClip = "polygon(50% 5%,66% 20%,83% 18%,95% 32%,95% 48%,82% 62%,65% 74%,50% 88%,35% 74%,18% 62%,5% 48%,5% 32%,17% 18%,34% 20%)";
+
   const renderBetterPreview = (useWall = false) => {
     const isCircle = orientation === "circle";
+    const isHeart  = orientation === "heart";
     const shapeRadius = isCircle ? "50%" : "0px";
-    let dims;
-    let widthInch, heightInch;
+    const shapeClip   = isHeart ? heartClip : "none";
+
+    let widthInch, heightInch, frameAR;
     if (size === "custom") {
       widthInch  = parseFloat(customSize.width)  || 10;
       heightInch = parseFloat(customSize.height) || 10;
-      dims = { width: widthInch * 10, height: heightInch * 10 };
     } else {
-      dims = frameDimensions[size] || { width: 220, height: 280 };
       [widthInch, heightInch] = size.split("x").map(Number);
     }
-const depth = thickness === "3mm" ? 4 : thickness === "5mm" ? 5 : 7;  
-  const borderSize =
-      thickness === "3mm" ? "8px" : thickness === "5mm" ? "12px" : "16px";
-const getShadowByThickness = () => {
-  if (thickness === "3mm") {
-    return "0 10px 20px rgba(0,0,0,0.4)";
-  }
-  if (thickness === "5mm") {
-    return "0 20px 40px rgba(0,0,0,0.3)";
-  }
-  if (thickness === "8mm") {
-    return "0 35px 70px rgba(0,0,0,0.4)";
-  }
-};
+    frameAR = widthInch / heightInch; // aspect ratio
+
+    const depthPx  = thickness === "3mm" ? 5 : thickness === "5mm" ? 8 : 12;
+    const depthBg  = thickness === "3mm"
+      ? "linear-gradient(145deg,#c8c8c8,#888)"
+      : thickness === "5mm"
+      ? "linear-gradient(145deg,#b4b4b4,#777)"
+      : "linear-gradient(145deg,#a0a0a0,#646464)";
+    const shadowStr = thickness === "3mm"
+      ? "0 16px 40px rgba(0,0,0,0.28)"
+      : thickness === "5mm"
+      ? "0 24px 56px rgba(0,0,0,0.34)"
+      : "0 32px 72px rgba(0,0,0,0.42)";
+
+    // Frame occupies 88% of container height (portrait) or 82% width (landscape/square)
+    const isLandscape = frameAR > 1;
+    const frameDim = isLandscape
+      ? { width: "82%", height: "auto" }
+      : { width: "auto", height: "88%" };
+
     return (
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          minHeight: "550px",
-          borderRadius: "28px",
-          overflow: "hidden",
-          background: useWall
-            ? "#f8fafc"
-            : "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
-          backgroundImage: useWall
-            ? "url(https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg)"
-            : undefined,
-          backgroundSize: useWall ? "cover" : undefined,
-          backgroundPosition: useWall ? "center" : undefined,
-          border: "1px solid #e2e8f0",
-        }}
-      >
+      <div style={{
+        position: "relative",
+        width: "100%",
+        aspectRatio: "4 / 3",
+        borderRadius: "20px",
+        overflow: "hidden",
+        background: useWall
+          ? `url('https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg') center/cover no-repeat`
+          : "linear-gradient(160deg,#eef2f7 0%,#dde4ee 100%)",
+        boxShadow: "0 4px 24px rgba(15,23,42,0.10)",
+        userSelect: "none",
+      }}>
+
+        {/* Vignette */}
         {useWall && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background:
-                "linear-gradient(to bottom, rgba(255,255,255,0.10), rgba(15,23,42,0.06))",
-              pointerEvents: "none",
-            }}
-          />
+          <div style={{
+            position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none",
+            background: "radial-gradient(ellipse at 50% 30%, transparent 45%, rgba(0,0,0,0.22) 100%)",
+          }} />
         )}
 
-        <div
-          style={{
-            position: "absolute",
-            inset: "24px",
-            borderRadius: "24px",
-            border: "1px solid rgba(255,255,255,0.55)",
-            pointerEvents: "none",
-          }}
-        />
-<div
-  style={{
-    position: "absolute",
-    left: "50%",
-    top: "10px",
-    width: `${dims.width}px`,
-    height: `${dims.height}px`,
-    transform: "translateX(-50%)",
-    borderRadius: shapeRadius,
-    overflow: "visible",
-    background: "transparent",
-    maxWidth: "88%",
-    maxHeight: "calc(100% - 20px)",
-  }}
->
-  {/* Back depth layer */}
-  <div
-    style={{
-      position: "absolute",
-      top: `${depth}px`,
-      left: `${depth}px`,
-      right: `-${depth}px`,
-      bottom: `-${depth}px`,
-      borderRadius: shapeRadius,
-      background:
-        thickness === "3mm"
-          ? "linear-gradient(145deg, #d9d9d9,  #8f8f8f)"
-          : thickness === "5mm"
-          ? "linear-gradient(145deg, #cfcfcf, #8f8f8f)"
-          : "linear-gradient(145deg, #bdbdbd,  #8f8f8f)",
-      boxShadow: "0 18px 35px rgba(0,0,0,0.22)",
-      zIndex: 1,
-    }}
-  />
+        {/* ── Frame ── */}
+        <div style={{
+          position: "absolute",
+          top: "5%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          ...frameDim,
+          aspectRatio: `${widthInch} / ${heightInch}`,
+          maxWidth: "88%",
+          maxHeight: "90%",
+          overflow: "visible",
+          zIndex: 2,
+        }}>
+          {/* Depth / shadow layer */}
+          <div style={{
+            position: "absolute", inset: 0,
+            transform: `translate(${depthPx}px, ${depthPx}px)`,
+            borderRadius: shapeRadius,
+            clipPath: shapeClip,
+            background: depthBg,
+            boxShadow: shadowStr,
+            zIndex: 1,
+          }} />
 
-  {/* Front frame */}
-  <div
-    style={{
-      position: "absolute",
-      inset: 0,
-      borderRadius: shapeRadius,
-      background: "#ffffff",
-      boxShadow: "0 10px 24px rgba(0,0,0,0.16)",
-      overflow: "hidden",
-      zIndex: 2,
-    }}
-  >
-   <div
-  style={{
-    position: "relative",
-    width: "100%",
-    height: "100%",
-    overflow: "hidden",
-    cursor: uploadedImage
-      ? isImageDragging
-        ? "grabbing"
-        : "grab"
-      : "default",
-    background: "#f1f5f9",
-    touchAction: "none",
-  }}
-  onMouseDown={uploadedImage ? handleImageMouseDown : undefined}
-  onTouchStart={uploadedImage ? handleImageTouchStart : undefined}
-  onTouchMove={uploadedImage ? handleImageTouchMove : undefined}
-  onTouchEnd={uploadedImage ? handleImageTouchEnd : undefined}
-  onTouchCancel={uploadedImage ? handleImageTouchEnd : undefined}
->
-     <img
-  src={uploadedImage}
-  alt="Frame preview"
-  draggable={false}
-  style={{
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    transform: `translate(calc(-50% + ${imageOffset.x}px), calc(-50% + ${imageOffset.y}px)) scale(${zoom})`,
-    transformOrigin: "center center",
-    transition: isImageDragging ? "none" : "transform 0.18s ease",
-    userSelect: "none",
-    touchAction: "none",
-    pointerEvents: "none",
-  }}
-/>
-
-      {uploadedImage && (
-        <div
-          style={{
-            position: "absolute",
-            top: "12px",
-            right: "12px",
-            //background: "rgba(15,23,42,0.72)",
-            color: "#fff",
-            padding: "7px 12px",
-            borderRadius: "999px",
-            fontSize: "11px",
-            fontWeight: 500,
-            pointerEvents: "none",
-          }}
-        >
-          {/* Drag to adjust */}
-        </div>
-      )}
-    </div>
-  </div>
-</div>
-
-        <div
-          style={{
-            position: "absolute",
-            left: "50%",
-            bottom: "28px",
-            transform: "translateX(-50%)",
-            display: "flex",
-            gap: "12px",
-            flexWrap: "wrap",
-            justifyContent: "center",
-            padding: "0 16px",
-            width: "100%",
-          }}
-        >
-          <span
+          {/* Front face — draggable */}
+          <div
             style={{
-              background: "rgba(255,255,255,0.96)",
-              padding: "10px 16px",
-              borderRadius: "999px",
-              fontWeight: 500,
-              fontSize: "13px",
-              color: "#0f172a",
-              border: "1px solid #e2e8f0",
+              position: "absolute", inset: 0,
+              borderRadius: shapeRadius,
+              clipPath: shapeClip,
+              background: "#fff",
+              overflow: "hidden",
+              zIndex: 2,
+              cursor: uploadedImage ? (isImageDragging ? "grabbing" : "grab") : "default",
+              touchAction: "none",
             }}
+            onMouseDown={uploadedImage ? handleImageMouseDown : undefined}
+            onTouchStart={uploadedImage ? handleImageTouchStart : undefined}
+            onTouchMove={uploadedImage ? handleImageTouchMove : undefined}
+            onTouchEnd={uploadedImage ? handleImageTouchEnd : undefined}
+            onTouchCancel={uploadedImage ? handleImageTouchEnd : undefined}
           >
-            {size === "custom"
+            {uploadedImage ? (
+              <img
+                src={uploadedImage}
+                alt="preview"
+                draggable={false}
+                style={{
+                  position: "absolute", top: "50%", left: "50%",
+                  width: "100%", height: "100%", objectFit: "cover",
+                  transform: `translate(calc(-50% + ${imageOffset.x}px), calc(-50% + ${imageOffset.y}px)) scale(${zoom})`,
+                  transformOrigin: "center center",
+                  transition: isImageDragging ? "none" : "transform 0.18s ease",
+                  userSelect: "none", touchAction: "none", pointerEvents: "none",
+                }}
+              />
+            ) : (
+              <div style={{
+                position: "absolute", inset: 0,
+                display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center",
+                background: "linear-gradient(135deg,#f1f5f9,#e2e8f0)",
+                color: "#94a3b8", gap: "8px",
+              }}>
+                <i className="bi bi-image" style={{ fontSize: "clamp(24px,5vw,36px)" }} />
+                <span style={{ fontSize: "clamp(10px,2vw,13px)", fontWeight: 500 }}>Upload to preview</span>
+              </div>
+            )}
+          </div>
+
+          {/* Acrylic glass shine */}
+          <div style={{
+            position: "absolute", inset: 0,
+            borderRadius: shapeRadius,
+            clipPath: shapeClip,
+            background: "linear-gradient(135deg,rgba(255,255,255,0.22) 0%,rgba(255,255,255,0.04) 50%,rgba(255,255,255,0.12) 100%)",
+            pointerEvents: "none", zIndex: 3,
+          }} />
+        </div>
+
+        {/* Info badges */}
+        <div style={{
+          position: "absolute", bottom: "10px", left: 0, right: 0,
+          display: "flex", justifyContent: "center", gap: "8px",
+          flexWrap: "wrap", padding: "0 10px", zIndex: 5,
+        }}>
+          {[
+            size === "custom"
               ? `${customSize.width || "?"}×${customSize.height || "?"} in`
-              : `${size} • ${(widthInch * 2.54).toFixed(1)} × ${(heightInch * 2.54).toFixed(1)} cm`}
-          </span>
-
-          <span
-            style={{
-              background: "rgba(255,255,255,0.96)",
-              padding: "10px 16px",
+              : `${widthInch}×${heightInch} in`,
+            thickness,
+            orientation.charAt(0).toUpperCase() + orientation.slice(1),
+          ].map((txt) => (
+            <span key={txt} style={{
+              background: "rgba(255,255,255,0.92)",
+              backdropFilter: "blur(8px)",
+              padding: "4px 11px",
               borderRadius: "999px",
-              fontWeight: 500,
-              fontSize: "13px",
+              fontSize: "clamp(9px,2vw,11px)",
+              fontWeight: 600,
               color: "#0f172a",
-              border: "1px solid #e2e8f0",
-            }}
-          >
-            Thickness: {thickness}
-          </span>
+              boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+              border: "1px solid rgba(255,255,255,0.7)",
+            }}>{txt}</span>
+          ))}
         </div>
+
       </div>
     );
   };
 
 const renderSummaryPreview = () => {
   if (!uploadedImage) return null;
-
   return (
-    <div
-      style={{
-        width: "100%",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "flex-start",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "420px",
-          transform: "scale(0.62)",
-          transformOrigin: "top center",
-          marginBottom: "-180px",
-        }}
-      >
-        {renderBetterPreview(false)}
-      </div>
+    <div style={{ width: "100%", marginBottom: "12px" }}>
+      {renderBetterPreview(false)}
     </div>
   );
 }; 
@@ -1272,8 +1173,9 @@ const renderSummaryPreview = () => {
     const shapeOptions = [
       { value: "portrait",  label: "Portrait",  icon: "bi-phone" },
       { value: "landscape", label: "Landscape", icon: "bi-tablet-landscape" },
-      { value: "circle",    label: "Circle",    icon: "bi-circle" },
+      { value: "circle",    label: "Round",     icon: "bi-circle" },
       { value: "square",    label: "Square",    icon: "bi-square" },
+      { value: "heart",     label: "Heart",     icon: "bi-heart" },
     ];
 
     const thicknessInfo = {
@@ -1328,18 +1230,24 @@ const renderSummaryPreview = () => {
           paddingBottom: "48px",
         }}
       >
-        <div className="container">
-          <div className="row g-4 align-items-start">
+        <div className="container-fluid" style={{ maxWidth: "1400px" }}>
+          <div className="row g-3 align-items-start">
 
-            {/* ── LEFT COLUMN ── */}
-            <div className="col-12 col-xl-8">
-
-              {/* Live Preview card */}
-              <div style={{ ...sectionCardStyle, marginBottom: "20px" }}>
-                {sectionHeader("bi-display", "Live Preview", "Drag to reposition · pinch or slider to zoom")}
+            {/* ── LEFT: sticky live preview ── */}
+            <div
+              className="col-12 col-lg-5"
+              style={{ position: "sticky", top: "12px", alignSelf: "flex-start" }}
+            >
+              <div style={{ ...sectionCardStyle, padding: "clamp(12px,3vw,20px)" }}>
+                {sectionHeader("bi-display", "Live Preview", "Drag · pinch or slide to zoom")}
                 {renderBetterPreview(true)}
                 {renderEditorControls()}
               </div>
+            </div>
+
+            {/* ── RIGHT: all controls stacked ── */}
+            <div className="col-12 col-lg-7">
+              <div className="d-flex flex-column gap-3">
 
               {/* Customise Options card */}
               <div style={{ ...sectionCardStyle }}>
@@ -1520,11 +1428,9 @@ const renderSummaryPreview = () => {
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* ── RIGHT COLUMN ── */}
-            <div className="col-12 col-xl-4">
-              <div className="d-flex flex-column gap-4">
+              {/* ── Order Summary + Contact (was right column) ── */}
+              <div className="d-flex flex-column gap-3">
 
                 {/* Order Summary card */}
                 <div style={{
@@ -1699,8 +1605,10 @@ const renderSummaryPreview = () => {
                   </form>
                 </div>
 
-              </div>
-            </div>
+              </div>{/* end Order Summary + Contact column */}
+
+              </div>{/* end right col flex wrapper */}
+            </div>{/* end right col-lg-7 */}
 
           </div>
         </div>
