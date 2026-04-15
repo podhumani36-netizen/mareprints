@@ -475,13 +475,14 @@ export default function ProductClientBase({
   // ── Styles ────────────────────────────────────────────────────────────────
 
   const inputStyle = {
-    borderRadius: "0px",
+    borderRadius: "8px",
     minHeight: "10px",
     border: "1px solid #dbe3ee",
     background: "#ffffff",
     boxShadow: "none",
     padding: "12px 14px",
     fontSize: "15px",
+    transition: "border-color 0.2s ease, box-shadow 0.2s ease",
   };
 
   const labelStyle = {
@@ -495,8 +496,8 @@ export default function ProductClientBase({
   const sectionCardStyle = {
     background: "#ffffff",
     border: "1px solid #e2e8f0",
-    borderRadius: "24px",
-    padding: "24px",
+    borderRadius: "20px",
+    padding: "clamp(14px, 3vw, 24px)",
     boxShadow: "0 10px 30px rgba(15,23,42,0.05)",
   };
 
@@ -637,7 +638,7 @@ export default function ProductClientBase({
           step="0.05"
           value={zoom}
           onChange={(e) => { setZoom(Number(e.target.value)); setIsPaymentReady(false); }}
-          style={{ width: "100%", cursor: "pointer", accentColor: "#0f172a" }}
+          style={{ width: "100%", cursor: "pointer", accentColor: "#2563eb" }}
         />
       </div>
     </div>
@@ -650,10 +651,10 @@ export default function ProductClientBase({
 
     return (
       <div
+        className={styles.previewArea}
         style={{
           position: "relative",
           width: "100%",
-          minHeight: "550px",
           borderRadius: "28px",
           overflow: "hidden",
           background: useWall ? "#f8fafc" : "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
@@ -821,8 +822,8 @@ export default function ProductClientBase({
   const renderSummaryPreview = () => {
     if (!uploadedImage) return null;
     return (
-      <div style={{ width: "100%", display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
-        <div style={{ width: "100%", maxWidth: "420px", transform: "scale(0.62)", transformOrigin: "top center", marginBottom: "-180px" }}>
+      <div className={styles.summaryPreviewWrapper}>
+        <div className={styles.summaryPreviewScaler}>
           {renderBetterPreview(false)}
         </div>
       </div>
@@ -952,20 +953,35 @@ export default function ProductClientBase({
               <div style={sectionCardStyle}>
                 <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
                   <div>
-                    <h3 style={{ margin: 0, fontSize: "28px", fontWeight: 800, color: "#0f172a" }}>
+                    <h3 style={{ margin: 0, fontSize: "clamp(20px, 4vw, 28px)", fontWeight: 800, color: "#0f172a" }}>
                       Live Preview
                     </h3>
-                    <p style={{ margin: "6px 0 0", fontSize: "14px", color: "#64748b" }}>
+                    <p style={{ margin: "6px 0 0", fontSize: "clamp(12px, 2vw, 14px)", color: "#64748b" }}>
                       Adjust your image and review before payment
                     </p>
                   </div>
                   <button
                     type="button"
-                    className="btn btn-outline-dark"
                     onClick={() => goToStep(1)}
-                    style={{ borderRadius: "12px" }}
+                    style={{
+                      borderRadius: "12px",
+                      padding: "8px 16px",
+                      border: "1.5px solid #2563eb",
+                      color: "#2563eb",
+                      background: "transparent",
+                      cursor: "pointer",
+                      fontWeight: 600,
+                      fontSize: "14px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      transition: "all 0.2s ease",
+                      whiteSpace: "nowrap",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "#2563eb"; e.currentTarget.style.color = "#fff"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#2563eb"; }}
                   >
-                    <i className="bi bi-arrow-left me-2" />Back
+                    <i className="bi bi-arrow-left" />Back
                   </button>
                 </div>
 
@@ -1020,7 +1036,7 @@ export default function ProductClientBase({
 
                 {/* Order summary */}
                 <div style={{ ...sectionCardStyle, marginBottom: "20px" }}>
-                  <h4 style={{ marginBottom: "18px", fontWeight: 800, color: "#0f172a" }}>
+                  <h4 style={{ marginBottom: "18px", fontWeight: 800, color: "#0f172a", fontSize: "clamp(16px, 3vw, 20px)" }}>
                     Order Summary
                   </h4>
                   {renderSummaryPreview()}
@@ -1029,19 +1045,22 @@ export default function ProductClientBase({
                       ["Size", size],
                       ["Thickness", thickness],
                       ["Quantity", quantity],
-                      ["Total Amount", `₹${totalAmount}`],
                     ].map(([label, val]) => (
-                      <div key={label} className="d-flex justify-content-between">
-                        <span>{label}</span>
-                        <strong>{val}</strong>
+                      <div key={label} className="d-flex justify-content-between" style={{ paddingBottom: "8px", borderBottom: "1px solid #f1f5f9" }}>
+                        <span style={{ color: "#64748b" }}>{label}</span>
+                        <strong style={{ color: "#0f172a" }}>{val}</strong>
                       </div>
                     ))}
+                    <div className="d-flex justify-content-between" style={{ paddingTop: "4px" }}>
+                      <span style={{ fontWeight: 700, color: "#0f172a" }}>Total Amount</span>
+                      <strong style={{ color: "#2563eb", fontSize: "18px" }}>₹{totalAmount}</strong>
+                    </div>
                   </div>
                 </div>
 
                 {/* Customer details */}
                 <div style={{ ...sectionCardStyle, marginBottom: "20px" }}>
-                  <h4 style={{ marginBottom: "18px", fontWeight: 800, color: "#0f172a" }}>
+                  <h4 style={{ marginBottom: "18px", fontWeight: 800, color: "#0f172a", fontSize: "clamp(16px, 3vw, 20px)" }}>
                     Customer Details
                   </h4>
                   <div className="row g-3">
@@ -1093,10 +1112,25 @@ export default function ProductClientBase({
                   {!isPaymentReady ? (
                     <button
                       type="submit"
-                      className="btn btn-dark w-100"
-                      style={{ borderRadius: "14px", padding: "14px 18px", fontWeight: 700, fontSize: "16px" }}
+                      style={{
+                        width: "100%",
+                        borderRadius: "14px",
+                        padding: "14px 18px",
+                        fontWeight: 700,
+                        fontSize: "16px",
+                        background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                        color: "#ffffff",
+                        border: "none",
+                        cursor: "pointer",
+                        boxShadow: "0 4px 14px rgba(37,99,235,0.35)",
+                        transition: "all 0.25s ease",
+                        letterSpacing: "0.01em",
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(37,99,235,0.45)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)"; e.currentTarget.style.boxShadow = "0 4px 14px rgba(37,99,235,0.35)"; e.currentTarget.style.transform = "translateY(0)"; }}
                     >
-                      Verify Details & Pay Now
+                      <i className="bi bi-shield-check me-2" />
+                      Verify Details &amp; Pay Now
                     </button>
                   ) : (
                     <RazorpayPayment
@@ -1145,10 +1179,10 @@ export default function ProductClientBase({
         <div
           style={{
             position: "fixed",
-            top: "20px",
-            right: "20px",
+            top: "16px",
+            right: "16px",
             zIndex: 9999,
-            minWidth: "280px",
+            width: "calc(100vw - 32px)",
             maxWidth: "380px",
             background: "#fff",
             borderRadius: "16px",
@@ -1159,12 +1193,15 @@ export default function ProductClientBase({
         >
           <div
             style={{
-              padding: "14px 16px",
+              padding: "14px 18px",
               borderLeft: `4px solid ${
                 showToast.type === "success" ? "#16a34a" :
                 showToast.type === "error"   ? "#dc2626" :
                 showToast.type === "warning" ? "#f59e0b" : "#2563eb"
               }`,
+              display: "flex",
+              flexDirection: "column",
+              gap: "2px",
             }}
           >
             <div style={{ fontWeight: 800, color: "#0f172a", marginBottom: "4px" }}>{showToast.title}</div>
@@ -1199,9 +1236,18 @@ export default function ProductClientBase({
               </p>
               <button
                 type="button"
-                className="btn btn-dark"
                 data-bs-dismiss="modal"
-                style={{ borderRadius: "14px", padding: "12px 24px" }}
+                style={{
+                  borderRadius: "14px",
+                  padding: "12px 28px",
+                  background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                  color: "#fff",
+                  border: "none",
+                  fontWeight: 700,
+                  fontSize: "15px",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 14px rgba(37,99,235,0.3)",
+                }}
               >
                 Close
               </button>
