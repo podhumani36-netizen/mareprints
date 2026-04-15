@@ -985,8 +985,12 @@ export default function ProductClientBase({
                   </button>
                 </div>
 
-                {renderBetterPreview(true)}
-                {renderEditorControls()}
+                {/* Sticky on mobile: preview + zoom controls stay visible while
+                    the user scrolls through the options / form below */}
+                <div className={styles.step2PreviewWrapper}>
+                  {renderBetterPreview(true)}
+                  {renderEditorControls()}
+                </div>
 
                 <div style={{ ...sectionCardStyle, marginBottom: "20px" }}>
                   <div className="row g-3">

@@ -1449,6 +1449,39 @@
     }
 }
 
+/* ── Step 2: Sticky live preview on mobile ───────────────────────────────── */
+/* On desktop this wrapper adds nothing. On mobile (≤ 991px) it becomes      */
+/* sticky so the preview stays visible while the user scrolls through the    */
+/* options and form beneath it.                                               */
+.step2PreviewWrapper {
+    /* desktop: transparent passthrough */
+}
+
+@media (max-width: 991px) {
+    .step2PreviewWrapper {
+        position: sticky;
+        top: 0;
+        z-index: 99;
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 6px;
+        margin-bottom: 16px;
+        box-shadow: 0 6px 24px rgba(15, 23, 42, 0.13);
+        /* Prevent the outer card's border-radius from clipping the sticky bar */
+        overflow: visible;
+    }
+
+    /* Compact preview height inside the sticky bar */
+    .step2PreviewWrapper .previewArea {
+        min-height: 240px;
+    }
+
+    /* Remove the extra margin-top on editor controls when inside sticky bar */
+    .step2PreviewWrapper > *:last-child {
+        margin-top: 8px;
+    }
+}
+
 /* Small phones (≤ 480px) */
 @media (max-width: 480px) {
     .stepWrapper {

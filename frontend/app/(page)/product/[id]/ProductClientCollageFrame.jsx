@@ -664,7 +664,11 @@ export default function ProductClientCollageFrame({ product }) {
                   </button>
                 </div>
 
-                {renderCollageGrid(true)}
+                {/* Sticky on mobile: preview stays visible while the user
+                    scrolls through the options / form below */}
+                <div className={styles.step2PreviewWrapper}>
+                  {renderCollageGrid(true)}
+                </div>
 
                 {/* Options */}
                 <div style={{ ...sectionCard, marginTop: 20 }}>
