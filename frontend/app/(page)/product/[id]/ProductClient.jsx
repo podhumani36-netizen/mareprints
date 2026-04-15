@@ -642,6 +642,8 @@ const validateBeforePayment = async () => {
         quantity,
         amount: calculatePrice(),
         payment_id: paymentData?.razorpay_payment_id || "",
+        previewImage: mailPreviewImage || "",
+        uploadedImage: uploadedImage || "",
       };
       orders.unshift(newOrder);
       localStorage.setItem("mareprints_orders", JSON.stringify(orders));
@@ -888,7 +890,7 @@ const getShadowByThickness = () => {
             ? "#f8fafc"
             : "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
           backgroundImage: useWall
-            ? "url(https://res.cloudinary.com/dsprfys3x/image/upload/v1773637296/wmremove-transformed_f1xtnt.jpg)"
+            ? "url(https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg)"
             : undefined,
           backgroundSize: useWall ? "cover" : undefined,
           backgroundPosition: useWall ? "center" : undefined,
@@ -1184,6 +1186,20 @@ const renderSummaryPreview = () => {
               </div>
             </div>
 
+            {/* Mobile-only: Continue button below upload zone */}
+            <div className="d-block d-lg-none mt-3">
+              <button
+                className={styles.nextButton}
+                onClick={() => goToStep(2)}
+                disabled={!uploadedImage}
+                type="button"
+                style={{ width: "100%" }}
+              >
+                Continue to Customize & Payment
+                <i className="bi bi-arrow-right ms-2"></i>
+              </button>
+            </div>
+
             <div className={`${styles.uploadCard} mt-4`}>
               <img
                 src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png"
@@ -1225,8 +1241,9 @@ const renderSummaryPreview = () => {
                 </li>
               </ul>
 
+              {/* Desktop-only: Continue button inside guide card */}
               <button
-                className={styles.nextButton}
+                className={`${styles.nextButton} d-none d-lg-flex`}
                 onClick={() => goToStep(2)}
                 disabled={!uploadedImage}
                 type="button"
