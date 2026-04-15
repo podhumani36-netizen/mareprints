@@ -359,6 +359,7 @@ export default function ProductClientPNGFrame({ product }) {
     if (step === 2 && !selectedFrame)            { showNotification("Please select a frame first", "warning"); return; }
     if (step === 3 && !slotImages.some(Boolean)) { showNotification("Please upload at least one photo", "warning"); return; }
     setCurrentStep(step);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // ── Shared styles ──────────────────────────────────────────────────────────

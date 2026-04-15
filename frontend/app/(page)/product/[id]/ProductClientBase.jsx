@@ -470,6 +470,7 @@ export default function ProductClientBase({
   const goToStep = (step) => {
     if (step === 2 && !uploadedImage) { showNotification("Please upload an image first", "warning"); return; }
     setCurrentStep(step);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // ── Styles ────────────────────────────────────────────────────────────────

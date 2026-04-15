@@ -286,6 +286,7 @@ export default function ProductClientCollageFrame({ product }) {
       return;
     }
     setCurrentStep(step);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // ── Shared styles ─────────────────────────────────────────────────────────

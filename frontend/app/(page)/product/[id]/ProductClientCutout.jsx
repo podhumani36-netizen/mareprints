@@ -524,8 +524,8 @@ export default function ProductClientCutout({ product }) {
       showNotification("Please upload an image first", "warning");
       return;
     }
-
     setCurrentStep(step);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const renderStepIndicator = () => (

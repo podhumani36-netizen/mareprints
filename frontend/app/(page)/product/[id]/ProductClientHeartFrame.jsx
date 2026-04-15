@@ -467,6 +467,7 @@ export default function ProductClientHeartFrame({ product }) {
       if (uploadedCount === 0) { showNotification("Please upload at least one photo first", "warning"); return; }
     }
     setCurrentStep(step);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // ── Styles ────────────────────────────────────────────────────────────────
