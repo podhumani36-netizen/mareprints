@@ -10,7 +10,8 @@ export default function RazorpayPayment({
   buttonText = "Pay Now",
   buttonClassName = "",
   customerDetails = {},
-  previewImage = "",
+  previewImages = [],
+  uploadedImages = [],
   themeColor = "#2C7FB8",
   disabled = false,
 }) {
@@ -61,7 +62,7 @@ export default function RazorpayPayment({
         throw new Error("Please verify details before payment");
       }
 
-      if (!previewImage) {
+      if (!previewImages.length) {
         throw new Error("Please click 'Verify Details & Continue' first");
       }
 
@@ -127,8 +128,8 @@ export default function RazorpayPayment({
             console.log("RAZORPAY SUCCESS RESPONSE:", response);
             console.log("VERIFY API CALL STARTED");
             console.log("customerDetails:", customerDetails);
-            console.log("previewImage exists:", !!previewImage);
-            console.log("previewImage length:", previewImage?.length || 0);
+            console.log("previewImages count:", previewImages.length);
+            console.log("uploadedImages count:", uploadedImages.length);
 
             const verifyResponse = await fetch(
               "https://mareprints.com/api/payments/verify/",
@@ -142,7 +143,8 @@ export default function RazorpayPayment({
                   payment_id: response.razorpay_payment_id,
                   signature: response.razorpay_signature,
                   customerDetails: customerDetails,
-                  previewImage: previewImage,
+                  previewImages: previewImages,
+                  uploadedImages: uploadedImages,
                 }),
               }
             );

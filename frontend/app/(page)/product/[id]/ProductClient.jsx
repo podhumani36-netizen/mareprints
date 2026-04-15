@@ -10,9 +10,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 export default function ProductClient() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
-  const [uploadedImage, setUploadedImage] = useState(null);
-  const [zoom, setZoom] = useState(1);
-  const [imageOffset, setImageOffset] = useState({ x: 0, y: 0 });
+  const [uploadedImages, setUploadedImages] = useState([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imageStates, setImageStates] = useState([]); // [{zoom, offset}] per image
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isImageDragging, setIsImageDragging] = useState(false);
 
@@ -21,7 +21,7 @@ export default function ProductClient() {
   const [orderId, setOrderId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isPaymentReady, setIsPaymentReady] = useState(false);
-  const [mailPreviewImage, setMailPreviewImage] = useState("");
+  const [mailPreviewImages, setMailPreviewImages] = useState([]);
 
   const [showToast, setShowToast] = useState({
     visible: false,
@@ -61,6 +61,39 @@ export default function ProductClient() {
   });
 
   const [formErrors, setFormErrors] = useState({});
+
+  // Derived values for the currently active image — keeps the rest of the code unchanged
+  const uploadedImage = uploadedImages[currentImageIndex] ?? null;
+  const zoom = imageStates[currentImageIndex]?.zoom ?? 1;
+  const imageOffset = imageStates[currentImageIndex]?.offset ?? { x: 0, y: 0 };
+
+  // Use a ref so event-listener closures always read the current index without stale closure issues
+  const currentImageIndexRef = useRef(currentImageIndex);
+  useEffect(() => { currentImageIndexRef.current = currentImageIndex; }, [currentImageIndex]);
+
+  const setZoom = (val) => {
+    setImageStates((prev) => {
+      const updated = [...prev];
+      const cur = updated[currentImageIndexRef.current] ?? { zoom: 1, offset: { x: 0, y: 0 } };
+      updated[currentImageIndexRef.current] = {
+        ...cur,
+        zoom: typeof val === "function" ? val(cur.zoom) : val,
+      };
+      return updated;
+    });
+  };
+
+  const setImageOffset = (val) => {
+    setImageStates((prev) => {
+      const updated = [...prev];
+      const cur = updated[currentImageIndexRef.current] ?? { zoom: 1, offset: { x: 0, y: 0 } };
+      updated[currentImageIndexRef.current] = {
+        ...cur,
+        offset: typeof val === "function" ? val(cur.offset) : val,
+      };
+      return updated;
+    });
+  };
 
   const sizeOptions = {
     portrait:  ["8x10", "10x12", "12x16", "16x18", "18x22", "20x24", "20x30", "23x34", "custom"],
@@ -154,13 +187,8 @@ export default function ProductClient() {
       canvas.height = img.height;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, img.width, img.height);
-      showNotification("Image uploaded successfully!", "success");
     };
-
-    img.onerror = () => {
-      showNotification("Failed to load image. Please try again.", "error");
-    };
-  }, [uploadedImage]);
+  }, [uploadedImage, currentImageIndex]);
 
   useEffect(() => {
     if (orientation === "portrait") setSize("20x24");
@@ -272,13 +300,13 @@ export default function ProductClient() {
     return price * quantity;
   }, [orientation, size, customSize, thickness, quantity]);
 
-  const generateMailPreviewImage = async () => {
+  const generateMailPreviewImageFor = async (imgSrc, imgZoom, imgOffset) => {
     try {
-      if (!uploadedImage) return "";
+      if (!imgSrc) return "";
 
       const img = new Image();
       img.crossOrigin = "anonymous";
-      img.src = uploadedImage;
+      img.src = imgSrc;
 
       await new Promise((resolve, reject) => {
         img.onload = resolve;
@@ -378,11 +406,11 @@ export default function ProductClient() {
 
       // objectFit: cover — same as the CSS in the live preview
       const baseScale  = Math.max(frameW / img.width, frameH / img.height);
-      const finalScale = baseScale * zoom;
+      const finalScale = baseScale * imgZoom;
       const drawWidth  = img.width  * finalScale;
       const drawHeight = img.height * finalScale;
-      const dx = fx + (frameW - drawWidth)  / 2 + imageOffset.x * S;
-      const dy = fy + (frameH - drawHeight) / 2 + imageOffset.y * S;
+      const dx = fx + (frameW - drawWidth)  / 2 + imgOffset.x * S;
+      const dy = fy + (frameH - drawHeight) / 2 + imgOffset.y * S;
 
       ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
       ctx.restore();
@@ -394,17 +422,41 @@ export default function ProductClient() {
     }
   };
 
+  const generateMailPreviewImage = () =>
+    generateMailPreviewImageFor(uploadedImage, zoom, imageOffset);
+
+  const generateAllMailPreviewImages = () =>
+    Promise.all(
+      uploadedImages.map((src, i) =>
+        generateMailPreviewImageFor(
+          src,
+          imageStates[i]?.zoom ?? 1,
+          imageStates[i]?.offset ?? { x: 0, y: 0 }
+        )
+      )
+    );
+
   const processFile = (file) => {
     setIsProcessing(true);
 
     const reader = new FileReader();
 
     reader.onload = (event) => {
-      setUploadedImage(event.target.result);
-      setZoom(1);
-      setImageOffset({ x: 0, y: 0 });
+      const dataUrl = event.target.result;
+      setUploadedImages((prev) => {
+        const newImages = [...prev, dataUrl];
+        const newIndex = newImages.length - 1;
+        setImageStates((prevStates) => {
+          const updated = [...prevStates];
+          updated[newIndex] = { zoom: 1, offset: { x: 0, y: 0 } };
+          return updated;
+        });
+        setCurrentImageIndex(newIndex);
+        return newImages;
+      });
       setIsProcessing(false);
       setIsPaymentReady(false);
+      showNotification("Image added successfully!", "success");
     };
 
     reader.onerror = () => {
@@ -438,35 +490,36 @@ export default function ProductClient() {
     e.stopPropagation();
     setIsDragging(false);
 
-    const file = e.dataTransfer.files?.[0];
+    const files = Array.from(e.dataTransfer.files || []);
+    if (!files.length) return;
 
-    if (file && file.type.startsWith("image/")) {
+    let hasInvalid = false;
+    files.forEach((file) => {
+      if (!file.type.startsWith("image/")) { hasInvalid = true; return; }
       if (file.size > 10 * 1024 * 1024) {
-        showNotification("File size must be less than 50MB", "error");
+        showNotification(`${file.name} exceeds 10MB limit`, "error");
         return;
       }
       processFile(file);
-    } else {
-      showNotification("Please upload an image file", "error");
-    }
+    });
+    if (hasInvalid) showNotification("Only image files are supported", "error");
   };
 
   const handleFileUpload = (e) => {
-    const file = e.target.files?.[0];
-
-    if (file) {
+    const files = Array.from(e.target.files || []);
+    files.forEach((file) => {
       if (file.size > 10 * 1024 * 1024) {
-        showNotification("File size must be less than 50MB", "error");
+        showNotification(`${file.name} exceeds 10MB limit`, "error");
         return;
       }
-
       if (!file.type.startsWith("image/")) {
         showNotification("Please upload an image file", "error");
         return;
       }
-
       processFile(file);
-    }
+    });
+    // Reset so the same file(s) can be re-selected later
+    e.target.value = "";
   };
 
   const handleZoomIn = () => {
@@ -479,14 +532,22 @@ export default function ProductClient() {
     setIsPaymentReady(false);
   };
 
-  const handleRemoveImage = () => {
-    setUploadedImage(null);
-    setZoom(1);
-    setImageOffset({ x: 0, y: 0 });
-    setCurrentStep(1);
-    setIsPaymentReady(false);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    showNotification("Image removed successfully", "warning");
+  const handleRemoveImage = (indexToRemove) => {
+    const idx = indexToRemove ?? currentImageIndex;
+    setUploadedImages((prev) => {
+      const updated = prev.filter((_, i) => i !== idx);
+      const newIndex = Math.max(0, Math.min(currentImageIndexRef.current, updated.length - 1));
+      setCurrentImageIndex(updated.length === 0 ? 0 : newIndex);
+      if (updated.length === 0) {
+        setCurrentStep(1);
+        setIsPaymentReady(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+      return updated;
+    });
+    setImageStates((prev) => prev.filter((_, i) => i !== idx));
+    setMailPreviewImages((prev) => prev.filter((_, i) => i !== idx));
+    showNotification("Image removed", "warning");
   };
 
   const handleImageMouseDown = (e) => {
@@ -636,8 +697,8 @@ const validateBeforePayment = async () => {
 
   setFormErrors({});
 
-  const previewBase64 = await generateMailPreviewImage();
-  setMailPreviewImage(previewBase64);
+  const previews = await generateAllMailPreviewImages();
+  setMailPreviewImages(previews);
   setIsPaymentReady(true);
 
   showNotification("Details verified. Click Pay Now.", "success");
@@ -669,8 +730,10 @@ const validateBeforePayment = async () => {
         quantity,
         amount: calculatePrice(),
         payment_id: paymentData?.razorpay_payment_id || "",
-        previewImage: mailPreviewImage || "",
-        uploadedImage: uploadedImage || "",
+        previewImage: mailPreviewImages[0] || "",
+        uploadedImage: uploadedImages[0] || "",
+        previewImages: mailPreviewImages,
+        uploadedImages,
       };
       orders.unshift(newOrder);
       localStorage.setItem("mareprints_orders", JSON.stringify(orders));
@@ -685,8 +748,8 @@ const validateBeforePayment = async () => {
   };
 
   const goToStep = (step) => {
-    if (step === 2 && !uploadedImage) {
-      showNotification("Please upload an image first", "warning");
+    if (step === 2 && uploadedImages.length === 0) {
+      showNotification("Please upload at least one image first", "warning");
       return;
     }
     if (step === 2) {
@@ -754,7 +817,7 @@ const validateBeforePayment = async () => {
                   currentStep === step ? styles.active : ""
                 } ${currentStep > step ? styles.completed : ""}`}
                 onClick={() => goToStep(step)}
-                disabled={step > 1 && !uploadedImage}
+                disabled={step > 1 && uploadedImages.length === 0}
                 type="button"
               >
                 <span className={styles.stepNumber}>
@@ -936,7 +999,7 @@ const validateBeforePayment = async () => {
                 draggable={false}
                 style={{
                   position: "absolute", top: "50%", left: "50%",
-                  width: "100%", height: "100%", objectFit: "cover",
+                  width: "100%", height: "100%", objectFit: "contain",
                   transform: `translate(calc(-50% + ${imageOffset.x}px), calc(-50% + ${imageOffset.y}px)) scale(${zoom})`,
                   transformOrigin: "center center",
                   transition: isImageDragging ? "none" : "transform 0.18s ease",
@@ -1022,20 +1085,60 @@ const renderSummaryPreview = () => {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
-                {uploadedImage ? (
+                {uploadedImages.length > 0 ? (
                   <div className={styles.previewContainer}>
                     {renderBetterPreview(false)}
                     {renderEditorControls()}
 
-                    <div className={styles.imageControls}>
+                    {/* Thumbnail strip */}
+                    <div style={{
+                      display: "flex", gap: "8px", flexWrap: "wrap",
+                      marginTop: "10px", alignItems: "center",
+                    }}>
+                      {uploadedImages.map((src, i) => (
+                        <div key={i} style={{ position: "relative", flexShrink: 0 }}>
+                          <img
+                            src={src}
+                            alt={`Image ${i + 1}`}
+                            onClick={() => { setCurrentImageIndex(i); setIsPaymentReady(false); }}
+                            style={{
+                              width: "52px", height: "52px", objectFit: "cover",
+                              borderRadius: "8px", cursor: "pointer",
+                              border: i === currentImageIndex
+                                ? "2.5px solid #2563eb"
+                                : "2px solid #e2e8f0",
+                              opacity: i === currentImageIndex ? 1 : 0.7,
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(i)}
+                            title="Remove"
+                            style={{
+                              position: "absolute", top: "-6px", right: "-6px",
+                              width: "18px", height: "18px", borderRadius: "50%",
+                              background: "#ef4444", color: "#fff", border: "none",
+                              fontSize: "10px", cursor: "pointer",
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              lineHeight: 1,
+                            }}
+                          >×</button>
+                        </div>
+                      ))}
+
+                      {/* Add more button */}
                       <button
-                        className={`${styles.controlButton} ${styles.dangerButton}`}
-                        onClick={handleRemoveImage}
-                        title="Remove Image"
                         type="button"
-                      >
-                        <i className="bi bi-trash"></i>
-                      </button>
+                        onClick={() => fileInputRef.current?.click()}
+                        title="Add another image"
+                        style={{
+                          width: "52px", height: "52px", borderRadius: "8px",
+                          border: "2px dashed #94a3b8", background: "#f8fafc",
+                          color: "#64748b", fontSize: "22px", cursor: "pointer",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >+</button>
                     </div>
                   </div>
                 ) : (
@@ -1051,7 +1154,7 @@ const renderSummaryPreview = () => {
                     </div>
 
                     <h3 className={styles.uploadTitle}>
-                      {isDragging ? "Drop your image here" : "Upload your image"}
+                      {isDragging ? "Drop your images here" : "Upload your images"}
                     </h3>
 
                     <p className={styles.uploadSubtitle}>
@@ -1070,7 +1173,7 @@ const renderSummaryPreview = () => {
                     </button>
 
                     <p className={styles.uploadHint}>
-                      Supported formats: JPG, PNG, GIF (Max 50MB)
+                      Supported formats: JPG, PNG, GIF (Max 10MB each)
                     </p>
 
                     {isProcessing && (
@@ -1086,6 +1189,7 @@ const renderSummaryPreview = () => {
                   ref={fileInputRef}
                   onChange={handleFileUpload}
                   accept="image/*"
+                  multiple
                   className="d-none"
                 />
               </div>
@@ -1096,7 +1200,7 @@ const renderSummaryPreview = () => {
               <button
                 className={styles.nextButton}
                 onClick={() => goToStep(2)}
-                disabled={!uploadedImage}
+                disabled={uploadedImages.length === 0}
                 type="button"
                 style={{ width: "100%" }}
               >
@@ -1150,7 +1254,7 @@ const renderSummaryPreview = () => {
               <button
                 className={`${styles.nextButton} d-none d-lg-flex`}
                 onClick={() => goToStep(2)}
-                disabled={!uploadedImage}
+                disabled={uploadedImages.length === 0}
                 type="button"
               >
                 Continue to Customize & Payment
@@ -1565,7 +1669,8 @@ const renderSummaryPreview = () => {
                             amount={calculatePrice()}
                             buttonText={`Pay Now ₹${calculatePrice()}`}
                             themeColor="#2563eb"
-                            previewImage={mailPreviewImage}
+                            previewImages={mailPreviewImages}
+                            uploadedImages={uploadedImages}
                             customerDetails={{
                               orderId,
                               productType: orientation,

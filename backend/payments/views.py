@@ -25,7 +25,7 @@ client = razorpay.Client(
 )
 
 
-def build_customer_email_message(customer_details, razorpay_order_id, payment_id, preview_image=None):
+def build_customer_email_message(customer_details, razorpay_order_id, payment_id):
     return f"""
     <html>
     <body style="font-family: Arial, sans-serif; color: #222; line-height: 1.6;">
@@ -60,7 +60,7 @@ def build_customer_email_message(customer_details, razorpay_order_id, payment_id
     """.strip()
 
 
-def build_admin_email_message(customer_details, razorpay_order_id, payment_id, preview_image=None):
+def build_admin_email_message(customer_details, razorpay_order_id, payment_id):
     return f"""
     <html>
     <body style="font-family: Arial, sans-serif; color: #222; line-height: 1.6;">
@@ -103,11 +103,11 @@ def build_admin_email_message(customer_details, razorpay_order_id, payment_id, p
     """.strip()
 
 
-def get_attachment_from_base64(preview_image):
-    if not preview_image:
+def get_attachment_from_base64(image_data, filename_base="image"):
+    if not image_data:
         return None
 
-    match = re.match(r"^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$", preview_image)
+    match = re.match(r"^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$", image_data)
     if not match:
         return None
 
@@ -124,23 +124,27 @@ def get_attachment_from_base64(preview_image):
 
     try:
         file_data = base64.b64decode(base64_data)
-        filename = f"customized_preview.{extension}"
+        filename = f"{filename_base}.{extension}"
         return (filename, file_data, mime_type)
     except Exception:
-        logger.exception("Failed to decode preview image")
+        logger.exception(f"Failed to decode image: {filename_base}")
         return None
 
 
-def send_payment_emails(customer_details, razorpay_order_id, payment_id, preview_image=None):
+def send_payment_emails(customer_details, razorpay_order_id, payment_id, preview_images=None, uploaded_images=None):
+    preview_images = preview_images or []
+    uploaded_images = uploaded_images or []
+
     customer_email = (customer_details.get("email") or "").strip()
-    admin_email = getattr(settings, "ADMIN_EMAIL", settings.EMAIL_HOST_USER) 
+    admin_email = getattr(settings, "ADMIN_EMAIL", settings.EMAIL_HOST_USER)
 
     logger.info("=== EMAIL SEND STARTED ===")
     logger.info(f"Customer email: {customer_email}")
     logger.info(f"Admin email: {admin_email}")
     logger.info(f"Razorpay Order ID: {razorpay_order_id}")
     logger.info(f"Payment ID: {payment_id}")
-    logger.info(f"Preview image present: {bool(preview_image)}")
+    logger.info(f"Preview images count: {len(preview_images)}")
+    logger.info(f"Uploaded images count: {len(uploaded_images)}")
 
     customer_subject = f"Payment Successful - Mare Prints - {payment_id}"
     admin_subject = f"New Order Payment Received - {payment_id}"
@@ -149,18 +153,33 @@ def send_payment_emails(customer_details, razorpay_order_id, payment_id, preview
         customer_details,
         razorpay_order_id,
         payment_id,
-        preview_image,
     )
 
     admin_message = build_admin_email_message(
         customer_details,
         razorpay_order_id,
         payment_id,
-        preview_image,
     )
 
-    attachment = get_attachment_from_base64(preview_image)
-    logger.info(f"Attachment created: {bool(attachment)}")
+    # Build numbered attachment tuples: (preview_1, original_1), (preview_2, original_2), ...
+    attachments = []
+    count = max(len(preview_images), len(uploaded_images))
+    for i in range(count):
+        n = "" if count == 1 else f"_{i + 1}"
+        preview_att = get_attachment_from_base64(
+            preview_images[i] if i < len(preview_images) else None,
+            f"customized_preview{n}",
+        )
+        original_att = get_attachment_from_base64(
+            uploaded_images[i] if i < len(uploaded_images) else None,
+            f"original_image{n}",
+        )
+        if preview_att:
+            attachments.append(("preview", preview_att))
+        if original_att:
+            attachments.append(("original", original_att))
+
+    logger.info(f"Total attachments prepared: {len(attachments)}")
 
     customer_sent = False
     admin_sent = False
@@ -176,13 +195,13 @@ def send_payment_emails(customer_details, razorpay_order_id, payment_id, preview
             )
             customer_mail.content_subtype = "html"
 
-            if attachment:
+            for label, attachment in attachments:
                 try:
                     customer_mail.attach(*attachment)
-                    logger.info("Customer attachment attached successfully")
+                    logger.info(f"Customer {label} attachment '{attachment[0]}' attached")
                 except Exception as attach_error:
-                    logger.exception("Customer attachment error")
-                    errors.append(f"Customer attachment error: {str(attach_error)}")
+                    logger.exception(f"Customer {label} attachment error")
+                    errors.append(f"Customer {label} attachment error: {str(attach_error)}")
 
             customer_mail.send(fail_silently=False)
             customer_sent = True
@@ -205,13 +224,13 @@ def send_payment_emails(customer_details, razorpay_order_id, payment_id, preview
             )
             admin_mail.content_subtype = "html"
 
-            if attachment:
+            for label, attachment in attachments:
                 try:
                     admin_mail.attach(*attachment)
-                    logger.info("Admin attachment attached successfully")
+                    logger.info(f"Admin {label} attachment '{attachment[0]}' attached")
                 except Exception as attach_error:
-                    logger.exception("Admin attachment error")
-                    errors.append(f"Admin attachment error: {str(attach_error)}")
+                    logger.exception(f"Admin {label} attachment error")
+                    errors.append(f"Admin {label} attachment error: {str(attach_error)}")
 
             admin_mail.send(fail_silently=False)
             admin_sent = True
@@ -284,7 +303,20 @@ class PaymentVerifyView(APIView):
         payment_id = request.data.get("payment_id")
         signature = request.data.get("signature")
         customer_details = request.data.get("customerDetails", {})
-        preview_image = request.data.get("previewImage", "")
+
+        # Support both array (multi-image) and single-image payloads
+        preview_images = request.data.get("previewImages") or []
+        uploaded_images = request.data.get("uploadedImages") or []
+
+        # Backward compat: single-image keys
+        if not preview_images:
+            single = request.data.get("previewImage", "")
+            if single:
+                preview_images = [single]
+        if not uploaded_images:
+            single = request.data.get("uploadedImage", "")
+            if single:
+                uploaded_images = [single]
 
         if not order_id or not payment_id or not signature:
             return Response(
@@ -329,7 +361,8 @@ class PaymentVerifyView(APIView):
                 customer_details=customer_details,
                 razorpay_order_id=order_id,
                 payment_id=payment_id,
-                preview_image=preview_image,
+                preview_images=preview_images,
+                uploaded_images=uploaded_images,
             )
 
             return Response(
