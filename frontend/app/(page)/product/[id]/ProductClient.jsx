@@ -36,9 +36,9 @@ export default function ProductClient() {
 
   const [orientation, setOrientation] = useState("portrait");
 
-  
   const [size, setSize] = useState("16x20");
   const [thickness, setThickness] = useState("3mm");
+  const [customSize, setCustomSize] = useState({ width: "", height: "" });
   const [pincode, setPincode] = useState("");
   const [deliveryStatus, setDeliveryStatus] = useState({
     message: "",
@@ -63,23 +63,30 @@ export default function ProductClient() {
   const [formErrors, setFormErrors] = useState({});
 
   const sizeOptions = {
-    portrait: ["8x10", "11x14", "16x20", "20x24", "24x36"],
-    landscape: ["10x8", "14x11", "20x16", "24x20", "36x24"],
+    portrait:  ["8x10", "11x14", "16x20", "20x24", "24x36", "custom"],
+    landscape: ["10x8", "14x11", "20x16", "24x20", "36x24", "custom"],
+    circle:    ["6x6", "8x8", "10x10", "12x12", "14x14", "custom"],
+    square:    ["6x6", "8x8", "10x10", "12x12", "14x14", "custom"],
   };
 
   const thicknessOptions = ["3mm", "5mm", "8mm"];
 
   const frameDimensions = {
-    "8x10": { width: 80, height: 100 },
+    "8x10":  { width: 80,  height: 100 },
     "11x14": { width: 110, height: 140 },
     "16x20": { width: 160, height: 200 },
     "20x24": { width: 200, height: 240 },
     "24x36": { width: 240, height: 360 },
-    "10x8": { width: 100, height: 80 },
+    "10x8":  { width: 100, height: 80  },
     "14x11": { width: 140, height: 110 },
     "20x16": { width: 200, height: 160 },
     "24x20": { width: 240, height: 200 },
     "36x24": { width: 360, height: 240 },
+    "6x6":   { width: 60,  height: 60  },
+    "8x8":   { width: 80,  height: 80  },
+    "10x10": { width: 100, height: 100 },
+    "12x12": { width: 120, height: 120 },
+    "14x14": { width: 140, height: 140 },
   };
 
   const basePrice = 1;
@@ -147,7 +154,10 @@ export default function ProductClient() {
   }, [uploadedImage]);
 
   useEffect(() => {
-    setSize(orientation === "portrait" ? "20x24" : "10x8");
+    if (orientation === "portrait") setSize("16x20");
+    else if (orientation === "landscape") setSize("10x8");
+    else setSize("10x10"); // circle / square
+    setCustomSize({ width: "", height: "" });
     setZoom(1);
     setImageOffset({ x: 0, y: 0 });
     setIsPaymentReady(false);
@@ -237,17 +247,21 @@ export default function ProductClient() {
   const calculatePrice = useCallback(() => {
     let price = basePrice;
 
-    const sizeIndex =
-      orientation === "portrait"
-        ? sizeOptions.portrait.indexOf(size)
-        : sizeOptions.landscape.indexOf(size);
+    if (size === "custom") {
+      const w = parseFloat(customSize.width) || 0;
+      const h = parseFloat(customSize.height) || 0;
+      price += Math.max(0, Math.floor((w * h) / 10) * 50);
+    } else {
+      const opts = sizeOptions[orientation] || sizeOptions.portrait;
+      const sizeIndex = opts.indexOf(size);
+      if (sizeIndex > 0) price += sizeIndex * 150;
+    }
 
-    if (sizeIndex > 0) price += sizeIndex * 150;
     if (thickness === "5mm") price += 150;
     if (thickness === "8mm") price += 300;
 
     return price * quantity;
-  }, [orientation, size, thickness, quantity]);
+  }, [orientation, size, customSize, thickness, quantity]);
 
   const generateMailPreviewImage = async () => {
     try {
@@ -262,7 +276,9 @@ export default function ProductClient() {
         img.onerror = reject;
       });
 
-      const dims = frameDimensions[size] || { width: 200, height: 250 };
+      const dims = size === "custom"
+        ? { width: (parseFloat(customSize.width) || 10) * 10, height: (parseFloat(customSize.height) || 10) * 10 }
+        : frameDimensions[size] || { width: 200, height: 250 };
       const S = 8; // export scale: 8× on-screen CSS pixels → high-res
 
       const frameW  = dims.width  * S;
@@ -290,7 +306,11 @@ export default function ProductClient() {
       // 1. Depth / thickness layer — same gradient as live preview, offset bottom-right
       ctx.save();
       ctx.beginPath();
-      ctx.rect(fx + depthPx, fy + depthPx, frameW, frameH);
+      if (orientation === "circle") {
+        ctx.ellipse(fx + depthPx + frameW / 2, fy + depthPx + frameH / 2, frameW / 2, frameH / 2, 0, 0, Math.PI * 2);
+      } else {
+        ctx.rect(fx + depthPx, fy + depthPx, frameW, frameH);
+      }
       const depthGrad = ctx.createLinearGradient(
         fx + depthPx, fy + depthPx,
         fx + depthPx + frameW, fy + depthPx + frameH
@@ -307,7 +327,11 @@ export default function ProductClient() {
       // 2. White front face with a soft drop-shadow
       ctx.save();
       ctx.beginPath();
-      ctx.rect(fx, fy, frameW, frameH);
+      if (orientation === "circle") {
+        ctx.ellipse(fx + frameW / 2, fy + frameH / 2, frameW / 2, frameH / 2, 0, 0, Math.PI * 2);
+      } else {
+        ctx.rect(fx, fy, frameW, frameH);
+      }
       ctx.fillStyle     = "#ffffff";
       ctx.shadowColor   = "rgba(0,0,0,0.16)";
       ctx.shadowBlur    = 24;
@@ -315,10 +339,14 @@ export default function ProductClient() {
       ctx.fill();
       ctx.restore();
 
-      // 3. User's image clipped to frame (rectangular)
+      // 3. User's image clipped to frame
       ctx.save();
       ctx.beginPath();
-      ctx.rect(fx, fy, frameW, frameH);
+      if (orientation === "circle") {
+        ctx.ellipse(fx + frameW / 2, fy + frameH / 2, frameW / 2, frameH / 2, 0, 0, Math.PI * 2);
+      } else {
+        ctx.rect(fx, fy, frameW, frameH);
+      }
       ctx.clip();
 
       // objectFit: cover — same as the CSS in the live preview
@@ -822,8 +850,18 @@ const validateBeforePayment = async () => {
   );
 
   const renderBetterPreview = (useWall = false) => {
-    const dims = frameDimensions[size] || { width: 220, height: 280 };
-    const [widthInch, heightInch] = size.split("x").map(Number);
+    const isCircle = orientation === "circle";
+    const shapeRadius = isCircle ? "50%" : "0px";
+    let dims;
+    let widthInch, heightInch;
+    if (size === "custom") {
+      widthInch  = parseFloat(customSize.width)  || 10;
+      heightInch = parseFloat(customSize.height) || 10;
+      dims = { width: widthInch * 10, height: heightInch * 10 };
+    } else {
+      dims = frameDimensions[size] || { width: 220, height: 280 };
+      [widthInch, heightInch] = size.split("x").map(Number);
+    }
 const depth = thickness === "3mm" ? 4 : thickness === "5mm" ? 5 : 7;  
   const borderSize =
       thickness === "3mm" ? "8px" : thickness === "5mm" ? "12px" : "16px";
@@ -886,7 +924,7 @@ const getShadowByThickness = () => {
     width: `${dims.width}px`,
     height: `${dims.height}px`,
     transform: "translate(-50%, -50%)",
-    borderRadius: "0px",
+    borderRadius: shapeRadius,
     overflow: "visible",
     background: "transparent",
     maxWidth: "88%",
@@ -901,7 +939,7 @@ const getShadowByThickness = () => {
       left: `${depth}px`,
       right: `-${depth}px`,
       bottom: `-${depth}px`,
-      borderRadius: "0px",
+      borderRadius: shapeRadius,
       background:
         thickness === "3mm"
           ? "linear-gradient(145deg, #d9d9d9,  #8f8f8f)"
@@ -918,7 +956,7 @@ const getShadowByThickness = () => {
     style={{
       position: "absolute",
       inset: 0,
-      borderRadius: "0px",
+      borderRadius: shapeRadius,
       background: "#ffffff",
       boxShadow: "0 10px 24px rgba(0,0,0,0.16)",
       overflow: "hidden",
@@ -1012,8 +1050,9 @@ const getShadowByThickness = () => {
               border: "1px solid #e2e8f0",
             }}
           >
-            {size} • {(widthInch * 2.54).toFixed(2)} x{" "}
-            {(heightInch * 2.54).toFixed(2)} cm
+            {size === "custom"
+              ? `${customSize.width || "?"}×${customSize.height || "?"} in`
+              : `${size} • ${(widthInch * 2.54).toFixed(1)} × ${(heightInch * 2.54).toFixed(1)} cm`}
           </span>
 
           <span
@@ -1267,33 +1306,77 @@ setIsPaymentReady(false);}}
 >
                       <option value="portrait">Portrait</option>
                       <option value="landscape">Landscape</option>
+                      <option value="circle">Circle</option>
+                      <option value="square">Square</option>
                     </select>
                   </div>
 
                   <div className="col-md-4">
                     <label style={labelStyle}>Size</label>
                     <select
-  value={size}
-  onChange={(e) => { setSize(e.target.value); setIsPaymentReady(false); }}
-  style={{
-    width: "200px",
-    padding: "10px",
-    borderRadius: "6px",
-    border: "1px solid #ccc",
-    appearance: "none",
-
-    backgroundImage:
-      "url('data:image/svg+xml;utf8,<svg fill=\"black\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "right 10px center"
-  }}
->
-                      {sizeOptions[orientation].map((option) => (
+                      value={size}
+                      onChange={(e) => { setSize(e.target.value); setIsPaymentReady(false); }}
+                      style={{
+                        width: "200px",
+                        padding: "10px",
+                        borderRadius: "6px",
+                        border: "1px solid #ccc",
+                        appearance: "none",
+                        backgroundImage:
+                          "url('data:image/svg+xml;utf8,<svg fill=\"black\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "right 10px center",
+                      }}
+                    >
+                      {(sizeOptions[orientation] || sizeOptions.portrait).map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {option === "custom" ? "Custom Size" : option}
                         </option>
                       ))}
                     </select>
+
+                    {size === "custom" && (
+                      <div className="d-flex align-items-center gap-2 mt-2">
+                        <input
+                          type="number"
+                          min="1"
+                          max="60"
+                          placeholder="W (in)"
+                          value={customSize.width}
+                          onChange={(e) => {
+                            setCustomSize((prev) => ({ ...prev, width: e.target.value }));
+                            setIsPaymentReady(false);
+                          }}
+                          style={{
+                            width: "80px",
+                            padding: "8px 10px",
+                            borderRadius: "6px",
+                            border: "1px solid #ccc",
+                            fontSize: "13px",
+                          }}
+                        />
+                        <span style={{ fontWeight: 600, color: "#64748b" }}>×</span>
+                        <input
+                          type="number"
+                          min="1"
+                          max="60"
+                          placeholder="H (in)"
+                          value={customSize.height}
+                          onChange={(e) => {
+                            setCustomSize((prev) => ({ ...prev, height: e.target.value }));
+                            setIsPaymentReady(false);
+                          }}
+                          style={{
+                            width: "80px",
+                            padding: "8px 10px",
+                            borderRadius: "6px",
+                            border: "1px solid #ccc",
+                            fontSize: "13px",
+                          }}
+                        />
+                        <span style={{ fontSize: "12px", color: "#94a3b8" }}>inches</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="col-md-4">
