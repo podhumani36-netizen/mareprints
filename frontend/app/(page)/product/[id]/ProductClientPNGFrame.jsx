@@ -392,8 +392,21 @@ export default function ProductClientPNGFrame({ product }) {
         flexShrink: 0,
         boxShadow: "0 20px 50px rgba(0,0,0,0.35)",
       }}>
-        {/* Slot photos — absolutely positioned at predefined percentage coords.
-            Both top/height are % of a known px height, so they're unambiguous. */}
+        {/* Frame PNG — sits at z-index 1 (background layer).
+            Photo slots are placed on top (z-index 2) so they cover the
+            white/opaque placeholder areas in the frame artwork. */}
+        <img
+          src={`/frames/${selectedFrame.file}`}
+          alt={selectedFrame.label}
+          style={{
+            position: "absolute", inset: 0,
+            width: "100%", height: "100%",
+            objectFit: "fill", display: "block",
+            zIndex: 1, pointerEvents: "none",
+          }}
+        />
+
+        {/* Slot photos — on top of the frame so they fill the frame openings */}
         {slots.map((slot, i) => (
           <div
             key={slot.id}
@@ -410,7 +423,7 @@ export default function ProductClientPNGFrame({ product }) {
               background:   slotImages[i] ? "transparent" : "#dce7f3",
               outline:      interactive && activeSlot === i ? "2px solid #0ea5e9" : "none",
               outlineOffset: "-2px",
-              zIndex:       1,
+              zIndex:       2,
               transition:   "outline-color 0.15s",
             }}
           >
@@ -453,19 +466,6 @@ export default function ProductClientPNGFrame({ product }) {
           </div>
         ))}
 
-        {/* Frame PNG overlay — covers the container exactly (objectFit:fill is
-            lossless here because the container already matches the natural ratio).
-            z-index 10 keeps it on top; transparent cutouts reveal slot photos. */}
-        <img
-          src={`/frames/${selectedFrame.file}`}
-          alt={selectedFrame.label}
-          style={{
-            position: "absolute", inset: 0,
-            width: "100%", height: "100%",
-            objectFit: "fill", display: "block",
-            zIndex: 10, pointerEvents: "none",
-          }}
-        />
       </div>
     );
 
