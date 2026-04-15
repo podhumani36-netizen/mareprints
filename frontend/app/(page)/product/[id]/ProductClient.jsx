@@ -36,7 +36,7 @@ export default function ProductClient() {
 
   const [orientation, setOrientation] = useState("portrait");
 
-  const [size, setSize] = useState("16x20");
+  const [size, setSize] = useState("20x24");
   const [thickness, setThickness] = useState("3mm");
   const [customSize, setCustomSize] = useState({ width: "", height: "" });
   const [pincode, setPincode] = useState("");
@@ -63,30 +63,38 @@ export default function ProductClient() {
   const [formErrors, setFormErrors] = useState({});
 
   const sizeOptions = {
-    portrait:  ["8x10", "11x14", "16x20", "20x24", "24x36", "custom"],
-    landscape: ["10x8", "14x11", "20x16", "24x20", "36x24", "custom"],
-    circle:    ["6x6", "8x8", "10x10", "12x12", "14x14", "custom"],
-    square:    ["6x6", "8x8", "10x10", "12x12", "14x14", "custom"],
+    portrait:  ["8x10", "10x12", "12x16", "16x18", "18x22", "20x24", "20x30", "23x34", "custom"],
+    landscape: ["10x8", "12x10", "16x12", "18x16", "22x18", "24x20", "30x20", "34x23", "custom"],
+    circle:    ["12x12", "15x15", "18x18", "22x22", "custom"],
+    square:    ["12x12", "15x15", "18x18", "22x22", "custom"],
   };
 
   const thicknessOptions = ["3mm", "5mm", "8mm"];
 
   const frameDimensions = {
+    // portrait
     "8x10":  { width: 80,  height: 100 },
-    "11x14": { width: 110, height: 140 },
-    "16x20": { width: 160, height: 200 },
+    "10x12": { width: 100, height: 120 },
+    "12x16": { width: 120, height: 160 },
+    "16x18": { width: 160, height: 180 },
+    "18x22": { width: 180, height: 220 },
     "20x24": { width: 200, height: 240 },
-    "24x36": { width: 240, height: 360 },
+    "20x30": { width: 200, height: 300 },
+    "23x34": { width: 230, height: 340 },
+    // landscape (flipped)
     "10x8":  { width: 100, height: 80  },
-    "14x11": { width: 140, height: 110 },
-    "20x16": { width: 200, height: 160 },
+    "12x10": { width: 120, height: 100 },
+    "16x12": { width: 160, height: 120 },
+    "18x16": { width: 180, height: 160 },
+    "22x18": { width: 220, height: 180 },
     "24x20": { width: 240, height: 200 },
-    "36x24": { width: 360, height: 240 },
-    "6x6":   { width: 60,  height: 60  },
-    "8x8":   { width: 80,  height: 80  },
-    "10x10": { width: 100, height: 100 },
+    "30x20": { width: 300, height: 200 },
+    "34x23": { width: 340, height: 230 },
+    // square / circle
     "12x12": { width: 120, height: 120 },
-    "14x14": { width: 140, height: 140 },
+    "15x15": { width: 150, height: 150 },
+    "18x18": { width: 180, height: 180 },
+    "22x22": { width: 220, height: 220 },
   };
 
   const basePrice = 1;
@@ -154,9 +162,9 @@ export default function ProductClient() {
   }, [uploadedImage]);
 
   useEffect(() => {
-    if (orientation === "portrait") setSize("16x20");
-    else if (orientation === "landscape") setSize("10x8");
-    else setSize("10x10"); // circle / square
+    if (orientation === "portrait") setSize("20x24");
+    else if (orientation === "landscape") setSize("24x20");
+    else setSize("18x18"); // circle / square
     setCustomSize({ width: "", height: "" });
     setZoom(1);
     setImageOffset({ x: 0, y: 0 });
@@ -922,15 +930,15 @@ const getShadowByThickness = () => {
   style={{
     position: "absolute",
     left: "50%",
-    top: "50%",
+    top: "10px",
     width: `${dims.width}px`,
     height: `${dims.height}px`,
-    transform: "translate(-50%, -50%)",
+    transform: "translateX(-50%)",
     borderRadius: shapeRadius,
     overflow: "visible",
     background: "transparent",
     maxWidth: "88%",
-    maxHeight: "82%",
+    maxHeight: "calc(100% - 20px)",
   }}
 >
   {/* Back depth layer */}
