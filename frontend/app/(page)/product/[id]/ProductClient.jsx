@@ -33,6 +33,7 @@ export default function ProductClient() {
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
+  const previewFrameRef = useRef(null);
 
   const [orientation, setOrientation] = useState("portrait");
 
@@ -300,7 +301,7 @@ export default function ProductClient() {
     return price * quantity;
   }, [orientation, size, customSize, thickness, quantity]);
 
-  const generateMailPreviewImageFor = async (imgSrc, imgZoom, imgOffset) => {
+  const generateMailPreviewImageFor = async (imgSrc, imgZoom, imgOffset, screenFrameW = null, screenFrameH = null) => {
     try {
       if (!imgSrc) return "";
 
@@ -409,8 +410,11 @@ export default function ProductClient() {
       const finalScale = baseScale * imgZoom;
       const drawWidth  = img.width  * finalScale;
       const drawHeight = img.height * finalScale;
-      const dx = fx + (frameW - drawWidth)  / 2 + imgOffset.x * S;
-      const dy = fy + (frameH - drawHeight) / 2 + imgOffset.y * S;
+      // Scale offset from screen CSS pixels to canvas pixels using actual rendered frame size
+      const offsetScaleX = screenFrameW ? frameW / screenFrameW : S;
+      const offsetScaleY = screenFrameH ? frameH / screenFrameH : S;
+      const dx = fx + (frameW - drawWidth)  / 2 + imgOffset.x * offsetScaleX;
+      const dy = fy + (frameH - drawHeight) / 2 + imgOffset.y * offsetScaleY;
 
       ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
       ctx.restore();
@@ -422,19 +426,27 @@ export default function ProductClient() {
     }
   };
 
-  const generateMailPreviewImage = () =>
-    generateMailPreviewImageFor(uploadedImage, zoom, imageOffset);
+  const generateMailPreviewImage = () => {
+    const rect = previewFrameRef.current?.getBoundingClientRect();
+    return generateMailPreviewImageFor(uploadedImage, zoom, imageOffset, rect?.width, rect?.height);
+  };
 
-  const generateAllMailPreviewImages = () =>
-    Promise.all(
+  const generateAllMailPreviewImages = () => {
+    const rect = previewFrameRef.current?.getBoundingClientRect();
+    const screenW = rect?.width || null;
+    const screenH = rect?.height || null;
+    return Promise.all(
       uploadedImages.map((src, i) =>
         generateMailPreviewImageFor(
           src,
           imageStates[i]?.zoom ?? 1,
-          imageStates[i]?.offset ?? { x: 0, y: 0 }
+          imageStates[i]?.offset ?? { x: 0, y: 0 },
+          screenW,
+          screenH
         )
       )
     );
+  };
 
   const processFile = (file) => {
     setIsProcessing(true);
@@ -899,7 +911,7 @@ const validateBeforePayment = async () => {
   // Heart uses smooth SVG clipPath (defined once in the return JSX)
   const heartClip = "url(#pcHeartClip)";
 
-  const renderBetterPreview = (useWall = false) => {
+  const renderBetterPreview = (useWall = false, attachRef = false) => {
     const isCircle = orientation === "circle";
     const isHeart  = orientation === "heart";
     const shapeRadius = isCircle ? "50%" : "0px";
@@ -976,6 +988,7 @@ const validateBeforePayment = async () => {
 
           {/* Front face — draggable */}
           <div
+            ref={attachRef ? previewFrameRef : undefined}
             style={{
               position: "absolute", inset: 0,
               borderRadius: shapeRadius,
@@ -1337,7 +1350,7 @@ const renderSummaryPreview = () => {
             <div className={`col-12 col-lg-5 ${styles.step2PreviewCol}`}>
               <div style={{ ...sectionCardStyle, padding: "clamp(12px,3vw,20px)" }}>
                 {sectionHeader("bi-display", "Live Preview", "Drag · pinch or slide to zoom")}
-                {renderBetterPreview(true)}
+                {renderBetterPreview(true, true)}
                 {renderEditorControls()}
               </div>
             </div>
