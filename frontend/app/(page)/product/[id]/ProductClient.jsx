@@ -404,8 +404,8 @@ export default function ProductClient() {
       }
       ctx.clip();
 
-      // objectFit: cover — same as the CSS in the live preview
-      const baseScale  = Math.max(frameW / img.width, frameH / img.height);
+      // objectFit: contain — same as the CSS in the live preview
+      const baseScale  = Math.min(frameW / img.width, frameH / img.height);
       const finalScale = baseScale * imgZoom;
       const drawWidth  = img.width  * finalScale;
       const drawHeight = img.height * finalScale;
