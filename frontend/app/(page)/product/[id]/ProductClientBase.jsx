@@ -7,8 +7,6 @@ import RazorpayPayment from "../../../Components/payment/Razorpay";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
-const ROOM_WALL_BG =
-  "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
 
 const WALL_MOCKUP =
   "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg";
@@ -47,6 +45,7 @@ export default function ProductClientBase({
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
+  const frameRef = useRef(null); // ref to the rendered front-face div for offset scaling
 
   const [size, setSize] = useState(defaultSize);
   const [thickness, setThickness] = useState("3mm");
@@ -307,9 +306,14 @@ export default function ProductClientBase({
       const finalScale = baseScale * imgZoom;
       const drawWidth  = img.width  * finalScale;
       const drawHeight = img.height * finalScale;
-      // Offset: user dragged inside a dims.{width,height} px frame on screen → scale by S
-      const dx = fx + (frameW - drawWidth)  / 2 + imgOffset.x * S;
-      const dy = fy + (frameH - drawHeight) / 2 + imgOffset.y * S;
+      // Scale offset from CSS pixels to canvas pixels using the actual rendered frame size.
+      // The live preview frame is percentage-based so its CSS size may differ from dims.
+      const cssFrameW = frameRef.current?.clientWidth  || dims.width;
+      const cssFrameH = frameRef.current?.clientHeight || dims.height;
+      const scaleX = frameW / cssFrameW;
+      const scaleY = frameH / cssFrameH;
+      const dx = fx + (frameW - drawWidth)  / 2 + imgOffset.x * scaleX;
+      const dy = fy + (frameH - drawHeight) / 2 + imgOffset.y * scaleY;
 
       ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
       ctx.restore();
@@ -769,6 +773,7 @@ export default function ProductClientBase({
 
           {/* front face */}
           <div
+            ref={frameRef}
             style={{
               position: "absolute",
               inset: 0,
@@ -786,25 +791,46 @@ export default function ProductClientBase({
             onTouchEnd={uploadedImage ? handleImageTouchEnd : undefined}
             onTouchCancel={uploadedImage ? handleImageTouchEnd : undefined}
           >
-            <img
-              src={uploadedImage || ROOM_WALL_BG}
-              alt="Frame preview"
-              draggable={false}
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-                transform: `translate(calc(-50% + ${imageOffset.x}px), calc(-50% + ${imageOffset.y}px)) scale(${zoom})`,
-                transformOrigin: "center center",
-                transition: isImageDragging ? "none" : "transform 0.18s ease",
-                userSelect: "none",
-                touchAction: "none",
-                pointerEvents: "none",
-              }}
-            />
+            {uploadedImage ? (
+              <img
+                src={uploadedImage}
+                alt="Frame preview"
+                draggable={false}
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  transform: `translate(calc(-50% + ${imageOffset.x}px), calc(-50% + ${imageOffset.y}px)) scale(${zoom})`,
+                  transformOrigin: "center center",
+                  transition: isImageDragging ? "none" : "transform 0.18s ease",
+                  userSelect: "none",
+                  touchAction: "none",
+                  pointerEvents: "none",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "linear-gradient(135deg, #f1f5f9, #e2e8f0)",
+                  color: "#94a3b8",
+                  gap: "8px",
+                }}
+              >
+                <i className="bi bi-image" style={{ fontSize: "clamp(24px, 5vw, 36px)" }} />
+                <span style={{ fontSize: "clamp(10px, 2vw, 13px)", fontWeight: 500 }}>
+                  Upload to preview
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
