@@ -26,9 +26,9 @@ export default function ProductClientBase({
 }) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
-  const [uploadedImage, setUploadedImage] = useState(null);
-  const [zoom, setZoom] = useState(1);
-  const [imageOffset, setImageOffset] = useState({ x: 0, y: 0 });
+  const [uploadedImages, setUploadedImages] = useState([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imageStates, setImageStates] = useState([]); // [{zoom, offset}] per image
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isImageDragging, setIsImageDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -36,7 +36,7 @@ export default function ProductClientBase({
   const [orderId, setOrderId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isPaymentReady, setIsPaymentReady] = useState(false);
-  const [mailPreviewImage, setMailPreviewImage] = useState("");
+  const [mailPreviewImages, setMailPreviewImages] = useState([]);
   const [showToast, setShowToast] = useState({
     visible: false,
     type: "",
@@ -71,6 +71,32 @@ export default function ProductClientBase({
   });
 
   const [formErrors, setFormErrors] = useState({});
+
+  // Derived values for the active image — keeps all existing rendering code unchanged
+  const uploadedImage = uploadedImages[currentImageIndex] ?? null;
+  const zoom = imageStates[currentImageIndex]?.zoom ?? 1;
+  const imageOffset = imageStates[currentImageIndex]?.offset ?? { x: 0, y: 0 };
+
+  const currentImageIndexRef = useRef(currentImageIndex);
+  useEffect(() => { currentImageIndexRef.current = currentImageIndex; }, [currentImageIndex]);
+
+  const setZoom = (val) => {
+    setImageStates((prev) => {
+      const updated = [...prev];
+      const cur = updated[currentImageIndexRef.current] ?? { zoom: 1, offset: { x: 0, y: 0 } };
+      updated[currentImageIndexRef.current] = { ...cur, zoom: typeof val === "function" ? val(cur.zoom) : val };
+      return updated;
+    });
+  };
+
+  const setImageOffset = (val) => {
+    setImageStates((prev) => {
+      const updated = [...prev];
+      const cur = updated[currentImageIndexRef.current] ?? { zoom: 1, offset: { x: 0, y: 0 } };
+      updated[currentImageIndexRef.current] = { ...cur, offset: typeof val === "function" ? val(cur.offset) : val };
+      return updated;
+    });
+  };
 
   const thicknessOptions = ["3mm", "5mm", "8mm"];
 
@@ -122,12 +148,8 @@ export default function ProductClientBase({
       canvas.height = img.height;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, img.width, img.height);
-      showNotification("Image uploaded successfully!", "success");
     };
-    img.onerror = () => {
-      showNotification("Failed to load image. Please try again.", "error");
-    };
-  }, [uploadedImage]);
+  }, [uploadedImage, currentImageIndex]);
 
   // ── Image drag (mouse + touch) ────────────────────────────────────────────
   useEffect(() => {
@@ -188,12 +210,12 @@ export default function ProductClientBase({
     return price * quantity;
   }, [basePrice, sizeOptions, size, thickness, quantity]);
 
-  const generateMailPreviewImage = async () => {
+  const generateMailPreviewImageFor = async (imgSrc, imgZoom, imgOffset) => {
     try {
-      if (!uploadedImage) return "";
+      if (!imgSrc) return "";
       const img = new Image();
       img.crossOrigin = "anonymous";
-      img.src = uploadedImage;
+      img.src = imgSrc;
       await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
 
       const dims = frameDimensions[size] || { width: 200, height: 200 };
@@ -282,12 +304,12 @@ export default function ProductClientBase({
 
       // objectFit: contain — same as the CSS in the live preview
       const baseScale  = Math.min(frameW / img.width, frameH / img.height);
-      const finalScale = baseScale * zoom;
+      const finalScale = baseScale * imgZoom;
       const drawWidth  = img.width  * finalScale;
       const drawHeight = img.height * finalScale;
       // Offset: user dragged inside a dims.{width,height} px frame on screen → scale by S
-      const dx = fx + (frameW - drawWidth)  / 2 + imageOffset.x * S;
-      const dy = fy + (frameH - drawHeight) / 2 + imageOffset.y * S;
+      const dx = fx + (frameW - drawWidth)  / 2 + imgOffset.x * S;
+      const dy = fy + (frameH - drawHeight) / 2 + imgOffset.y * S;
 
       ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
       ctx.restore();
@@ -299,15 +321,39 @@ export default function ProductClientBase({
     }
   };
 
+  const generateMailPreviewImage = () =>
+    generateMailPreviewImageFor(uploadedImage, zoom, imageOffset);
+
+  const generateAllMailPreviewImages = () =>
+    Promise.all(
+      uploadedImages.map((src, i) =>
+        generateMailPreviewImageFor(
+          src,
+          imageStates[i]?.zoom ?? 1,
+          imageStates[i]?.offset ?? { x: 0, y: 0 }
+        )
+      )
+    );
+
   const processFile = (file) => {
     setIsProcessing(true);
     const reader = new FileReader();
     reader.onload = (e) => {
-      setUploadedImage(e.target.result);
-      setZoom(1);
-      setImageOffset({ x: 0, y: 0 });
+      const dataUrl = e.target.result;
+      setUploadedImages((prev) => {
+        const newImages = [...prev, dataUrl];
+        const newIndex = newImages.length - 1;
+        setImageStates((prevStates) => {
+          const updated = [...prevStates];
+          updated[newIndex] = { zoom: 1, offset: { x: 0, y: 0 } };
+          return updated;
+        });
+        setCurrentImageIndex(newIndex);
+        return newImages;
+      });
       setIsProcessing(false);
       setIsPaymentReady(false);
+      showNotification("Image added!", "success");
     };
     reader.onerror = () => {
       setIsProcessing(false);
@@ -324,34 +370,46 @@ export default function ProductClientBase({
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      if (file.size > 10 * 1024 * 1024) { showNotification("File size must be less than 50MB", "error"); return; }
+    const files = Array.from(e.dataTransfer.files || []);
+    if (!files.length) return;
+    let hasInvalid = false;
+    files.forEach((file) => {
+      if (!file.type.startsWith("image/")) { hasInvalid = true; return; }
+      if (file.size > 10 * 1024 * 1024) { showNotification(`${file.name} exceeds 10MB limit`, "error"); return; }
       processFile(file);
-    } else {
-      showNotification("Please upload an image file", "error");
-    }
+    });
+    if (hasInvalid) showNotification("Only image files are supported", "error");
   };
 
   const handleFileUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { showNotification("File size must be less than 50MB", "error"); return; }
-    if (!file.type.startsWith("image/")) { showNotification("Please upload an image file", "error"); return; }
-    processFile(file);
+    const files = Array.from(e.target.files || []);
+    files.forEach((file) => {
+      if (file.size > 10 * 1024 * 1024) { showNotification(`${file.name} exceeds 10MB limit`, "error"); return; }
+      if (!file.type.startsWith("image/")) { showNotification("Please upload an image file", "error"); return; }
+      processFile(file);
+    });
+    e.target.value = "";
   };
 
   const handleZoomIn  = () => { setZoom((p) => Math.min(p + 0.1, 3)); setIsPaymentReady(false); };
   const handleZoomOut = () => { setZoom((p) => Math.max(p - 0.1, 1)); setIsPaymentReady(false); };
 
-  const handleRemoveImage = () => {
-    setUploadedImage(null);
-    setZoom(1);
-    setImageOffset({ x: 0, y: 0 });
-    setCurrentStep(1);
-    setIsPaymentReady(false);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    showNotification("Image removed successfully", "warning");
+  const handleRemoveImage = (indexToRemove) => {
+    const idx = indexToRemove ?? currentImageIndex;
+    setUploadedImages((prev) => {
+      const updated = prev.filter((_, i) => i !== idx);
+      const newIndex = Math.max(0, Math.min(currentImageIndexRef.current, updated.length - 1));
+      setCurrentImageIndex(updated.length === 0 ? 0 : newIndex);
+      if (updated.length === 0) {
+        setCurrentStep(1);
+        setIsPaymentReady(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+      return updated;
+    });
+    setImageStates((prev) => prev.filter((_, i) => i !== idx));
+    setMailPreviewImages((prev) => prev.filter((_, i) => i !== idx));
+    showNotification("Image removed", "warning");
   };
 
   const handleImageMouseDown = (e) => {
@@ -436,7 +494,7 @@ export default function ProductClientBase({
     }
     setFormErrors({});
     const previewBase64 = await generateMailPreviewImage();
-    setMailPreviewImage(previewBase64);
+    setMailPreviewImages([previewBase64]);
     setIsPaymentReady(true);
     showNotification("Details verified. Click Pay Now.", "success");
     return true;
@@ -1155,7 +1213,8 @@ export default function ProductClientBase({
                         imageOffsetX: imageOffset.x,
                         imageOffsetY: imageOffset.y,
                       }}
-                      previewImage={mailPreviewImage}
+                      previewImages={mailPreviewImages}
+                      uploadedImages={uploadedImages}
                       onSuccess={handlePaymentSuccess}
                       onError={handlePaymentError}
                     />
