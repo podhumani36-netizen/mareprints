@@ -965,7 +965,7 @@ export default function ProductClientPNGFrame({ product }) {
                         slotsCount:  slots.length,
                         slotsFilled: slotImages.filter(Boolean).length,
                       }}
-                      previewImage={mailPreviewImage}
+                      previewImages={[mailPreviewImage]}
                       onSuccess={handlePaymentSuccess}
                       onError={handlePaymentError}
                     />

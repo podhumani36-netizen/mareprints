@@ -1004,7 +1004,7 @@ export default function ProductClientHeartFrame({ product }) {
                         quantity,
                         amount: totalAmount,
                       }}
-                      previewImage={mailPreviewImage}
+                      previewImages={[mailPreviewImage]}
                       onSuccess={handlePaymentSuccess}
                       onError={handlePaymentError}
                     />

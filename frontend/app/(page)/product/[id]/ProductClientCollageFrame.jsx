@@ -848,7 +848,7 @@ export default function ProductClientCollageFrame({ product }) {
                         frameColor,
                         photosCount: filledCount,
                       }}
-                      previewImage={mailPreviewImage}
+                      previewImages={[mailPreviewImage]}
                       onSuccess={handlePaymentSuccess}
                       onError={handlePaymentError}
                     />
