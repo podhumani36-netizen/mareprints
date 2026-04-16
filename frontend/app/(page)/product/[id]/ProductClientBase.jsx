@@ -704,23 +704,27 @@ export default function ProductClientBase({
   );
 
   const renderBetterPreview = (useWall = false) => {
-    const dims = frameDimensions[size] || { width: 200, height: 200 };
     const [widthInch, heightInch] = size.split("x").map(Number);
-    const depth = thickness === "3mm" ? 4 : thickness === "5mm" ? 5 : 7;
+    const isLandscape = widthInch > heightInch;
+    const depth = thickness === "3mm" ? 5 : thickness === "5mm" ? 8 : 12;
+    const shapeRadius = circleClip ? "50%" : frameRadius;
+    const depthBg =
+      thickness === "3mm"
+        ? "linear-gradient(145deg, #d9d9d9, #8f8f8f)"
+        : thickness === "5mm"
+        ? "linear-gradient(145deg, #cfcfcf, #8f8f8f)"
+        : "linear-gradient(145deg, #bdbdbd, #8f8f8f)";
+    const frameDim = isLandscape
+      ? { width: "82%", height: "auto" }
+      : { width: "auto", height: "88%" };
 
     return (
       <div
-        className={styles.previewArea}
+        className={styles.previewBox}
         style={{
-          position: "relative",
-          width: "100%",
-          borderRadius: "28px",
-          overflow: "hidden",
-          background: useWall ? "#f8fafc" : "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
-          backgroundImage: useWall ? `url(${WALL_MOCKUP})` : undefined,
-          backgroundSize: useWall ? "cover" : undefined,
-          backgroundPosition: useWall ? "center" : undefined,
-          border: "1px solid #e2e8f0",
+          background: useWall
+            ? `url('${WALL_MOCKUP}') center/cover no-repeat`
+            : "linear-gradient(160deg, #eef2f7 0%, #dde4ee 100%)",
         }}
       >
         {useWall && (
@@ -728,54 +732,36 @@ export default function ProductClientBase({
             style={{
               position: "absolute",
               inset: 0,
-              background: "linear-gradient(to bottom, rgba(255,255,255,0.10), rgba(15,23,42,0.06))",
+              zIndex: 1,
               pointerEvents: "none",
+              background: "radial-gradient(ellipse at 50% 30%, transparent 45%, rgba(0,0,0,0.18) 100%)",
             }}
           />
         )}
-
-        {/* glass inner border */}
-        <div
-          style={{
-            position: "absolute",
-            inset: "24px",
-            borderRadius: "24px",
-            border: "1px solid rgba(255,255,255,0.55)",
-            pointerEvents: "none",
-          }}
-        />
 
         {/* frame */}
         <div
           style={{
             position: "absolute",
+            top: "5%",
             left: "50%",
-            top: "45%",
-            width: `${dims.width}px`,
-            height: `${dims.height}px`,
-            transform: "translate(-50%, -50%)",
-            borderRadius: frameRadius,
+            transform: "translateX(-50%)",
+            ...frameDim,
+            aspectRatio: `${widthInch} / ${heightInch}`,
+            maxWidth: "88%",
+            maxHeight: "90%",
             overflow: "visible",
-            background: "transparent",
-            maxWidth: "92%",
-            maxHeight: "78%",
+            zIndex: 2,
           }}
         >
           {/* depth shadow */}
           <div
             style={{
               position: "absolute",
-              top: `${depth}px`,
-              left: `${depth}px`,
-              right: `-${depth}px`,
-              bottom: `-${depth}px`,
-              borderRadius: frameRadius,
-              background:
-                thickness === "3mm"
-                  ? "linear-gradient(145deg, #d9d9d9, #8f8f8f)"
-                  : thickness === "5mm"
-                  ? "linear-gradient(145deg, #cfcfcf, #8f8f8f)"
-                  : "linear-gradient(145deg, #bdbdbd, #8f8f8f)",
+              inset: 0,
+              transform: `translate(${depth}px, ${depth}px)`,
+              borderRadius: shapeRadius,
+              background: depthBg,
               boxShadow: "0 18px 35px rgba(0,0,0,0.22)",
               zIndex: 1,
             }}
@@ -786,49 +772,39 @@ export default function ProductClientBase({
             style={{
               position: "absolute",
               inset: 0,
-              borderRadius: frameRadius,
+              borderRadius: shapeRadius,
               background: "#ffffff",
               boxShadow: "0 10px 24px rgba(0,0,0,0.16)",
               overflow: "hidden",
               zIndex: 2,
+              cursor: uploadedImage ? (isImageDragging ? "grabbing" : "grab") : "default",
+              touchAction: "none",
             }}
+            onMouseDown={uploadedImage ? handleImageMouseDown : undefined}
+            onTouchStart={uploadedImage ? handleImageTouchStart : undefined}
+            onTouchMove={uploadedImage ? handleImageTouchMove : undefined}
+            onTouchEnd={uploadedImage ? handleImageTouchEnd : undefined}
+            onTouchCancel={uploadedImage ? handleImageTouchEnd : undefined}
           >
-            <div
+            <img
+              src={uploadedImage || ROOM_WALL_BG}
+              alt="Frame preview"
+              draggable={false}
               style={{
-                position: "relative",
+                position: "absolute",
+                top: "50%",
+                left: "50%",
                 width: "100%",
                 height: "100%",
-                overflow: "hidden",
-                cursor: uploadedImage ? (isImageDragging ? "grabbing" : "grab") : "default",
-                background: "#f1f5f9",
+                objectFit: "contain",
+                transform: `translate(calc(-50% + ${imageOffset.x}px), calc(-50% + ${imageOffset.y}px)) scale(${zoom})`,
+                transformOrigin: "center center",
+                transition: isImageDragging ? "none" : "transform 0.18s ease",
+                userSelect: "none",
                 touchAction: "none",
+                pointerEvents: "none",
               }}
-              onMouseDown={uploadedImage ? handleImageMouseDown : undefined}
-              onTouchStart={uploadedImage ? handleImageTouchStart : undefined}
-              onTouchMove={uploadedImage ? handleImageTouchMove : undefined}
-              onTouchEnd={uploadedImage ? handleImageTouchEnd : undefined}
-              onTouchCancel={uploadedImage ? handleImageTouchEnd : undefined}
-            >
-              <img
-                src={uploadedImage || ROOM_WALL_BG}
-                alt="Frame preview"
-                draggable={false}
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                  transform: `translate(calc(-50% + ${imageOffset.x}px), calc(-50% + ${imageOffset.y}px)) scale(${zoom})`,
-                  transformOrigin: "center center",
-                  transition: isImageDragging ? "none" : "transform 0.18s ease",
-                  userSelect: "none",
-                  touchAction: "none",
-                  pointerEvents: "none",
-                }}
-              />
-            </div>
+            />
           </div>
         </div>
 
@@ -837,41 +813,42 @@ export default function ProductClientBase({
           style={{
             position: "absolute",
             left: "50%",
-            bottom: "28px",
+            bottom: "12px",
             transform: "translateX(-50%)",
             display: "flex",
-            gap: "12px",
+            gap: "8px",
             flexWrap: "wrap",
             justifyContent: "center",
             padding: "0 16px",
             width: "100%",
+            zIndex: 3,
           }}
         >
           <span
             style={{
               background: "rgba(255,255,255,0.96)",
-              padding: "10px 16px",
+              padding: "6px 14px",
               borderRadius: "999px",
               fontWeight: 500,
-              fontSize: "13px",
+              fontSize: "12px",
               color: "#0f172a",
               border: "1px solid #e2e8f0",
             }}
           >
-            {size} • {(widthInch * 2.54).toFixed(2)} x {(heightInch * 2.54).toFixed(2)} cm
+            {size} • {(widthInch * 2.54).toFixed(2)} × {(heightInch * 2.54).toFixed(2)} cm
           </span>
           <span
             style={{
               background: "rgba(255,255,255,0.96)",
-              padding: "10px 16px",
+              padding: "6px 14px",
               borderRadius: "999px",
               fontWeight: 500,
-              fontSize: "13px",
+              fontSize: "12px",
               color: "#0f172a",
               border: "1px solid #e2e8f0",
             }}
           >
-            Thickness: {thickness}
+            {thickness}
           </span>
         </div>
       </div>
