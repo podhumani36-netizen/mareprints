@@ -1838,8 +1838,8 @@
     width: 100%;
     aspect-ratio: 4 / 3;
     border-radius: 20px;
-    overflow: visible;
-    box-shadow: none;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.10);
     user-select: none;
 }
 
@@ -1858,28 +1858,27 @@
         top: 0;
         z-index: 50;
         background: #fff;
-        padding: 8px 8px 20px;
+        padding: 8px;
         margin: 0;
         border-radius: 0 0 20px 20px;
         box-shadow: 0 4px 20px rgba(15, 23, 42, 0.10);
-        overflow: visible;
     }
 
     .previewBox {
         aspect-ratio: unset;
-        height: 40vh;
+        height: 42vh;
         border-radius: 16px;
     }
 }
 
 @media (max-width: 480px) {
     .step2PreviewCol {
-        padding: 6px 6px 18px;
+        padding: 6px;
         border-radius: 0 0 16px 16px;
     }
 
     .previewBox {
-        height: 34vh;
+        height: 36vh;
         border-radius: 12px;
     }
 }
