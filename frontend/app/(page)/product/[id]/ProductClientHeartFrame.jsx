@@ -18,7 +18,7 @@ const HEART_W = 300;
 const HEART_H = 280;
 
 const SIZE_OPTIONS = ["8x8", "12x12", "16x16", "20x20"];
-const BASE_PRICE = 1;
+const BASE_PRICE = 899;
 
 // ── Design templates ──────────────────────────────────────────────────────────
 // Each template defines photo count, grid CSS, and per-slot cell styles
@@ -218,7 +218,7 @@ export default function ProductClientHeartFrame({ product }) {
     let price = BASE_PRICE;
     const idx = SIZE_OPTIONS.indexOf(size);
     if (idx > 0) price += idx * 1;
-    if (thickness === "5mm") price += 150;
+    if (thickness === "5mm") price += 200;
     if (thickness === "8mm") price += 300;
     price += (selectedDesign.count - 1) * 100;
     return price * quantity;
@@ -893,10 +893,10 @@ export default function ProductClientHeartFrame({ product }) {
                 {sectionHeader("bi-display", "Live Preview", `${selectedDesign.label} · Heart Acrylic Frame`)}
                 {renderHeartPreview(true)}
                 {renderZoomControls()}
-                <button type="button" onClick={() => goToStep(1)}
+                {/* <button type="button" onClick={() => goToStep(1)}
                   style={{ width: "100%", marginTop: "16px", borderRadius: "12px", padding: "10px 16px", border: "1.5px solid #e2e8f0", background: "#fff", cursor: "pointer", fontWeight: 600, fontSize: "14px", color: "#475569", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
                   <i className="bi bi-arrow-left" />Back to Upload
-                </button>
+                </button> */}
               </div>
             </div>
 
