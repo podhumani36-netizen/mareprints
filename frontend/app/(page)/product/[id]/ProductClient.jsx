@@ -97,8 +97,8 @@ export default function ProductClient() {
   };
 
   const sizeOptions = {
-    portrait:  ["8x10", "10x12", "12x16", "16x18", "18x22", "20x24", "20x30", "23x34", "custom"],
-    landscape: ["10x8", "12x10", "16x12", "18x16", "22x18", "24x20", "30x20", "34x23", "custom"],
+    portrait:  ["8x10", "10x12", "12x16", "16x18", "18x22", "20x24", "20x30", "23x35", "custom"],
+    landscape: ["10x8", "12x10", "16x12", "18x16", "22x18", "24x20", "30x20", "35x23", "custom"],
     circle:    ["12x12", "15x15", "18x18", "22x22", "custom"],
     square:    ["12x12", "15x15", "18x18", "22x22", "custom"],
     heart:     ["12x12", "15x15", "18x18", "22x22", "custom"],
@@ -115,7 +115,7 @@ export default function ProductClient() {
     "18x22": { width: 180, height: 220 },
     "20x24": { width: 200, height: 240 },
     "20x30": { width: 200, height: 300 },
-    "23x34": { width: 230, height: 340 },
+    "23x35": { width: 230, height: 350 },
     // landscape (flipped)
     "10x8":  { width: 100, height: 80  },
     "12x10": { width: 120, height: 100 },
@@ -124,12 +124,53 @@ export default function ProductClient() {
     "22x18": { width: 220, height: 180 },
     "24x20": { width: 240, height: 200 },
     "30x20": { width: 300, height: 200 },
-    "34x23": { width: 340, height: 230 },
+    "35x23": { width: 350, height: 230 },
     // square / circle
     "12x12": { width: 120, height: 120 },
     "15x15": { width: 150, height: 150 },
     "18x18": { width: 180, height: 180 },
     "22x22": { width: 220, height: 220 },
+  };
+
+  const priceMap = {
+    portrait: {
+      "8x10":  { "3mm": 549,  "5mm": 699,  "8mm": 859 },
+      "10x12": { "3mm": 849,  "5mm": 999,  "8mm": 1259 },
+      "12x16": { "3mm": 1049, "5mm": 1299, "8mm": 1959 },
+      "16x18": { "3mm": 1549, "5mm": 1899, "8mm": 2759 },
+      "18x22": { "3mm": 2149, "5mm": 2599, "8mm": 3659 },
+      "20x24": { "3mm": 2649, "5mm": 3199, "8mm": 4359 },
+      "20x30": { "3mm": 3349, "5mm": 3999, "8mm": 5459 },
+      "23x35": { "3mm": 4349, "5mm": 5299, "8mm": 7349 },
+    },
+    landscape: {
+      "10x8":  { "3mm": 549,  "5mm": 699,  "8mm": 859 },
+      "12x10": { "3mm": 849,  "5mm": 999,  "8mm": 1259 },
+      "16x12": { "3mm": 1049, "5mm": 1299, "8mm": 1959 },
+      "18x16": { "3mm": 1549, "5mm": 1899, "8mm": 2759 },
+      "22x18": { "3mm": 2149, "5mm": 2599, "8mm": 3659 },
+      "24x20": { "3mm": 2649, "5mm": 3199, "8mm": 4359 },
+      "30x20": { "3mm": 3349, "5mm": 3999, "8mm": 5459 },
+      "35x23": { "3mm": 4349, "5mm": 5299, "8mm": 7349 },
+    },
+    circle: {
+      "12x12": { "3mm": 949,  "5mm": 1149, "8mm": 1599 },
+      "15x15": { "3mm": 1349, "5mm": 1649, "8mm": 2399 },
+      "18x18": { "3mm": 1749, "5mm": 2149, "8mm": 2999 },
+      "22x22": { "3mm": 2849, "5mm": 3449, "8mm": 4699 },
+    },
+    square: {
+      "12x12": { "3mm": 949,  "5mm": 1149, "8mm": 1599 },
+      "15x15": { "3mm": 1349, "5mm": 1649, "8mm": 2399 },
+      "18x18": { "3mm": 1749, "5mm": 2149, "8mm": 2999 },
+      "22x22": { "3mm": 2849, "5mm": 3449, "8mm": 4699 },
+    },
+    heart: {
+      "12x12": { "3mm": 1049, "5mm": 1299, "8mm": 1799 },
+      "15x15": { "3mm": 1449, "5mm": 1799, "8mm": 2549 },
+      "18x18": { "3mm": 1899, "5mm": 2299, "8mm": 3199 },
+      "22x22": { "3mm": 2999, "5mm": 3599, "8mm": 4899 },
+    },
   };
 
   const basePrice = 1;
@@ -283,22 +324,18 @@ export default function ProductClient() {
   };
 
   const calculatePrice = useCallback(() => {
-    let price = basePrice;
-
     if (size === "custom") {
       const w = parseFloat(customSize.width) || 0;
       const h = parseFloat(customSize.height) || 0;
-      price += Math.max(0, Math.floor((w * h) / 10) * 50);
-    } else {
-      const opts = sizeOptions[orientation] || sizeOptions.portrait;
-      const sizeIndex = opts.indexOf(size);
-      if (sizeIndex > 0) price += sizeIndex * 150;
+      return Math.max(basePrice, Math.floor((w * h) / 10) * 50) * quantity;
     }
 
-    if (thickness === "5mm") price += 150;
-    if (thickness === "8mm") price += 300;
+    const orientationPrices = priceMap[orientation];
+    if (orientationPrices && orientationPrices[size] && orientationPrices[size][thickness]) {
+      return orientationPrices[size][thickness] * quantity;
+    }
 
-    return price * quantity;
+    return basePrice * quantity;
   }, [orientation, size, customSize, thickness, quantity]);
 
   const generateMailPreviewImageFor = async (imgSrc, imgZoom, imgOffset, screenFrameW = null, screenFrameH = null) => {
