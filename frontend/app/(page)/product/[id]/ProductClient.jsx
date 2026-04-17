@@ -926,7 +926,7 @@ const validateBeforePayment = async () => {
     }
     frameAR = widthInch / heightInch; // aspect ratio
 
-    const depthPx  = thickness === "3mm" ? 5 : thickness === "5mm" ? 8 : 12;
+    const depthPx  = thickness === "3mm" ? 3 : thickness === "5mm" ? 5 : 8;
     const depthBg  = thickness === "3mm"
       ? "linear-gradient(145deg,#c8c8c8,#888)"
       : thickness === "5mm"
