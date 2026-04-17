@@ -16,7 +16,7 @@ export default function ProductClientRoundedRectPortrait() {
       sizeOptions={SIZE_OPTIONS}
       frameDimensions={FRAME_DIMENSIONS}
       defaultSize="16x20"
-      basePrice={1}
+      basePrice={549}
       frameRadius="20px"
       productOrientation="rounded_rect_portrait"
       exportWidth={1600}

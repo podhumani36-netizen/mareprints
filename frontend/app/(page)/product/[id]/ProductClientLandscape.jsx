@@ -16,7 +16,7 @@ export default function ProductClientLandscape() {
       sizeOptions={SIZE_OPTIONS}
       frameDimensions={FRAME_DIMENSIONS}
       defaultSize="20x16"
-      basePrice={1}
+      basePrice={549}
       frameRadius="0px"
       productOrientation="landscape"
       exportWidth={2000}

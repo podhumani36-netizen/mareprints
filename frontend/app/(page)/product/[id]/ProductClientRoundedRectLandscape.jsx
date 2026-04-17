@@ -16,7 +16,7 @@ export default function ProductClientRoundedRectLandscape() {
       sizeOptions={SIZE_OPTIONS}
       frameDimensions={FRAME_DIMENSIONS}
       defaultSize="20x16"
-      basePrice={1}
+      basePrice={549}
       frameRadius="20px"
       productOrientation="rounded_rect_landscape"
       exportWidth={2000}

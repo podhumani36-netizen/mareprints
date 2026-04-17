@@ -559,7 +559,7 @@ export default function ProductClientBase({
   const sectionCardStyle = {
     background: "#ffffff",
     border: "1px solid #e2e8f0",
-    borderRadius: "20px",
+    borderRadius: "24px",
     padding: "clamp(14px, 3vw, 24px)",
     boxShadow: "0 10px 30px rgba(15,23,42,0.05)",
   };
@@ -1035,230 +1035,304 @@ const frameHeightPercent = heightInch * scale * 0.72;
 
   const renderStep2 = () => {
     const totalAmount = calculatePrice();
+
+    const thicknessInfo = {
+      "3mm": { label: "3mm", desc: "Slim",     icon: "bi-layers",      color: "#10b981" },
+      "5mm": { label: "5mm", desc: "Standard", icon: "bi-layers-fill", color: "#2563eb" },
+      "8mm": { label: "8mm", desc: "Premium",  icon: "bi-stack",       color: "#7c3aed" },
+    };
+
+    const sectionHeader = (icon, title, subtitle) => (
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+        <div style={{
+          width: "40px", height: "40px", borderRadius: "12px",
+          background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "#fff", fontSize: "18px", flexShrink: 0,
+        }}>
+          <i className={`bi ${icon}`} />
+        </div>
+        <div>
+          <div style={{ fontSize: "clamp(14px,3vw,17px)", fontWeight: 800, color: "#0f172a", lineHeight: 1.2 }}>{title}</div>
+          {subtitle && <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>{subtitle}</div>}
+        </div>
+      </div>
+    );
+
+    const fieldStyle = {
+      borderRadius: "10px", border: "1.5px solid #e2e8f0",
+      padding: "11px 14px", fontSize: "clamp(13px,2.5vw,14px)",
+      background: "#fff", boxShadow: "none", transition: "border-color 0.2s", width: "100%",
+    };
+
     return (
       <div
         className={styles.stepContainer}
-        style={{ background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 55%, #f1f5f9 100%)" }}
+        style={{ background: "linear-gradient(180deg, #f0f7ff 0%, #f8fafc 50%, #f1f5f9 100%)", paddingBottom: "48px" }}
       >
-        <div className="container">
-          <div className="row g-4 align-items-start">
+        <div className="container-fluid" style={{ maxWidth: "1400px" }}>
+          <div className="row g-3 align-items-start">
 
-            {/* Left: preview + options */}
-            <div className="col-lg-7">
-              <div style={sectionCardStyle}>
-                <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: "clamp(15px, 3.5vw, 26px)", fontWeight: 800, color: "#0f172a" }}>
-                      Live Preview
-                    </h3>
-                    <p style={{ margin: "4px 0 0", fontSize: "clamp(11px, 2vw, 13px)", color: "#64748b" }}>
-                      Adjust your image and review before payment
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => goToStep(1)}
-                    style={{
-                      borderRadius: "12px",
-                      padding: "8px 16px",
-                      border: "1.5px solid #2563eb",
-                      color: "#2563eb",
-                      background: "transparent",
-                      cursor: "pointer",
-                      fontWeight: 600,
-                      fontSize: "14px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      transition: "all 0.2s ease",
-                      whiteSpace: "nowrap",
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = "#2563eb"; e.currentTarget.style.color = "#fff"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#2563eb"; }}
-                  >
-                    <i className="bi bi-arrow-left" />Back
-                  </button>
-                </div>
-
-                {/* Sticky on mobile: preview + zoom controls stay visible while
-                    the user scrolls through the options / form below */}
-                <div className={styles.step2PreviewWrapper}>
-                  {renderBetterPreview(true)}
-                  {renderEditorControls()}
-                </div>
-
-                <div style={{ ...sectionCardStyle, marginBottom: "20px" }}>
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label style={labelStyle}>Size</label>
-                      <SelectField
-                        value={size}
-                        onChange={(e) => { setSize(e.target.value); setIsPaymentReady(false); }}
-                        options={sizeOptions}
-                      />
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>Thickness</label>
-                      <SelectField
-                        value={thickness}
-                        onChange={(e) => { setThickness(e.target.value); setIsPaymentReady(false); }}
-                        options={thicknessOptions}
-                      />
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>Quantity</label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={quantity}
-                        onChange={(e) => { setQuantity(Math.max(1, Number(e.target.value) || 1)); setIsPaymentReady(false); }}
-                        style={{ ...inputStyle, width: "100%" }}
-                      />
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>Order ID</label>
-                      <input
-                        type="text"
-                        value={orderId}
-                        readOnly
-                        style={{ ...inputStyle, width: "100%", color: "#64748b" }}
-                      />
-                    </div>
-                  </div>
-                </div>
+            {/* Left: sticky live preview */}
+            <div className={`col-12 col-lg-4 ${styles.step2PreviewCol}`}>
+              <div style={{ ...sectionCardStyle, padding: "clamp(10px,2.5vw,20px)", maxWidth: "460px", marginLeft: "auto", marginRight: "auto" }}>
+                {sectionHeader("bi-display", "Live Preview", "Drag · zoom to adjust")}
+                {renderBetterPreview(true)}
+                {renderEditorControls()}
               </div>
             </div>
 
-            {/* Right: summary + form */}
-            <div className="col-lg-5">
-              <form onSubmit={handleSubmitOrder}>
+            {/* Right: all controls stacked */}
+            <div className="col-12 col-lg-8">
+              <div className="d-flex flex-column gap-3">
 
-                {/* Order summary */}
-                <div style={{ ...sectionCardStyle, marginBottom: "20px" }}>
-                  <h4 style={{ marginBottom: "14px", fontWeight: 800, color: "#0f172a", fontSize: "clamp(13px, 2.5vw, 18px)" }}>
-                    Order Summary
-                  </h4>
-                  {renderSummaryPreview()}
-                  <div style={{ display: "grid", gap: "8px", marginTop: "10px", fontSize: "clamp(12px, 2.5vw, 14px)", color: "#334155" }}>
+                {/* Customise Options */}
+                <div style={sectionCardStyle}>
+                  {sectionHeader("bi-sliders", "Customise Your Print", "Choose size, thickness and quantity")}
+
+                  {/* Size */}
+                  <div style={{ marginBottom: "24px" }}>
+                    <label style={{ ...labelStyle, marginBottom: "10px" }}>
+                      <i className="bi bi-aspect-ratio me-1" style={{ color: "#2563eb" }} />Size (inches)
+                    </label>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                      {sizeOptions.map((opt) => {
+                        const active = size === opt;
+                        return (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => { setSize(opt); setIsPaymentReady(false); }}
+                            style={{
+                              padding: "8px 16px", borderRadius: "10px",
+                              border: active ? "2px solid #2563eb" : "1.5px solid #e2e8f0",
+                              background: active ? "#2563eb" : "#f8fafc",
+                              color: active ? "#fff" : "#334155",
+                              fontWeight: active ? 700 : 500, fontSize: "clamp(12px,2.5vw,13px)",
+                              cursor: "pointer", transition: "all 0.18s",
+                              boxShadow: active ? "0 4px 12px rgba(37,99,235,0.25)" : "none",
+                            }}
+                          >{opt}</button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Thickness */}
+                  <div style={{ marginBottom: "24px" }}>
+                    <label style={{ ...labelStyle, marginBottom: "10px" }}>
+                      <i className="bi bi-layers me-1" style={{ color: "#2563eb" }} />Thickness
+                    </label>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                      {thicknessOptions.map((opt) => {
+                        const info = thicknessInfo[opt];
+                        const active = thickness === opt;
+                        return (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => { setThickness(opt); setIsPaymentReady(false); }}
+                            style={{
+                              flex: "1 1 90px", padding: "12px 10px", borderRadius: "14px",
+                              border: active ? `2px solid ${info.color}` : "1.5px solid #e2e8f0",
+                              background: active ? `${info.color}14` : "#f8fafc",
+                              color: active ? info.color : "#475569",
+                              fontWeight: active ? 700 : 500, fontSize: "13px",
+                              cursor: "pointer", transition: "all 0.18s", textAlign: "center",
+                              boxShadow: active ? `0 0 0 3px ${info.color}22` : "none",
+                            }}
+                          >
+                            <i className={`bi ${info.icon}`} style={{ fontSize: "18px", display: "block", marginBottom: "4px" }} />
+                            <span style={{ fontSize: "15px", fontWeight: 800 }}>{info.label}</span>
+                            <span style={{ display: "block", fontSize: "10px", opacity: 0.75, marginTop: "2px" }}>{info.desc}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Quantity */}
+                  <div>
+                    <label style={{ ...labelStyle, marginBottom: "10px" }}>
+                      <i className="bi bi-hash me-1" style={{ color: "#2563eb" }} />Quantity
+                    </label>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", maxWidth: "200px" }}>
+                      <button
+                        type="button"
+                        onClick={() => { setQuantity((p) => Math.max(1, p - 1)); setIsPaymentReady(false); }}
+                        style={{
+                          width: "42px", height: "42px", borderRadius: "12px",
+                          border: "1.5px solid #dbe3ee", background: "#fff",
+                          fontWeight: 700, fontSize: "18px", cursor: "pointer",
+                          display: "flex", alignItems: "center", justifyContent: "center", color: "#334155",
+                        }}
+                      >−</button>
+                      <div style={{
+                        flex: 1, height: "42px", borderRadius: "12px",
+                        border: "1.5px solid #2563eb", background: "#eff6ff",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontWeight: 800, fontSize: "16px", color: "#1d4ed8",
+                      }}>{quantity}</div>
+                      <button
+                        type="button"
+                        onClick={() => { setQuantity((p) => p + 1); setIsPaymentReady(false); }}
+                        style={{
+                          width: "42px", height: "42px", borderRadius: "12px",
+                          border: "1.5px solid #dbe3ee", background: "#fff",
+                          fontWeight: 700, fontSize: "18px", cursor: "pointer",
+                          display: "flex", alignItems: "center", justifyContent: "center", color: "#334155",
+                        }}
+                      >+</button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dark Order Summary */}
+                <div style={{
+                  ...sectionCardStyle,
+                  background: "linear-gradient(145deg, #0f172a 0%, #1e293b 100%)",
+                  border: "none",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+                    <div style={{
+                      width: "36px", height: "36px", borderRadius: "10px",
+                      background: "rgba(255,255,255,0.12)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      color: "#fff", fontSize: "16px",
+                    }}>
+                      <i className="bi bi-receipt" />
+                    </div>
+                    <span style={{ fontSize: "16px", fontWeight: 800, color: "#fff" }}>Order Summary</span>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                     {[
-                      ["Size", size],
-                      ["Thickness", thickness],
-                      ["Quantity", quantity],
-                    ].map(([label, val]) => (
-                      <div key={label} className="d-flex justify-content-between" style={{ paddingBottom: "8px", borderBottom: "1px solid #f1f5f9" }}>
-                        <span style={{ color: "#64748b" }}>{label}</span>
-                        <strong style={{ color: "#0f172a" }}>{val}</strong>
+                      { icon: "bi-hash",     label: "Order ID",  value: orderId },
+                      { icon: "bi-rulers",   label: "Size",      value: size },
+                      { icon: "bi-layers",   label: "Thickness", value: thickness },
+                      { icon: "bi-bag",      label: "Quantity",  value: quantity },
+                    ].map(({ icon, label, value }) => (
+                      <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: "7px", color: "#94a3b8", fontSize: "13px" }}>
+                          <i className={`bi ${icon}`} />{label}
+                        </span>
+                        <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: "13px" }}>{value}</span>
                       </div>
                     ))}
-                    <div className="d-flex justify-content-between" style={{ paddingTop: "4px" }}>
-                      <span style={{ fontWeight: 700, color: "#0f172a" }}>Total Amount</span>
-                      <strong style={{ color: "#2563eb", fontSize: "clamp(15px, 3vw, 18px)" }}>₹{totalAmount}</strong>
+                    <div style={{ margin: "6px 0", borderTop: "1px solid rgba(255,255,255,0.1)" }} />
+                    <div style={{
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                      padding: "12px 16px", borderRadius: "14px",
+                      background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
+                    }}>
+                      <span style={{ color: "#bfdbfe", fontWeight: 600, fontSize: "13px" }}>Total Amount</span>
+                      <span style={{ color: "#fff", fontWeight: 900, fontSize: "22px" }}>₹{totalAmount}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Customer details */}
-                <div style={{ ...sectionCardStyle, marginBottom: "20px" }}>
-                  <h4 style={{ marginBottom: "14px", fontWeight: 800, color: "#0f172a", fontSize: "clamp(13px, 2.5vw, 18px)" }}>
-                    Customer Details
-                  </h4>
-                  <div className="row g-3">
-                    <div className="col-12">
-                      <label style={labelStyle}>Full Name</label>
-                      <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} style={{ ...inputStyle, width: "100%" }} />
-                      {renderFieldError("fullName")}
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>Email</label>
-                      <input type="email" name="email" value={formData.email} onChange={handleInputChange} style={{ ...inputStyle, width: "100%" }} />
-                      {renderFieldError("email")}
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>Phone</label>
-                      <input type="text" name="phone" value={formData.phone} onChange={handleInputChange} style={{ ...inputStyle, width: "100%" }} />
-                      {renderFieldError("phone")}
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>Alternate Phone</label>
-                      <input type="text" name="alternatePhone" value={formData.alternatePhone} onChange={handleInputChange} style={{ ...inputStyle, width: "100%" }} />
-                      {renderFieldError("alternatePhone")}
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>Pincode</label>
-                      <input type="text" name="pincode" value={formData.pincode} onChange={handleInputChange} style={{ ...inputStyle, width: "100%" }} />
-                      {renderFieldError("pincode")}
-                    </div>
-                    <div className="col-12">
-                      <label style={labelStyle}>Address</label>
-                      <textarea name="address" value={formData.address} onChange={handleInputChange} rows="3" style={{ ...inputStyle, width: "100%", resize: "none" }} />
-                      {renderFieldError("address")}
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>City</label>
-                      <input type="text" name="city" value={formData.city} onChange={handleInputChange} style={{ ...inputStyle, width: "100%" }} />
-                      {renderFieldError("city")}
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>State</label>
-                      <input type="text" name="state" value={formData.state} onChange={handleInputChange} style={{ ...inputStyle, width: "100%" }} />
-                      {renderFieldError("state")}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Payment */}
+                {/* Contact & Delivery */}
                 <div style={sectionCardStyle}>
-                  {!isPaymentReady ? (
-                    <button
-                      type="submit"
-                      style={{
-                        width: "100%",
-                        borderRadius: "14px",
-                        padding: "clamp(11px, 2.5vw, 14px) 18px",
-                        fontWeight: 700,
-                        fontSize: "clamp(13px, 2.5vw, 16px)",
-                        background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
-                        color: "#ffffff",
-                        border: "none",
-                        cursor: "pointer",
-                        boxShadow: "0 4px 14px rgba(37,99,235,0.35)",
-                        transition: "all 0.25s ease",
-                        letterSpacing: "0.01em",
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(37,99,235,0.45)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)"; e.currentTarget.style.boxShadow = "0 4px 14px rgba(37,99,235,0.35)"; e.currentTarget.style.transform = "translateY(0)"; }}
-                    >
-                      <i className="bi bi-shield-check me-2" />
-                      Verify Details &amp; Pay Now
-                    </button>
-                  ) : (
-                    <RazorpayPayment
-                      amount={totalAmount}
-                      customerDetails={{
-                        ...formData,
-                        name: formData.fullName,
-                        orderId,
-                        productType: productOrientation,
-                        productName: `Custom Acrylic Print (${productOrientation} ${size})`,
-                        orientation: productOrientation,
-                        size,
-                        thickness,
-                        quantity,
-                        amount: totalAmount,
-                        imageZoom: zoom,
-                        imageOffsetX: imageOffset.x,
-                        imageOffsetY: imageOffset.y,
-                      }}
-                      previewImages={mailPreviewImages}
-                      uploadedImages={uploadedImages}
-                      onSuccess={handlePaymentSuccess}
-                      onError={handlePaymentError}
-                    />
-                  )}
+                  {sectionHeader("bi-truck", "Contact & Delivery", "We'll use this to ship your order")}
+                  <form onSubmit={handleSubmitOrder}>
+                    <div className="row g-3">
+                      <div className="col-12">
+                        <label style={labelStyle}><i className="bi bi-person me-1" style={{ color: "#2563eb" }} />Full Name</label>
+                        <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange}
+                          className="form-control" placeholder="Enter your full name" style={fieldStyle} />
+                        {renderFieldError("fullName")}
+                      </div>
+                      <div className="col-12">
+                        <label style={labelStyle}><i className="bi bi-envelope me-1" style={{ color: "#2563eb" }} />Email Address</label>
+                        <input type="email" name="email" value={formData.email} onChange={handleInputChange}
+                          className="form-control" placeholder="Enter your email" style={fieldStyle} />
+                        {renderFieldError("email")}
+                      </div>
+                      <div className="col-md-6">
+                        <label style={labelStyle}><i className="bi bi-telephone me-1" style={{ color: "#2563eb" }} />Phone</label>
+                        <input type="text" name="phone" value={formData.phone} onChange={handleInputChange}
+                          className="form-control" placeholder="10-digit phone" style={fieldStyle} />
+                        {renderFieldError("phone")}
+                      </div>
+                      <div className="col-md-6">
+                        <label style={labelStyle}><i className="bi bi-telephone-plus me-1" style={{ color: "#94a3b8" }} />Alt. Phone</label>
+                        <input type="text" name="alternatePhone" value={formData.alternatePhone} onChange={handleInputChange}
+                          className="form-control" placeholder="Optional" style={fieldStyle} />
+                        {renderFieldError("alternatePhone")}
+                      </div>
+                      <div className="col-12">
+                        <label style={labelStyle}><i className="bi bi-geo-alt me-1" style={{ color: "#2563eb" }} />Address</label>
+                        <textarea name="address" value={formData.address} onChange={handleInputChange}
+                          className="form-control" placeholder="Enter your full address"
+                          style={{ ...fieldStyle, minHeight: "90px", resize: "vertical" }} />
+                        {renderFieldError("address")}
+                      </div>
+                      <div className="col-md-6">
+                        <label style={labelStyle}><i className="bi bi-building me-1" style={{ color: "#2563eb" }} />City</label>
+                        <input type="text" name="city" value={formData.city} onChange={handleInputChange}
+                          className="form-control" placeholder="City" style={fieldStyle} />
+                        {renderFieldError("city")}
+                      </div>
+                      <div className="col-md-6">
+                        <label style={labelStyle}><i className="bi bi-map me-1" style={{ color: "#2563eb" }} />State</label>
+                        <input type="text" name="state" value={formData.state} onChange={handleInputChange}
+                          className="form-control" placeholder="State" style={fieldStyle} />
+                        {renderFieldError("state")}
+                      </div>
+                      <div className="col-12">
+                        <label style={labelStyle}><i className="bi bi-mailbox me-1" style={{ color: "#2563eb" }} />Pincode</label>
+                        <input type="text" name="pincode" value={formData.pincode} onChange={handleInputChange}
+                          className="form-control" placeholder="6-digit pincode" style={fieldStyle} />
+                        {renderFieldError("pincode")}
+                      </div>
+                      <div className="col-12 mt-2">
+                        {!isPaymentReady ? (
+                          <button
+                            type="button"
+                            onClick={validateBeforePayment}
+                            style={{
+                              width: "100%", padding: "14px", borderRadius: "14px", border: "none",
+                              background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
+                              color: "#fff", fontWeight: 700, fontSize: "clamp(14px,3vw,16px)",
+                              cursor: "pointer", boxShadow: "0 8px 20px rgba(37,99,235,0.3)",
+                              display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                              transition: "opacity 0.2s",
+                            }}
+                          >
+                            <i className="bi bi-shield-check" />
+                            Verify Details
+                          </button>
+                        ) : (
+                          <RazorpayPayment
+                            amount={totalAmount}
+                            buttonText={`Pay Now ₹${totalAmount}`}
+                            themeColor="#2563eb"
+                            previewImages={mailPreviewImages}
+                            uploadedImages={uploadedImages}
+                            customerDetails={{
+                              ...formData,
+                              name: formData.fullName,
+                              orderId,
+                              productType: productOrientation,
+                              productName: `Custom Acrylic Print (${productOrientation} ${size})`,
+                              orientation: productOrientation,
+                              size, thickness, quantity,
+                              amount: totalAmount,
+                              imageZoom: zoom,
+                              imageOffsetX: imageOffset.x,
+                              imageOffsetY: imageOffset.y,
+                            }}
+                            onSuccess={handlePaymentSuccess}
+                            onError={handlePaymentError}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </form>
                 </div>
 
-              </form>
+              </div>
             </div>
+
           </div>
         </div>
       </div>

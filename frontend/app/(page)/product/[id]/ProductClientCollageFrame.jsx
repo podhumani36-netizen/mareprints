@@ -631,208 +631,240 @@ export default function ProductClientCollageFrame({ product }) {
   // ── Step 2: Customize + Payment ───────────────────────────────────────────
   const renderStep2 = () => {
     const total = calculatePrice();
+    const thicknessInfo = {
+      "3mm": { desc: "Slim",     icon: "bi-layers",      color: "#10b981" },
+      "5mm": { desc: "Standard", icon: "bi-layers-fill",  color: "#2563eb" },
+      "8mm": { desc: "Premium",  icon: "bi-stack",        color: "#7c3aed" },
+    };
+    const fieldStyle = {
+      borderRadius: "10px", border: "1.5px solid #e2e8f0",
+      padding: "11px 14px", fontSize: "15px", width: "100%",
+      background: "#fff", outline: "none",
+    };
+    const sectionHeader = (icon, title, subtitle) => (
+      <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "22px" }}>
+        <div style={{
+          width: "40px", height: "40px", borderRadius: "12px", flexShrink: 0,
+          background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <i className={`bi ${icon}`} style={{ color: "#fff", fontSize: "18px" }} />
+        </div>
+        <div>
+          <div style={{ fontWeight: 800, fontSize: "17px", color: "#0f172a" }}>{title}</div>
+          {subtitle && <div style={{ fontSize: "13px", color: "#64748b", marginTop: "2px" }}>{subtitle}</div>}
+        </div>
+      </div>
+    );
+
     return (
-      <div className={styles.stepContainer} style={{ background: "linear-gradient(180deg,#ffffff 0%,#f8fafc 55%,#f1f5f9 100%)" }}>
-        <div className="container">
+      <div style={{ background: "linear-gradient(180deg, #f0f7ff 0%, #f8fafc 50%, #f1f5f9 100%)", paddingBottom: "48px" }}>
+        <div className="container-fluid" style={{ maxWidth: "1400px", margin: "0 auto", padding: "32px 20px 0" }}>
           <div className="row g-4 align-items-start">
 
-            {/* Left: live preview + options */}
-            <div className="col-lg-7">
+            {/* Left: sticky preview */}
+            <div className="col-lg-5" style={{ position: "sticky", top: "20px" }}>
               <div style={sectionCard}>
-                <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: "clamp(15px,3.5vw,26px)", fontWeight: 800, color: "#0f172a" }}>
-                      Live Preview
-                    </h3>
-                    <p style={{ margin: "4px 0 0", fontSize: "clamp(11px,2vw,13px)", color: "#64748b" }}>
-                      Review your collage frame
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => goToStep(1)}
-                    style={{
-                      borderRadius: "12px", padding: "8px 16px",
-                      border: "1.5px solid #2563eb", color: "#2563eb",
-                      background: "transparent", cursor: "pointer",
-                      fontWeight: 600, fontSize: "14px",
-                      display: "flex", alignItems: "center", gap: "6px",
-                      transition: "all 0.2s",
-                      whiteSpace: "nowrap",
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = "#2563eb"; e.currentTarget.style.color = "#fff"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#2563eb"; }}
-                  >
-                    <i className="bi bi-arrow-left" />Back
-                  </button>
-                </div>
-
-                {/* Sticky on mobile: preview stays visible while the user
-                    scrolls through the options / form below */}
-                <div className={styles.step2PreviewWrapper}>
-                  {renderCollageGrid(true)}
-                </div>
-
-                {/* Options */}
-                <div style={{ ...sectionCard, marginTop: 20 }}>
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label style={labelStyle}>Frame Color</label>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
-                        {FRAME_COLORS.map(({ v, l }) => (
-                          <button
-                            key={v} type="button"
-                            onClick={() => { setFrameColor(v); setIsPaymentReady(false); }}
-                            title={l}
-                            style={{
-                              width: 30, height: 30, borderRadius: "50%",
-                              background: v,
-                              border: frameColor === v ? "3px solid #2563eb" : "3px solid #e2e8f0",
-                              boxShadow: frameColor === v ? "0 0 0 2px #fff,0 0 0 4px #2563eb" : "0 1px 4px rgba(0,0,0,0.15)",
-                              cursor: "pointer", outline: "none", transition: "box-shadow 0.2s",
-                            }}
-                          />
-                        ))}
-                        <span style={{ fontSize: 12, color: "#64748b", fontWeight: 500 }}>
-                          {FRAME_COLORS.find((c) => c.v === frameColor)?.l}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>Size (inches)</label>
-                      <select
-                        value={size}
-                        onChange={(e) => { setSize(e.target.value); setIsPaymentReady(false); }}
-                        style={{ ...inputStyle, width: "100%", appearance: "none", cursor: "pointer" }}
-                      >
-                        {SIZE_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>Thickness</label>
-                      <select
-                        value={thickness}
-                        onChange={(e) => { setThickness(e.target.value); setIsPaymentReady(false); }}
-                        style={{ ...inputStyle, width: "100%", appearance: "none", cursor: "pointer" }}
-                      >
-                        {["3mm", "5mm", "8mm"].map((t) => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>Quantity</label>
-                      <input
-                        type="number" min="1" value={quantity}
-                        onChange={(e) => { setQuantity(Math.max(1, Number(e.target.value) || 1)); setIsPaymentReady(false); }}
-                        style={{ ...inputStyle, width: "100%" }}
-                      />
-                    </div>
-                  </div>
-                </div>
+                {sectionHeader("bi-display", "Live Preview", "Review your collage frame")}
+                {renderCollageGrid(true)}
+                <button type="button" onClick={() => goToStep(1)}
+                  style={{ width: "100%", marginTop: "16px", borderRadius: "12px", padding: "10px 16px", border: "1.5px solid #e2e8f0", background: "#fff", cursor: "pointer", fontWeight: 600, fontSize: "14px", color: "#475569", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                  <i className="bi bi-arrow-left" />Back to Upload
+                </button>
               </div>
             </div>
 
-            {/* Right: order summary + form + payment */}
-            <div className="col-lg-5">
-              <form onSubmit={handleSubmitOrder}>
+            {/* Right: cards */}
+            <div className="col-lg-7">
 
-                {/* Order summary */}
-                <div style={{ ...sectionCard, marginBottom: 20 }}>
-                  <h4 style={{ marginBottom: 14, fontWeight: 800, color: "#0f172a", fontSize: "clamp(13px,2.5vw,18px)" }}>
-                    Order Summary
-                  </h4>
-                  <div style={{ display: "grid", gap: 8, fontSize: "clamp(12px,2.5vw,14px)", color: "#334155" }}>
-                    {[
-                      ["Product", "Photo Collage Frame"],
-                      ["Photos", `${filledCount} / ${SLOT_COUNT} uploaded`],
-                      ["Size", `${size} inches`],
-                      ["Thickness", thickness],
-                      ["Quantity", quantity],
-                    ].map(([label, val]) => (
-                      <div key={label} className="d-flex justify-content-between" style={{ paddingBottom: 8, borderBottom: "1px solid #f1f5f9" }}>
-                        <span style={{ color: "#64748b" }}>{label}</span>
-                        <strong style={{ color: "#0f172a" }}>{val}</strong>
-                      </div>
+              {/* Customize Options */}
+              <div style={{ ...sectionCard, marginBottom: "20px" }}>
+                {sectionHeader("bi-sliders", "Customise Options", "Choose frame color, size, thickness & quantity")}
+
+                {/* Frame color */}
+                <div style={{ marginBottom: "24px" }}>
+                  <div style={{ fontWeight: 700, fontSize: "14px", color: "#334155", marginBottom: "10px" }}>
+                    <i className="bi bi-palette me-2" style={{ color: "#2563eb" }} />Frame Color
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center" }}>
+                    {FRAME_COLORS.map(({ v, l }) => (
+                      <button key={v} type="button"
+                        onClick={() => { setFrameColor(v); setIsPaymentReady(false); }}
+                        title={l}
+                        style={{
+                          width: 34, height: 34, borderRadius: "50%", background: v,
+                          border: frameColor === v ? "3px solid #2563eb" : "3px solid #e2e8f0",
+                          boxShadow: frameColor === v ? "0 0 0 2px #fff, 0 0 0 4px #2563eb" : "0 1px 4px rgba(0,0,0,0.15)",
+                          cursor: "pointer", outline: "none", transition: "box-shadow 0.2s",
+                        }}
+                      />
                     ))}
-                    <div className="d-flex justify-content-between" style={{ paddingTop: 4 }}>
-                      <span style={{ fontWeight: 700, color: "#0f172a" }}>Total Amount</span>
-                      <strong style={{ color: "#2563eb", fontSize: "clamp(15px,3vw,18px)" }}>₹{total}</strong>
-                    </div>
+                    <span style={{ fontSize: 13, color: "#64748b", fontWeight: 500 }}>
+                      {FRAME_COLORS.find((c) => c.v === frameColor)?.l}
+                    </span>
                   </div>
                 </div>
 
-                {/* Customer details */}
-                <div style={{ ...sectionCard, marginBottom: 20 }}>
-                  <h4 style={{ marginBottom: 14, fontWeight: 800, color: "#0f172a", fontSize: "clamp(13px,2.5vw,18px)" }}>
-                    Customer Details
-                  </h4>
-                  <div className="row g-3">
-                    <div className="col-12">
-                      <label style={labelStyle}>Full Name *</label>
-                      <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} style={{ ...inputStyle, width: "100%" }} />
-                      {renderFieldError("fullName")}
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>Email *</label>
-                      <input type="email" name="email" value={formData.email} onChange={handleInputChange} style={{ ...inputStyle, width: "100%" }} />
-                      {renderFieldError("email")}
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>Phone *</label>
-                      <input type="text" name="phone" value={formData.phone} onChange={handleInputChange} style={{ ...inputStyle, width: "100%" }} />
-                      {renderFieldError("phone")}
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>Alternate Phone</label>
-                      <input type="text" name="alternatePhone" value={formData.alternatePhone} onChange={handleInputChange} style={{ ...inputStyle, width: "100%" }} />
-                      {renderFieldError("alternatePhone")}
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>Pincode *</label>
-                      <input type="text" name="pincode" value={formData.pincode} onChange={handleInputChange} style={{ ...inputStyle, width: "100%" }} />
-                      {renderFieldError("pincode")}
-                    </div>
-                    <div className="col-12">
-                      <label style={labelStyle}>Address *</label>
-                      <textarea name="address" value={formData.address} onChange={handleInputChange} rows="3"
-                        style={{ ...inputStyle, width: "100%", resize: "none" }} />
-                      {renderFieldError("address")}
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>City *</label>
-                      <input type="text" name="city" value={formData.city} onChange={handleInputChange} style={{ ...inputStyle, width: "100%" }} />
-                      {renderFieldError("city")}
-                    </div>
-                    <div className="col-md-6">
-                      <label style={labelStyle}>State *</label>
-                      <input type="text" name="state" value={formData.state} onChange={handleInputChange} style={{ ...inputStyle, width: "100%" }} />
-                      {renderFieldError("state")}
-                    </div>
-                    <div className="col-12">
-                      <label style={labelStyle}>Order ID</label>
-                      <input type="text" value={orderId} readOnly style={{ ...inputStyle, width: "100%", color: "#64748b" }} />
-                    </div>
+                {/* Size pills */}
+                <div style={{ marginBottom: "24px" }}>
+                  <div style={{ fontWeight: 700, fontSize: "14px", color: "#334155", marginBottom: "10px" }}>
+                    <i className="bi bi-rulers me-2" style={{ color: "#2563eb" }} />Size (inches)
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    {SIZE_OPTIONS.map((s) => (
+                      <button key={s} type="button"
+                        onClick={() => { setSize(s); setIsPaymentReady(false); }}
+                        style={{
+                          padding: "10px 16px", borderRadius: "10px", fontWeight: 600, fontSize: "14px",
+                          border: size === s ? "2px solid #2563eb" : "1.5px solid #e2e8f0",
+                          background: size === s ? "#eff6ff" : "#fff",
+                          color: size === s ? "#2563eb" : "#475569",
+                          cursor: "pointer", transition: "all 0.18s",
+                        }}>
+                        {s}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                {/* Payment */}
-                <div style={sectionCard}>
+                {/* Thickness cards */}
+                <div style={{ marginBottom: "24px" }}>
+                  <div style={{ fontWeight: 700, fontSize: "14px", color: "#334155", marginBottom: "10px" }}>
+                    <i className="bi bi-layers me-2" style={{ color: "#2563eb" }} />Thickness
+                  </div>
+                  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                    {["3mm", "5mm", "8mm"].map((t) => {
+                      const info = thicknessInfo[t];
+                      const active = thickness === t;
+                      return (
+                        <button key={t} type="button"
+                          onClick={() => { setThickness(t); setIsPaymentReady(false); }}
+                          style={{
+                            flex: "1 1 80px", padding: "12px 10px", borderRadius: "12px",
+                            border: active ? `2px solid ${info.color}` : "1.5px solid #e2e8f0",
+                            background: active ? "#f8fafc" : "#fff",
+                            cursor: "pointer", transition: "all 0.18s", textAlign: "center",
+                          }}>
+                          <i className={`bi ${info.icon}`} style={{ fontSize: "18px", color: active ? info.color : "#94a3b8", display: "block", marginBottom: "4px" }} />
+                          <div style={{ fontWeight: 700, fontSize: "13px", color: active ? "#0f172a" : "#475569" }}>{t}</div>
+                          <div style={{ fontSize: "11px", color: active ? info.color : "#94a3b8", fontWeight: 500 }}>{info.desc}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Quantity stepper */}
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: "14px", color: "#334155", marginBottom: "10px" }}>
+                    <i className="bi bi-hash me-2" style={{ color: "#2563eb" }} />Quantity
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <button type="button"
+                      onClick={() => { setQuantity(Math.max(1, quantity - 1)); setIsPaymentReady(false); }}
+                      style={{ width: "40px", height: "40px", borderRadius: "10px", border: "1.5px solid #e2e8f0", background: "#fff", fontSize: "18px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <i className="bi bi-dash" />
+                    </button>
+                    <div style={{ minWidth: "60px", textAlign: "center", fontWeight: 700, fontSize: "18px", background: "linear-gradient(135deg, #2563eb, #1d4ed8)", color: "#fff", borderRadius: "10px", padding: "8px 16px" }}>
+                      {quantity}
+                    </div>
+                    <button type="button"
+                      onClick={() => { setQuantity(quantity + 1); setIsPaymentReady(false); }}
+                      style={{ width: "40px", height: "40px", borderRadius: "10px", border: "1.5px solid #e2e8f0", background: "#fff", fontSize: "18px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <i className="bi bi-plus" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dark Order Summary */}
+              <div style={{ background: "linear-gradient(145deg, #0f172a, #1e293b)", borderRadius: "24px", padding: "24px", marginBottom: "20px", boxShadow: "0 20px 50px rgba(15,23,42,0.25)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+                  <div style={{ width: "40px", height: "40px", borderRadius: "12px", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <i className="bi bi-receipt" style={{ color: "#60a5fa", fontSize: "18px" }} />
+                  </div>
+                  <div style={{ fontWeight: 800, fontSize: "17px", color: "#fff" }}>Order Summary</div>
+                </div>
+                <div style={{ display: "grid", gap: "12px" }}>
+                  {[
+                    ["Order ID", orderId],
+                    ["Photos", `${filledCount} / ${SLOT_COUNT} uploaded`],
+                    ["Size", `${size} inches`],
+                    ["Thickness", thickness],
+                    ["Quantity", quantity],
+                  ].map(([label, val]) => (
+                    <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "12px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                      <span style={{ fontSize: "14px", color: "#94a3b8" }}>{label}</span>
+                      <span style={{ fontSize: "14px", fontWeight: 600, color: "#e2e8f0" }}>{val}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "15px", fontWeight: 700, color: "#fff" }}>Total Amount</span>
+                  <span style={{ background: "linear-gradient(135deg, #2563eb, #1d4ed8)", color: "#fff", fontWeight: 800, fontSize: "18px", borderRadius: "999px", padding: "8px 20px" }}>
+                    ₹{total}
+                  </span>
+                </div>
+              </div>
+
+              {/* Contact & Delivery */}
+              <div style={sectionCard}>
+                {sectionHeader("bi-truck", "Contact & Delivery", "Enter your shipping details")}
+                <div className="row g-3">
+                  <div className="col-12">
+                    <label style={labelStyle}><i className="bi bi-person me-2" style={{ color: "#2563eb" }} />Full Name *</label>
+                    <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} style={fieldStyle} />
+                    {renderFieldError("fullName")}
+                  </div>
+                  <div className="col-md-6">
+                    <label style={labelStyle}><i className="bi bi-envelope me-2" style={{ color: "#2563eb" }} />Email *</label>
+                    <input type="email" name="email" value={formData.email} onChange={handleInputChange} style={fieldStyle} />
+                    {renderFieldError("email")}
+                  </div>
+                  <div className="col-md-6">
+                    <label style={labelStyle}><i className="bi bi-telephone me-2" style={{ color: "#2563eb" }} />Phone *</label>
+                    <input type="text" name="phone" value={formData.phone} onChange={handleInputChange} style={fieldStyle} />
+                    {renderFieldError("phone")}
+                  </div>
+                  <div className="col-md-6">
+                    <label style={labelStyle}><i className="bi bi-telephone me-2" style={{ color: "#2563eb" }} />Alternate Phone</label>
+                    <input type="text" name="alternatePhone" value={formData.alternatePhone} onChange={handleInputChange} style={fieldStyle} />
+                    {renderFieldError("alternatePhone")}
+                  </div>
+                  <div className="col-md-6">
+                    <label style={labelStyle}><i className="bi bi-mailbox me-2" style={{ color: "#2563eb" }} />Pincode *</label>
+                    <input type="text" name="pincode" value={formData.pincode} onChange={handleInputChange} style={fieldStyle} />
+                    {renderFieldError("pincode")}
+                  </div>
+                  <div className="col-12">
+                    <label style={labelStyle}><i className="bi bi-geo-alt me-2" style={{ color: "#2563eb" }} />Address *</label>
+                    <textarea name="address" value={formData.address} onChange={handleInputChange} rows="3" style={{ ...fieldStyle, resize: "none" }} />
+                    {renderFieldError("address")}
+                  </div>
+                  <div className="col-md-6">
+                    <label style={labelStyle}><i className="bi bi-building me-2" style={{ color: "#2563eb" }} />City *</label>
+                    <input type="text" name="city" value={formData.city} onChange={handleInputChange} style={fieldStyle} />
+                    {renderFieldError("city")}
+                  </div>
+                  <div className="col-md-6">
+                    <label style={labelStyle}><i className="bi bi-map me-2" style={{ color: "#2563eb" }} />State *</label>
+                    <input type="text" name="state" value={formData.state} onChange={handleInputChange} style={fieldStyle} />
+                    {renderFieldError("state")}
+                  </div>
+                </div>
+
+                <div style={{ marginTop: "24px" }}>
                   {!isPaymentReady ? (
-                    <button
-                      type="submit"
+                    <button type="button"
+                      onClick={() => handleSubmitOrder({ preventDefault: () => {} })}
                       style={{
-                        width: "100%", borderRadius: "14px",
-                        padding: "clamp(11px,2.5vw,14px) 18px", fontWeight: 700, fontSize: "clamp(13px,2.5vw,16px)",
-                        background: "linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%)",
+                        width: "100%", borderRadius: "14px", padding: "15px 18px",
+                        fontWeight: 700, fontSize: "16px",
+                        background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
                         color: "#fff", border: "none", cursor: "pointer",
                         boxShadow: "0 4px 14px rgba(37,99,235,0.35)",
-                        transition: "all 0.25s",
-                        letterSpacing: "0.01em",
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "linear-gradient(135deg,#1d4ed8 0%,#1e40af 100%)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%)"; e.currentTarget.style.transform = "translateY(0)"; }}
-                    >
-                      <i className="bi bi-shield-check me-2" />
-                      Verify Details &amp; Pay Now
+                      }}>
+                      <i className="bi bi-shield-check me-2" />Verify Details &amp; Pay Now
                     </button>
                   ) : (
                     <RazorpayPayment
@@ -851,11 +883,13 @@ export default function ProductClientCollageFrame({ product }) {
                       previewImages={[mailPreviewImage]}
                       onSuccess={handlePaymentSuccess}
                       onError={handlePaymentError}
+                      buttonText={`Pay Now ₹${total}`}
+                      themeColor="#2563eb"
                     />
                   )}
                 </div>
+              </div>
 
-              </form>
             </div>
           </div>
         </div>
