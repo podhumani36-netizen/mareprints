@@ -718,34 +718,45 @@ export default function ProductClientBase({
         : thickness === "5mm"
         ? "linear-gradient(145deg, #cfcfcf, #8f8f8f)"
         : "linear-gradient(145deg, #bdbdbd, #8f8f8f)";
+let maxWidth = 42;
+let maxHeight = 52;
 
-
-let maxWidth = 70;
-let maxHeight = 60;
-
-// shape-wise size control
-if (productOrientation === "circle") {
-  maxWidth = 48;
+// landscape
+if (widthInch > heightInch) {
+  maxWidth = 40;
   maxHeight = 48;
 }
 
+// portrait
+if (heightInch > widthInch) {
+  maxWidth = 38;
+  maxHeight = 52;
+}
+
+// square
 if (productOrientation === "square") {
-  maxWidth = 56;
-  maxHeight = 56;
+  maxWidth = 38;
+  maxHeight = 38;
 }
 
+// circle
+if (productOrientation === "circle") {
+  maxWidth = 36;
+  maxHeight = 36;
+}
+
+// heart
 if (productOrientation === "heart") {
-  maxWidth = 50;
-  maxHeight = 50;
+  maxWidth = 34;
+  maxHeight = 34;
 }
 
-// ratio-based scaling (MAIN LOGIC)
 const widthScale = maxWidth / widthInch;
 const heightScale = maxHeight / heightInch;
 const scale = Math.min(widthScale, heightScale);
 
-const frameWidthPercent = widthInch * scale;
-const frameHeightPercent = heightInch * scale;
+const frameWidthPercent = widthInch * scale * 0.72;
+const frameHeightPercent = heightInch * scale * 0.72;
     return (
       <div
         className={styles.previewBox}
