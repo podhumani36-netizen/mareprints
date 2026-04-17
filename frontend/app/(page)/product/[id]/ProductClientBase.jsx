@@ -718,13 +718,13 @@ export default function ProductClientBase({
         : thickness === "5mm"
         ? "linear-gradient(145deg, #cfcfcf, #8f8f8f)"
         : "linear-gradient(145deg, #bdbdbd, #8f8f8f)";
-    let baseScale = 2.2;
+ let baseScale = 3.5;
 
-if (orientation === "circle") baseScale = 1.6;
-if (orientation === "square") baseScale = 1.8;
-if (orientation === "heart") baseScale = 1.5;
-if (orientation === "portrait") baseScale = 2.0;
-if (orientation === "landscape") baseScale = 2.0;
+if (orientation === "circle") baseScale = 2.5;
+if (orientation === "square") baseScale = 2.8;
+if (orientation === "heart") baseScale = 2.3;
+if (orientation === "portrait") baseScale = 3.0;
+if (orientation === "landscape") baseScale = 3.0;
 
 let frameWidthPercent = widthInch * baseScale;
 let frameHeightPercent = heightInch * baseScale;
