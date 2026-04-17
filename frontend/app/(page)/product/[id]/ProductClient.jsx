@@ -1140,7 +1140,7 @@ const renderSummaryPreview = () => {
                       ))}
 
                       {/* Add more button */}
-                      <button
+                      {/* <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         title="Add another image"
@@ -1151,7 +1151,7 @@ const renderSummaryPreview = () => {
                           display: "flex", alignItems: "center", justifyContent: "center",
                           flexShrink: 0,
                         }}
-                      >+</button>
+                      >+</button> */}
                     </div>
                   </div>
                 ) : (
