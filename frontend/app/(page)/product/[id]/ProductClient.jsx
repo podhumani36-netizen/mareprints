@@ -979,35 +979,29 @@ const renderBetterPreview = (useWall = false, attachRef = false) => {
       : thickness === "5mm"
       ? "0 24px 56px rgba(0,0,0,0.34)"
       : "0 32px 72px rgba(0,0,0,0.42)";
-let baseScale = 1.6;
+  // previewBox is aspect-ratio 4/3 — width% and height% cover different pixel lengths,
+  // so we derive height from width to preserve the real frame inch ratio.
+  const CONTAINER_ASPECT = 4 / 3;
 
-if (orientation === "circle") baseScale = 1.2;
-if (orientation === "square") baseScale = 1.3;
-if (orientation === "heart") baseScale = 1.1;
-if (orientation === "portrait") baseScale = 1.5;
-if (orientation === "landscape") baseScale = 1.5;
+  let baseScale = 1.5;
+  if (orientation === "circle" || orientation === "heart") baseScale = 1.1;
+  if (orientation === "square") baseScale = 1.2;
 
-let frameWidthPercent = widthInch * baseScale;
-let frameHeightPercent = heightInch * baseScale;
+  let maxW = orientation === "circle" || orientation === "heart" ? 36
+           : orientation === "square" ? 42
+           : 48; // portrait / landscape
 
-let maxWidth = 52;
-let maxHeight = 45;
+  let frameWidthPercent = Math.min(widthInch * baseScale, maxW);
 
-if (orientation === "circle") {
-  maxWidth = 36;
-  maxHeight = 36;
-}
-if (orientation === "square") {
-  maxWidth = 42;
-  maxHeight = 42;
-}
-if (orientation === "heart") {
-  maxWidth = 36;
-  maxHeight = 36;
-}
+  // Height as % of container height, keeping the real width:height inch ratio
+  let frameHeightPercent = (heightInch / widthInch) * frameWidthPercent * CONTAINER_ASPECT;
 
-frameWidthPercent = Math.min(frameWidthPercent, maxWidth);
-frameHeightPercent = Math.min(frameHeightPercent, maxHeight);
+  // If height overflows, clamp it and back-calculate width
+  const maxH = maxW * CONTAINER_ASPECT * (heightInch / widthInch);
+  if (frameHeightPercent > 85) {
+    frameHeightPercent = 85;
+    frameWidthPercent = (widthInch / heightInch) * frameHeightPercent / CONTAINER_ASPECT;
+  }
 
   return (
     <div
