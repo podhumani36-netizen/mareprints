@@ -1406,8 +1406,8 @@ const renderSummaryPreview = () => {
           <div className="row g-3 align-items-start">
 
             {/* ── LEFT: sticky live preview ── */}
-            <div className={`col-12 col-lg-5 ${styles.step2PreviewCol}`}>
-              <div style={{ ...sectionCardStyle, padding: "clamp(10px,2.5vw,20px)" }}>
+            <div className={`col-12 col-lg-4 ${styles.step2PreviewCol}`}>
+              <div style={{ ...sectionCardStyle, padding: "clamp(10px,2.5vw,20px)", maxWidth: "460px", marginLeft: "auto", marginRight: "auto" }}>
                 {sectionHeader("bi-display", "Live Preview", "Drag · pinch or slide to zoom")}
                 {renderBetterPreview(true, true)}
                 {renderEditorControls()}
@@ -1415,7 +1415,7 @@ const renderSummaryPreview = () => {
             </div>
 
             {/* ── RIGHT: all controls stacked ── */}
-            <div className="col-12 col-lg-7">
+            <div className="col-12 col-lg-8">
               <div className="d-flex flex-column gap-3">
 
               {/* Customise Options card */}
