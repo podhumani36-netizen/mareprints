@@ -939,12 +939,35 @@ const renderBetterPreview = (useWall = false, attachRef = false) => {
       : thickness === "5mm"
       ? "0 24px 56px rgba(0,0,0,0.34)"
       : "0 32px 72px rgba(0,0,0,0.42)";
+let baseScale = 2.2;
 
- let frameWidthPercent = widthInch * 2.2;
-let frameHeightPercent = heightInch * 2.2;
+if (orientation === "circle") baseScale = 1.6;
+if (orientation === "square") baseScale = 1.8;
+if (orientation === "heart") baseScale = 1.5;
+if (orientation === "portrait") baseScale = 2.0;
+if (orientation === "landscape") baseScale = 2.0;
 
-frameWidthPercent = Math.min(frameWidthPercent, 70);
-frameHeightPercent = Math.min(frameHeightPercent, 60);
+let frameWidthPercent = widthInch * baseScale;
+let frameHeightPercent = heightInch * baseScale;
+
+let maxWidth = 70;
+let maxHeight = 60;
+
+if (orientation === "circle") {
+  maxWidth = 48;
+  maxHeight = 48;
+}
+if (orientation === "square") {
+  maxWidth = 56;
+  maxHeight = 56;
+}
+if (orientation === "heart") {
+  maxWidth = 50;
+  maxHeight = 50;
+}
+
+frameWidthPercent = Math.min(frameWidthPercent, maxWidth);
+frameHeightPercent = Math.min(frameHeightPercent, maxHeight);
 
   return (
     <div
