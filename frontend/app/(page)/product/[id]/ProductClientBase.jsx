@@ -745,8 +745,8 @@ if (orientation === "heart") {
   maxHeight = 50;
 }
 
-frameWidthPercent = Math.min(frameWidthPercent, maxWidth);
-frameHeightPercent = Math.min(frameHeightPercent, maxHeight);
+// frameWidthPercent = Math.min(frameWidthPercent, maxWidth);
+// frameHeightPercent = Math.min(frameHeightPercent, maxHeight);
 
 
     return (
