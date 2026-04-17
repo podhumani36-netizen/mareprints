@@ -710,7 +710,7 @@ export default function ProductClientBase({
   const renderBetterPreview = (useWall = false) => {
     const [widthInch, heightInch] = size.split("x").map(Number);
     const isLandscape = widthInch > heightInch;
-    const depth = thickness === "3mm" ? 5 : thickness === "5mm" ? 8 : 12;
+    const depth = thickness === "3mm" ? 3 : thickness === "5mm" ? 5 : 8;
     const shapeRadius = circleClip ? "50%" : frameRadius;
     const depthBg =
       thickness === "3mm"
@@ -726,8 +726,19 @@ if (orientation === "heart") baseScale = 2.3;
 if (orientation === "portrait") baseScale = 3.0;
 if (orientation === "landscape") baseScale = 3.0;
 
-let frameWidthPercent = widthInch * baseScale;
-let frameHeightPercent = heightInch * baseScale;
+const maxWidth = 70;
+const maxHeight = 60;
+
+// ratio-based scaling
+const widthScale = maxWidth / widthInch;
+const heightScale = maxHeight / heightInch;
+
+// smallest scale choose pannum
+const scale = Math.min(widthScale, heightScale);
+
+// final size
+const frameWidthPercent = widthInch * scale;
+const frameHeightPercent = heightInch * scale;
 
 let maxWidth = 70;
 let maxHeight = 60;
