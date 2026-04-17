@@ -857,53 +857,56 @@ const validateBeforePayment = async () => {
   const renderEditorControls = () => (
     <div style={{
       marginTop: "10px",
-      padding: "10px 14px",
+      padding: "8px 12px",
       background: "#f8fafc",
       border: "1px solid #e2e8f0",
       borderRadius: "14px",
       display: "flex",
       alignItems: "center",
-      gap: "10px",
-      flexWrap: "wrap",
+      gap: "8px",
+      flexWrap: "nowrap",
+      minWidth: 0,
+      overflow: "hidden",
     }}>
       {/* Zoom out */}
       <button type="button" onClick={handleZoomOut} style={{
-        width: "34px", height: "34px", borderRadius: "8px",
+        width: "32px", height: "32px", borderRadius: "8px",
         border: "1.5px solid #e2e8f0", background: "#fff",
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: "14px", cursor: "pointer", color: "#334155", flexShrink: 0,
+        fontSize: "13px", cursor: "pointer", color: "#334155", flexShrink: 0,
       }}><i className="bi bi-dash-lg" /></button>
 
       {/* Zoom slider */}
-      <div style={{ flex: 1, minWidth: "80px", display: "flex", alignItems: "center", gap: "8px" }}>
+      <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: "6px" }}>
         <input
           type="range" min="1" max="3" step="0.05" value={zoom}
           onChange={(e) => { setZoom(Number(e.target.value)); setIsPaymentReady(false); }}
-          style={{ flex: 1, cursor: "pointer", accentColor: "#2563eb" }}
+          style={{ flex: 1, minWidth: 0, cursor: "pointer", accentColor: "#2563eb" }}
         />
         <span style={{
           fontSize: "11px", fontWeight: 700, color: "#2563eb",
           background: "#eff6ff", border: "1px solid #bfdbfe",
-          borderRadius: "6px", padding: "3px 7px", whiteSpace: "nowrap",
+          borderRadius: "6px", padding: "2px 6px", whiteSpace: "nowrap", flexShrink: 0,
         }}>{Math.round(zoom * 100)}%</span>
       </div>
 
       {/* Zoom in */}
       <button type="button" onClick={handleZoomIn} style={{
-        width: "34px", height: "34px", borderRadius: "8px",
+        width: "32px", height: "32px", borderRadius: "8px",
         border: "1.5px solid #e2e8f0", background: "#fff",
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: "14px", cursor: "pointer", color: "#334155", flexShrink: 0,
+        fontSize: "13px", cursor: "pointer", color: "#334155", flexShrink: 0,
       }}><i className="bi bi-plus-lg" /></button>
 
       {/* Reset */}
       <button type="button" onClick={() => { setZoom(1); setImageOffset({ x: 0, y: 0 }); setIsPaymentReady(false); }} style={{
-        height: "34px", borderRadius: "8px",
+        height: "32px", borderRadius: "8px",
         border: "1.5px solid #e2e8f0", background: "#fff",
-        padding: "0 12px", fontSize: "12px", fontWeight: 600,
+        padding: "0 10px", fontSize: "12px", fontWeight: 600,
         cursor: "pointer", color: "#475569", whiteSpace: "nowrap", flexShrink: 0,
+        display: "flex", alignItems: "center", gap: "4px",
       }}>
-        <i className="bi bi-arrow-counterclockwise me-1" />Reset
+        <i className="bi bi-arrow-counterclockwise" />Reset
       </button>
     </div>
   );
@@ -1367,7 +1370,7 @@ const renderSummaryPreview = () => {
 
             {/* ── LEFT: sticky live preview ── */}
             <div className={`col-12 col-lg-5 ${styles.step2PreviewCol}`}>
-              <div style={{ ...sectionCardStyle, padding: "clamp(12px,3vw,20px)" }}>
+              <div style={{ ...sectionCardStyle, padding: "clamp(10px,2.5vw,20px)" }}>
                 {sectionHeader("bi-display", "Live Preview", "Drag · pinch or slide to zoom")}
                 {renderBetterPreview(true, true)}
                 {renderEditorControls()}

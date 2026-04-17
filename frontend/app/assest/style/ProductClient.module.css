@@ -9,6 +9,7 @@
     padding: 1.5rem 0;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
     margin-bottom: 2rem;
+    overflow: hidden;
 }
 
 .stepWrapper {
@@ -18,6 +19,7 @@
     gap: 1rem;
     max-width: 600px;
     margin: 0 auto;
+    overflow: hidden;
 }
 
 .stepItem {
@@ -1349,8 +1351,8 @@
 @media (max-width: 768px) {
     /* Step indicator */
     .stepIndicator {
-        padding: 0.75rem 0;
-        margin-bottom: 1.25rem;
+        padding: 0.6rem 0;
+        margin-bottom: 1rem;
     }
 
     .stepWrapper {
@@ -1359,12 +1361,15 @@
     }
 
     .stepButton {
-        padding: 0.5rem 0.75rem;
-        gap: 0.5rem;
+        padding: 0.45rem 0.75rem;
+        gap: 0.45rem;
     }
 
     .stepLabel {
-        font-size: 0.78rem;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .stepNumber {
@@ -1523,15 +1528,22 @@
 @media (max-width: 480px) {
     .stepWrapper {
         gap: 0.25rem;
+        padding: 0 0.25rem;
+    }
+
+    .stepIndicator {
+        padding: 0.5rem 0;
+        margin-bottom: 0.75rem;
     }
 
     .stepLabel {
-        font-size: 0.68rem;
+        font-size: 0.65rem;
+        max-width: 90px;
     }
 
     .stepButton {
-        padding: 0.38rem 0.55rem;
-        gap: 0.4rem;
+        padding: 0.35rem 0.5rem;
+        gap: 0.35rem;
     }
 
     .stepNumber {
@@ -1674,16 +1686,20 @@
 
 @media (max-width: 991.98px) {
     .stepWrapper {
-        flex-direction: column;
+        flex-direction: row;
         gap: 0.5rem;
+        max-width: 100%;
+        padding: 0 0.75rem;
     }
 
     .stepItem {
-        width: 100%;
+        width: auto;
+        flex: 1;
     }
 
     .stepConnector {
-        display: none;
+        display: block;
+        flex: 0 0 20px;
     }
 
     .mockupBackground {
@@ -1843,14 +1859,26 @@
         z-index: 50;
         background: #fff;
         padding: 8px;
-        margin: 0 -12px;
+        margin: 0;
         border-radius: 0 0 20px 20px;
         box-shadow: 0 4px 20px rgba(15, 23, 42, 0.10);
     }
 
     .previewBox {
         aspect-ratio: unset;
-        height: 44vh;
+        height: 42vh;
         border-radius: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .step2PreviewCol {
+        padding: 6px;
+        border-radius: 0 0 16px 16px;
+    }
+
+    .previewBox {
+        height: 36vh;
+        border-radius: 12px;
     }
 }
