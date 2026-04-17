@@ -325,7 +325,7 @@ export default function ProductClient() {
     if (size === "custom") {
       const w = parseFloat(customSize.width) || 0;
       const h = parseFloat(customSize.height) || 0;
-      if (w <= 0 || h <= 0) return basePrice * quantity;
+      if (w <= 0 || h <= 0) return 0;
 
       const customArea = w * h;
       const orientationPrices = priceMap[orientation] || priceMap.portrait;
@@ -365,7 +365,10 @@ export default function ProductClient() {
       return orientationPrices[size][thickness] * quantity;
     }
 
-    return basePrice * quantity;
+  // Fallback: use first available price for this orientation (covers mid-transition renders)
+  const fallbackPrices = priceMap[orientation] || priceMap.portrait;
+  const firstSize = Object.keys(fallbackPrices)[0];
+  return ((fallbackPrices[firstSize]?.[thickness]) || 0) * quantity;
   }, [orientation, size, customSize, thickness, quantity]);
 
   const generateMailPreviewImageFor = async (imgSrc, imgZoom, imgOffset, screenFrameW = null, screenFrameH = null) => {
