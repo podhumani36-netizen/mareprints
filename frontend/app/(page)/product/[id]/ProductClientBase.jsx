@@ -718,9 +718,36 @@ export default function ProductClientBase({
         : thickness === "5mm"
         ? "linear-gradient(145deg, #cfcfcf, #8f8f8f)"
         : "linear-gradient(145deg, #bdbdbd, #8f8f8f)";
-    const frameDim = isLandscape
-      ? { width: "82%", height: "auto" }
-      : { width: "auto", height: "88%" };
+    let baseScale = 2.2;
+
+if (orientation === "circle") baseScale = 1.6;
+if (orientation === "square") baseScale = 1.8;
+if (orientation === "heart") baseScale = 1.5;
+if (orientation === "portrait") baseScale = 2.0;
+if (orientation === "landscape") baseScale = 2.0;
+
+let frameWidthPercent = widthInch * baseScale;
+let frameHeightPercent = heightInch * baseScale;
+
+let maxWidth = 70;
+let maxHeight = 60;
+
+if (orientation === "circle") {
+  maxWidth = 48;
+  maxHeight = 48;
+}
+if (orientation === "square") {
+  maxWidth = 56;
+  maxHeight = 56;
+}
+if (orientation === "heart") {
+  maxWidth = 50;
+  maxHeight = 50;
+}
+
+frameWidthPercent = Math.min(frameWidthPercent, maxWidth);
+frameHeightPercent = Math.min(frameHeightPercent, maxHeight);
+
 
     return (
       <div
@@ -745,19 +772,17 @@ export default function ProductClientBase({
 
         {/* frame */}
         <div
-          style={{
-            position: "absolute",
-            top: "5%",
-            left: "50%",
-            transform: "translateX(-50%)",
-            ...frameDim,
-            aspectRatio: `${widthInch} / ${heightInch}`,
-            maxWidth: "88%",
-            maxHeight: "90%",
-            overflow: "visible",
-            zIndex: 2,
-          }}
-        >
+  style={{
+    position: "absolute",
+    top: "5%",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: `${frameWidthPercent}%`,
+    height: `${frameHeightPercent}%`,
+    overflow: "visible",
+    zIndex: 2,
+  }}
+>
           {/* depth shadow */}
           <div
             style={{
