@@ -928,84 +928,91 @@ const renderBetterPreview = (useWall = false, attachRef = false) => {
     [widthInch, heightInch] = size.split("x").map(Number);
   }
 
-  const depthPx = thickness === "3mm" ? 3 : thickness === "5mm" ? 5 : 8;
+  // Depth offset visible on both desktop and mobile
+  const depthPx = thickness === "3mm" ? 7 : thickness === "5mm" ? 11 : 16;
   const depthBg =
     thickness === "3mm"
-      ? "linear-gradient(145deg,#c8c8c8,#888)"
+      ? "linear-gradient(145deg,#d0d0d0,#8a8a8a)"
       : thickness === "5mm"
-      ? "linear-gradient(145deg,#b4b4b4,#777)"
-      : "linear-gradient(145deg,#a0a0a0,#646464)";
+      ? "linear-gradient(145deg,#b8b8b8,#707070)"
+      : "linear-gradient(145deg,#a0a0a0,#585858)";
 
-  const shadowStr =
+  // Drop shadow using filter so it is never clipped by overflow:hidden
+  const dropShadow =
     thickness === "3mm"
-      ? "0 16px 40px rgba(0,0,0,0.28)"
+      ? "drop-shadow(0 10px 18px rgba(0,0,0,0.32))"
       : thickness === "5mm"
-      ? "0 24px 56px rgba(0,0,0,0.34)"
-      : "0 32px 72px rgba(0,0,0,0.42)";
-let baseScale = 1.6;
+      ? "drop-shadow(0 14px 24px rgba(0,0,0,0.38))"
+      : "drop-shadow(0 18px 32px rgba(0,0,0,0.46))";
 
-if (orientation === "circle") baseScale = 1.2;
-if (orientation === "square") baseScale = 1.3;
-if (orientation === "heart") baseScale = 1.1;
-if (orientation === "portrait") baseScale = 1.5;
-if (orientation === "landscape") baseScale = 1.5;
+  let baseScale = 1.6;
+  if (orientation === "circle") baseScale = 1.2;
+  if (orientation === "square") baseScale = 1.3;
+  if (orientation === "heart") baseScale = 1.1;
+  if (orientation === "portrait") baseScale = 1.5;
+  if (orientation === "landscape") baseScale = 1.5;
 
-let frameWidthPercent = widthInch * baseScale;
-let frameHeightPercent = heightInch * baseScale;
+  let frameWidthPercent = widthInch * baseScale;
+  let frameHeightPercent = heightInch * baseScale;
 
-let maxWidth = 52;
-let maxHeight = 45;
+  // Tighter caps so the frame + depth offset both fit inside the box without overflow
+  let maxWidth = 60;
+  let maxHeight = 68;
 
-if (orientation === "circle") {
-  maxWidth = 36;
-  maxHeight = 36;
-}
-if (orientation === "square") {
-  maxWidth = 42;
-  maxHeight = 42;
-}
-if (orientation === "heart") {
-  maxWidth = 36;
-  maxHeight = 36;
-}
+  if (orientation === "circle") { maxWidth = 44; maxHeight = 44; }
+  if (orientation === "square") { maxWidth = 52; maxHeight = 52; }
+  if (orientation === "heart")  { maxWidth = 44; maxHeight = 44; }
 
-frameWidthPercent = Math.min(frameWidthPercent, maxWidth);
-frameHeightPercent = Math.min(frameHeightPercent, maxHeight);
+  frameWidthPercent  = Math.min(frameWidthPercent,  maxWidth);
+  frameHeightPercent = Math.min(frameHeightPercent, maxHeight);
+
+  const wallBg = `url('https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg') center/cover no-repeat`;
+  const plainBg = "linear-gradient(160deg,#eef2f7 0%,#dde4ee 100%)";
 
   return (
     <div
       className={styles.previewBox}
-      style={{
-        background: useWall
-          ? `url('https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg') center/cover no-repeat`
-          : "linear-gradient(160deg,#eef2f7 0%,#dde4ee 100%)",
-      }}
+      style={{ overflow: "visible", background: "transparent" }}
     >
-      {useWall && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 1,
-            pointerEvents: "none",
-            background:
-              "radial-gradient(ellipse at 50% 30%, transparent 45%, rgba(0,0,0,0.22) 100%)",
-          }}
-        />
-      )}
-
+      {/* Background layer — clipped to border-radius independently */}
       <div
         style={{
           position: "absolute",
-          top: "5%",
+          inset: 0,
+          borderRadius: "inherit",
+          overflow: "hidden",
+          zIndex: 0,
+          background: useWall ? wallBg : plainBg,
+          pointerEvents: "none",
+        }}
+      >
+        {useWall && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "radial-gradient(ellipse at 50% 30%, transparent 45%, rgba(0,0,0,0.22) 100%)",
+            }}
+          />
+        )}
+      </div>
+
+      {/* Frame container — centered, filter shadow escapes the clip */}
+      <div
+        style={{
+          position: "absolute",
+          top: "50%",
           left: "50%",
-          transform: "translateX(-50%)",
+          transform: `translate(-50%, calc(-50% - ${depthPx * 0.4}px))`,
           width: `${frameWidthPercent}%`,
           height: `${frameHeightPercent}%`,
           overflow: "visible",
           zIndex: 2,
+          filter: dropShadow,
         }}
       >
+        {/* Thickness / depth side — offset bottom-right */}
         <div
           style={{
             position: "absolute",
@@ -1014,11 +1021,11 @@ frameHeightPercent = Math.min(frameHeightPercent, maxHeight);
             borderRadius: shapeRadius,
             clipPath: shapeClip,
             background: depthBg,
-            boxShadow: shadowStr,
             zIndex: 1,
           }}
         />
 
+        {/* Front face with image */}
         <div
           ref={attachRef ? previewFrameRef : undefined}
           style={{
@@ -1080,6 +1087,7 @@ frameHeightPercent = Math.min(frameHeightPercent, maxHeight);
           )}
         </div>
 
+        {/* Glass/glare highlight */}
         <div
           style={{
             position: "absolute",
@@ -1087,7 +1095,7 @@ frameHeightPercent = Math.min(frameHeightPercent, maxHeight);
             borderRadius: shapeRadius,
             clipPath: shapeClip,
             background:
-              "linear-gradient(135deg,rgba(255,255,255,0.22) 0%,rgba(255,255,255,0.04) 50%,rgba(255,255,255,0.12) 100%)",
+              "linear-gradient(135deg,rgba(255,255,255,0.26) 0%,rgba(255,255,255,0.04) 50%,rgba(255,255,255,0.10) 100%)",
             pointerEvents: "none",
             zIndex: 3,
           }}

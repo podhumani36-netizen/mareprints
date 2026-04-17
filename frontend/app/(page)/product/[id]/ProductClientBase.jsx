@@ -710,7 +710,7 @@ export default function ProductClientBase({
   const renderBetterPreview = (useWall = false) => {
     const [widthInch, heightInch] = size.split("x").map(Number);
     const isLandscape = widthInch > heightInch;
-    const depth = thickness === "3mm" ? 3 : thickness === "5mm" ? 5 : 8;
+    const depth = thickness === "3mm" ? 3 : thickness === "5mm" ? 4 : 5;
     const shapeRadius = circleClip ? "50%" : frameRadius;
     const depthBg =
       thickness === "3mm"
