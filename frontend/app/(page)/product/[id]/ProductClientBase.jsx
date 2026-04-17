@@ -718,48 +718,34 @@ export default function ProductClientBase({
         : thickness === "5mm"
         ? "linear-gradient(145deg, #cfcfcf, #8f8f8f)"
         : "linear-gradient(145deg, #bdbdbd, #8f8f8f)";
- let baseScale = 3.5;
 
-if (orientation === "circle") baseScale = 2.5;
-if (orientation === "square") baseScale = 2.8;
-if (orientation === "heart") baseScale = 2.3;
-if (orientation === "portrait") baseScale = 3.0;
-if (orientation === "landscape") baseScale = 3.0;
-
-const maxWidth = 70;
-const maxHeight = 60;
-
-// ratio-based scaling
-const widthScale = maxWidth / widthInch;
-const heightScale = maxHeight / heightInch;
-
-// smallest scale choose pannum
-const scale = Math.min(widthScale, heightScale);
-
-// final size
-const frameWidthPercent = widthInch * scale;
-const frameHeightPercent = heightInch * scale;
 
 let maxWidth = 70;
 let maxHeight = 60;
 
-if (orientation === "circle") {
+// shape-wise size control
+if (productOrientation === "circle") {
   maxWidth = 48;
   maxHeight = 48;
 }
-if (orientation === "square") {
+
+if (productOrientation === "square") {
   maxWidth = 56;
   maxHeight = 56;
 }
-if (orientation === "heart") {
+
+if (productOrientation === "heart") {
   maxWidth = 50;
   maxHeight = 50;
 }
 
-// frameWidthPercent = Math.min(frameWidthPercent, maxWidth);
-// frameHeightPercent = Math.min(frameHeightPercent, maxHeight);
+// ratio-based scaling (MAIN LOGIC)
+const widthScale = maxWidth / widthInch;
+const heightScale = maxHeight / heightInch;
+const scale = Math.min(widthScale, heightScale);
 
-
+const frameWidthPercent = widthInch * scale;
+const frameHeightPercent = heightInch * scale;
     return (
       <div
         className={styles.previewBox}
