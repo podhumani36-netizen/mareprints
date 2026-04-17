@@ -173,8 +173,6 @@ export default function ProductClient() {
     },
   };
 
-  const basePrice = 1;
-
   const roomWallBackground =
     "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png";
 
@@ -327,7 +325,39 @@ export default function ProductClient() {
     if (size === "custom") {
       const w = parseFloat(customSize.width) || 0;
       const h = parseFloat(customSize.height) || 0;
-      return Math.max(basePrice, Math.floor((w * h) / 10) * 50) * quantity;
+      if (w <= 0 || h <= 0) return basePrice * quantity;
+
+      const customArea = w * h;
+      const orientationPrices = priceMap[orientation] || priceMap.portrait;
+
+      // Build area → price anchors sorted ascending
+      const anchors = Object.entries(orientationPrices)
+        .map(([key, thickPrices]) => {
+          const [sw, sh] = key.split("x").map(Number);
+          return { area: sw * sh, price: thickPrices[thickness] };
+        })
+        .sort((a, b) => a.area - b.area);
+
+      const lower = [...anchors].reverse().find((a) => a.area <= customArea);
+      const upper = anchors.find((a) => a.area >= customArea);
+
+      let price;
+      if (!lower) {
+        price = upper.price;
+      } else if (!upper) {
+        // extrapolate beyond the largest size
+        const last = anchors[anchors.length - 1];
+        const prev = anchors[anchors.length - 2];
+        const ratio = (customArea - prev.area) / (last.area - prev.area);
+        price = prev.price + ratio * (last.price - prev.price);
+      } else if (lower.area === upper.area) {
+        price = lower.price;
+      } else {
+        const ratio = (customArea - lower.area) / (upper.area - lower.area);
+        price = lower.price + ratio * (upper.price - lower.price);
+      }
+
+      return Math.round(price) * quantity;
     }
 
     const orientationPrices = priceMap[orientation];
