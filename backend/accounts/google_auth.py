@@ -1,118 +1,96 @@
-"""
-accounts/google_auth.py
-Google OAuth2 Login
-Uses your Google Client credentials to verify the token and log in / register the user.
-"""
-
-import requests
+import json
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import permissions, status
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from google.oauth2 import id_token
+from google.auth.transport import requests
 from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
-
-GOOGLE_CLIENT_ID = "730804878496-opudg8u44obs5pt74cre44g36g25n9jf.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET = "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"
-GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
-GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
 
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
     }
 
 
-class GoogleLoginView(APIView):
-    """
-    POST /api/google-login/
+@csrf_exempt
+def google_login_view(request):
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "POST required"}, status=405)
 
-    TWO WAYS to use this:
+    try:
+        body = json.loads(request.body)
+        credential = body.get("credential")
 
-    WAY 1: Frontend sends Authorization Code (Recommended)
-    Body: { "code": "<authorization_code_from_google>", "redirect_uri": "http://localhost:3000" }
-    Django exchanges code -> gets access token -> gets user info -> login/register
-
-    WAY 2: Frontend sends Access Token directly
-    Body: { "access_token": "<google_access_token>" }
-    Django uses token to get user info -> login/register
-    """
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request):
-        code = request.data.get('code')
-        access_token = request.data.get('access_token')
-        redirect_uri = request.data.get('redirect_uri', 'http://localhost:3000')
-
-        if code:
-            token_response = requests.post(GOOGLE_TOKEN_URL, data={
-                'code': code,
-                'client_id': GOOGLE_CLIENT_ID,
-                'client_secret': GOOGLE_CLIENT_SECRET,
-                'redirect_uri': redirect_uri,
-                'grant_type': 'authorization_code',
-            })
-            token_data = token_response.json()
-
-            if 'error' in token_data:
-                return Response(
-                    {'success': False, 'error': token_data.get('error_description', 'Google auth failed')},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            access_token = token_data.get('access_token')
-
-        if not access_token:
-            return Response(
-                {'success': False, 'error': 'Provide either code or access_token'},
-                status=status.HTTP_400_BAD_REQUEST
+        if not credential:
+            return JsonResponse(
+                {"success": False, "error": "credential is required"},
+                status=400
             )
 
-        userinfo_response = requests.get(
-            GOOGLE_USERINFO_URL,
-            headers={'Authorization': f'Bearer {access_token}'}
+        idinfo = id_token.verify_oauth2_token(
+            credential,
+            requests.Request(),
+            settings.GOOGLE_CLIENT_ID
         )
-        if userinfo_response.status_code != 200:
-            return Response(
-                {'success': False, 'error': 'Failed to get user info from Google'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
-        google_data = userinfo_response.json()
-        email = google_data.get('email')
-        first_name = google_data.get('given_name', '')
-        last_name = google_data.get('family_name', '')
+        email = idinfo.get("email")
+        first_name = idinfo.get("given_name", "")
+        last_name = idinfo.get("family_name", "")
 
         if not email:
-            return Response(
-                {'success': False, 'error': 'Could not get email from Google'},
-                status=status.HTTP_400_BAD_REQUEST
+            return JsonResponse(
+                {"success": False, "error": "Email not found from Google"},
+                status=400
             )
 
         user, created = User.objects.get_or_create(
             email=email,
             defaults={
-                'first_name': first_name,
-                'last_name': last_name,
-                'is_active': True,
+                "username": email,
+                "first_name": first_name,
+                "last_name": last_name,
+                "is_active": True,
             }
         )
 
-        if not created and not user.first_name:
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
+        if not created:
+            updated = False
+            if not user.first_name and first_name:
+                user.first_name = first_name
+                updated = True
+            if not user.last_name and last_name:
+                user.last_name = last_name
+                updated = True
+            if updated:
+                user.save()
 
         tokens = get_tokens_for_user(user)
 
-        from .serializers import UserSerializer
-        return Response({
-            'success': True,
-            'message': 'Registered via Google' if created else 'Logged in via Google',
-            'is_new': created,
-            'tokens': tokens,
-            'user': UserSerializer(user).data,
-        }, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+        return JsonResponse({
+            "success": True,
+            "message": "Registered via Google" if created else "Logged in via Google",
+            "is_new": created,
+            "tokens": tokens,
+            "user": {
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+            }
+        })
+
+    except ValueError:
+        return JsonResponse(
+            {"success": False, "error": "Invalid Google token"},
+            status=400
+        )
+    except Exception as e:
+        return JsonResponse(
+            {"success": False, "error": str(e)},
+            status=400
+        )

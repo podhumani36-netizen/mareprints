@@ -15,7 +15,7 @@ load_dotenv(BASE_DIR / ".env")
 
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
-
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-change-this-in-production-use-env-variable'
