@@ -6,7 +6,7 @@ import styles from "../../../assest/style/ProductClient.module.css";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import ProductDescription from "../../../components/ProductDescription";
+import ProductDescription from "../../../Components/ProductDescription";
 
 export default function ProductClient() {
   const router = useRouter();
