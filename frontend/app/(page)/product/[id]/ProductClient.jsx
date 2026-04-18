@@ -1647,6 +1647,8 @@ const renderSummaryPreview = () => {
                         color: "#334155",
                       }}
                     >+</button>
+                     <span style={{ color: "#000", fontWeight: 600, fontSize: "13px" }}>Total Amount</span>
+                      <span style={{ color: "#000", fontWeight: 900, fontSize: "22px" }}>₹{totalAmount}</span>
                   </div>
                 </div>
               </div>
@@ -1679,6 +1681,7 @@ const renderSummaryPreview = () => {
                       { icon: "bi-rulers",           label: "Size",        value: size === "custom" ? `${customSize.width||"?"}×${customSize.height||"?"} in` : size },
                       { icon: "bi-layers",           label: "Thickness",   value: thickness },
                       { icon: "bi-bag",              label: "Quantity",    value: quantity },
+
                     ].map(({ icon, label, value }) => (
                       <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <span style={{ display: "flex", alignItems: "center", gap: "7px", color: "#94a3b8", fontSize: "13px" }}>

@@ -9,16 +9,17 @@ export default function ProfilePage() {
   const [purchased, setPurchased] = useState([]);
 
   const [favorites] = useState([
-    { id: 1, name: "Classic Wooden Frame", price: 3499, image: "https://res.cloudinary.com/dsprfys3x/image/upload/v1773848543/ChatGPT_Image_Mar_18__2026__06_11_53_PM_xfuyyc.png" },
+    { id: 1, name: "Acrylic Photo Portrait", price: 3499, image: "https://res.cloudinary.com/dsprfys3x/image/upload/v1773848543/ChatGPT_Image_Mar_18__2026__06_11_53_PM_xfuyyc.png" },
     { id: 2, name: "Modern Metal Frame", price: 2199, image: "https://res.cloudinary.com/dsprfys3x/image/upload/v1773848554/ChatGPT_Image_Mar_18__2026__06_10_11_PM_o3w4yc.png" },
     { id: 3, name: "Gold Ornate Frame", price: 1799, image: "https://res.cloudinary.com/dsprfys3x/image/upload/v1773837359/ChatGPT_Image_Mar_18__2026__06_05_47_PM_ofmxc6.png" },
     { id: 4, name: "Rustic Barnwood Frame", price: 2499, image: "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834379/ChatGPT_Image_Mar_18__2026__05_16_04_PM_i4t6od.png" },
   ]);
 
   const [cart] = useState([
-    { id: 5, name: "Rustic Frame", price: 2199, qty: 1, image: "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__04_24_25_PM_vb3420.png" },
+    { id: 5, name: "Rustic Frame", price: 2199, qty: 1, image: "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776522802/Acrylic_Photo_Landscape_k5b1f9.jpg" },
     { id: 6, name: "Gold Ornate Frame", price: 3299, qty: 2, image: "https://res.cloudinary.com/dsprfys3x/image/upload/v1772770559/3d-rendered-photos-family-collage-templates-half-tone-different-designs_1096167-29794_wvwe0m.avif" },
   ]);
+
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";

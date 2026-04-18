@@ -2,12 +2,12 @@ export const shopData = [
   // Portrait Products
   {
     id: 1,
-    title: "Classic Wooden Frame",
+    title: "Acrylic Photo Portrait",
     type: "portrait",
     category: "portrait",
-    name: "Classic Wooden Frame",
+    name: "Acrylic Photo Portrait",
     image:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__04_39_13_PM_avrfk5.png",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776522629/Acrylic_Photo_Portrait_ia2txp.jpg",
     themeColor: "#3496cb",
     description: "Elegant wooden frame perfect for family photos",
     productType: "portrait",
@@ -105,7 +105,7 @@ export const shopData = [
     category: "landscape",
     name: "White Minimalist Frame",
     image:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__04_24_25_PM_vb3420.png",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776522802/Acrylic_Photo_Landscape_k5b1f9.jpg",
     themeColor: "#3496cb",
     description: "Clean, minimalist frame for modern photos",
     productType: "landscape",
@@ -456,7 +456,7 @@ export const shopData = [
     category: "png_frame",
     name: "Decorative Frame Prints",
     image:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__04_39_13_PM_avrfk5.png",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776522629/Acrylic_Photo_Portrait_ia2txp.jpg",
     themeColor: "#3496cb",
     description:
       "Choose from 16 beautiful decorative frames — tree, floral, heart, grid & more. Upload your photo and get a stunning framed print.",

@@ -162,7 +162,7 @@ const HeroVisual = () => {
       },
       {
         href: "/shop/framed-acrylic-nameplate",
-        src: "https://res.cloudinary.com/dsprfys3x/image/upload/v1773834015/ChatGPT_Image_Mar_18__2026__04_39_13_PM_avrfk5.png",
+        src: "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776522629/Acrylic_Photo_Portrait_ia2txp.jpg",
         alt: "Acrylic nameplate",
       },
     ],
