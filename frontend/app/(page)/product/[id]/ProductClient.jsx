@@ -160,13 +160,13 @@ export default function ProductClient() {
       "22x22": { "3mm": 2849, "5mm": 3449, "8mm": 4699 },
     },
     square: {
-      "12x12": { "3mm": 949,  "5mm": 1149, "8mm": 1599 },
+      "12x12": { "3mm":  899,  "5mm": 1149, "8mm": 1599 },
       "15x15": { "3mm": 1349, "5mm": 1649, "8mm": 2399 },
       "18x18": { "3mm": 1749, "5mm": 2149, "8mm": 2999 },
       "22x22": { "3mm": 2849, "5mm": 3449, "8mm": 4699 },
     },
     heart: {
-      "12x12": { "3mm": 1049, "5mm": 1299, "8mm": 1799 },
+      "12x12": { "3mm":  899, "5mm": 1299, "8mm": 1799 },
       "15x15": { "3mm": 1449, "5mm": 1799, "8mm": 2549 },
       "18x18": { "3mm": 1899, "5mm": 2299, "8mm": 3199 },
       "22x22": { "3mm": 2999, "5mm": 3599, "8mm": 4899 },
@@ -1441,8 +1441,8 @@ const renderSummaryPreview = () => {
               </div>
             </div>
 
-            {/* ── RIGHT: all controls stacked ── */}
-            <div className="col-12 col-lg-8">
+            {/* ── MIDDLE: Customize + Order Summary ── */}
+            <div className="col-12 col-lg-4">
               <div className="d-flex flex-column gap-3">
 
               {/* Customise Options card */}
@@ -1625,9 +1625,6 @@ const renderSummaryPreview = () => {
                 </div>
               </div>
 
-              {/* ── Order Summary + Contact (was right column) ── */}
-              <div className="d-flex flex-column gap-3">
-
                 {/* Order Summary card */}
                 <div style={{
                   ...sectionCardStyle,
@@ -1677,8 +1674,14 @@ const renderSummaryPreview = () => {
                   </div>
                 </div>
 
-                {/* Contact & Delivery card */}
-                <div style={sectionCardStyle}>
+              </div>{/* end middle col flex wrapper */}
+            </div>{/* end middle col */}
+
+            {/* ── RIGHT: Contact & Delivery ── */}
+            <div className={`col-12 col-lg-4 ${styles.step2ContactCol}`}>
+
+              {/* Contact & Delivery card */}
+              <div style={sectionCardStyle}>
                   {sectionHeader("bi-truck", "Contact & Delivery", "We'll use this to ship your order")}
 
                   <form onSubmit={handleSubmitOrder}>
@@ -1802,10 +1805,7 @@ const renderSummaryPreview = () => {
                   </form>
                 </div>
 
-              </div>{/* end Order Summary + Contact column */}
-
-              </div>{/* end right col flex wrapper */}
-            </div>{/* end right col-lg-7 */}
+            </div>{/* end right contact col */}
 
           </div>
         </div>
