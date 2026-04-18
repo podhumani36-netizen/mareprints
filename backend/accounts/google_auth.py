@@ -52,7 +52,6 @@ def google_login_view(request):
         user, created = User.objects.get_or_create(
             email=email,
             defaults={
-                "username": email,
                 "first_name": first_name,
                 "last_name": last_name,
                 "is_active": True,
@@ -61,12 +60,15 @@ def google_login_view(request):
 
         if not created:
             updated = False
-            if not user.first_name and first_name:
+
+            if hasattr(user, "first_name") and not user.first_name and first_name:
                 user.first_name = first_name
                 updated = True
-            if not user.last_name and last_name:
+
+            if hasattr(user, "last_name") and not user.last_name and last_name:
                 user.last_name = last_name
                 updated = True
+
             if updated:
                 user.save()
 
@@ -79,8 +81,8 @@ def google_login_view(request):
             "tokens": tokens,
             "user": {
                 "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
+                "first_name": getattr(user, "first_name", ""),
+                "last_name": getattr(user, "last_name", ""),
             }
         })
 
