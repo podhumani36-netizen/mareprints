@@ -23,6 +23,7 @@ export default function ProductClient() {
   const [quantity, setQuantity] = useState(1);
   const [isPaymentReady, setIsPaymentReady] = useState(false);
   const [mailPreviewImages, setMailPreviewImages] = useState([]);
+  const [livePreviewVisible, setLivePreviewVisible] = useState(true);
 
   const [showToast, setShowToast] = useState({
     visible: false,
@@ -35,6 +36,7 @@ export default function ProductClient() {
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
   const previewFrameRef = useRef(null);
+  const orderSummaryRef = useRef(null);
 
   const [orientation, setOrientation] = useState("portrait");
 
@@ -275,6 +277,24 @@ export default function ProductClient() {
       window.removeEventListener("touchcancel", stopDragging);
     };
   }, [isImageDragging, dragStart]);
+
+  useEffect(() => {
+    if (currentStep !== 2) return;
+    const el = orderSummaryRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting && entry.boundingClientRect.top < 0) {
+          setLivePreviewVisible(false);
+        } else {
+          setLivePreviewVisible(true);
+        }
+      },
+      { threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [currentStep]);
 
   const showNotification = (message, type = "info", title = "") => {
     let notificationTitle = title;
@@ -1434,7 +1454,14 @@ const renderSummaryPreview = () => {
           <div className="row g-3 align-items-start">
 
             {/* ── LEFT: sticky live preview ── */}
-            <div className={`col-12 col-lg-4 ${styles.step2PreviewCol}`}>
+            <div
+              className={`col-12 col-lg-4 ${styles.step2PreviewCol}`}
+              style={{
+                opacity: livePreviewVisible ? 1 : 0,
+                pointerEvents: livePreviewVisible ? "auto" : "none",
+                transition: "opacity 0.35s ease",
+              }}
+            >
               <div style={{ ...sectionCardStyle, padding: "clamp(10px,2.5vw,20px)", maxWidth: "460px", marginLeft: "auto", marginRight: "auto" }}>
                 {sectionHeader("bi-display", "Live Preview", "Drag · pinch or slide to zoom")}
                 {renderBetterPreview(true, true)}
@@ -1630,7 +1657,7 @@ const renderSummaryPreview = () => {
               <div className="d-flex flex-column gap-3">
 
                 {/* Order Summary card */}
-                <div style={{
+                <div ref={orderSummaryRef} style={{
                   ...sectionCardStyle,
                   background: "linear-gradient(145deg, #0f172a 0%, #1e293b 100%)",
                   border: "none",
