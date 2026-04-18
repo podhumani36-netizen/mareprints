@@ -557,6 +557,7 @@ export default function ProductClientCutout({ product }) {
                   width: "100%", minHeight: "340px",
                   borderRadius: "16px",
                   // background: `url('${WALL_MOCKUP}') center/cover no-repeat`,
+                  background: "#f1f5f9",
                   position: "relative",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   overflow: "hidden",
