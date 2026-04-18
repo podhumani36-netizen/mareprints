@@ -6,6 +6,7 @@ import styles from "../../../assest/style/ProductClient.module.css";
 import RazorpayPayment from "../../../Components/payment/Razorpay";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import ProductDescription from "../../../components/ProductDescription";
 
 export default function ProductClient() {
   const router = useRouter();
@@ -1806,7 +1807,7 @@ const renderSummaryPreview = () => {
 
               </div>{/* end right col flex wrapper */}
             </div>{/* end right col-lg-7 */}
-
+<ProductDescription orientation={orientation} />
           </div>
         </div>
       </div>
