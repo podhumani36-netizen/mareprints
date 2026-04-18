@@ -1590,23 +1590,23 @@ const renderSummaryPreview = () => {
                           type="button"
                           onClick={() => { setThickness(opt); setIsPaymentReady(false); }}
                           style={{
-                            flex: "1 1 90px",
-                            padding: "12px 10px",
-                            borderRadius: "14px",
+                            flex: "1 1 60px",
+                            padding: "7px 8px",
+                            borderRadius: "10px",
                             border: active ? `2px solid ${info.color}` : "1.5px solid #e2e8f0",
                             background: active ? `${info.color}14` : "#f8fafc",
                             color: active ? info.color : "#475569",
                             fontWeight: active ? 700 : 500,
-                            fontSize: "13px",
+                            fontSize: "12px",
                             cursor: "pointer",
                             transition: "all 0.18s",
                             textAlign: "center",
                             boxShadow: active ? `0 0 0 3px ${info.color}22` : "none",
                           }}
                         >
-                          <i className={`bi ${info.icon}`} style={{ fontSize: "18px", display: "block", marginBottom: "4px" }}></i>
-                          <span style={{ fontSize: "15px", fontWeight: 800 }}>{info.label}</span>
-                          <span style={{ display: "block", fontSize: "10px", opacity: 0.75, marginTop: "2px" }}>{info.desc}</span>
+                          <i className={`bi ${info.icon}`} style={{ fontSize: "14px", display: "block", marginBottom: "2px" }}></i>
+                          <span style={{ fontSize: "13px", fontWeight: 800 }}>{info.label}</span>
+                          <span style={{ display: "block", fontSize: "10px", opacity: 0.75, marginTop: "1px" }}>{info.desc}</span>
                         </button>
                       );
                     })}
