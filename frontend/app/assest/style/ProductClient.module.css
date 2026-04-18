@@ -1844,18 +1844,6 @@
 }
 
 /* ── Step 2 sticky preview column ── */
-.step2ContactCol {
-    position: sticky;
-    top: 12px;
-    align-self: flex-start;
-}
-
-@media (max-width: 991px) {
-    .step2ContactCol {
-        position: static;
-    }
-}
-
 .step2PreviewCol {
     position: sticky;
     top: 12px;
