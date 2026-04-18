@@ -14,13 +14,15 @@ const photoFrameProducts = shopData.filter((p) =>
 
 // ── Row 2: Acrylic shape prints ───────────────────────────────────────────────
 const acrylicShapeProducts = shopData.filter((p) =>
-  [ "landscape","rounded_rect_landscape", "square_round_acrylic", "square", ].includes(p.type)
+  [ "landscape","rounded_rect_landscape", "square_round_acrylic", ].includes(p.type)
 );
-
+// const acrylicShapeProducts = shopData.filter((p) =>
+//   [ "landscape","rounded_rect_landscape", "square_round_acrylic", "square", ].includes(p.type)
+// );
 // ── Row 3: Special & collage frames ──────────────────────────────────────────
-const specialFrameProducts = shopData.filter((p) =>
-  ["heart_frame", "collage_frame", "png_frame"].includes(p.type)
-);
+// const specialFrameProducts = shopData.filter((p) =>
+//   ["heart_frame", "collage_frame", "png_frame"].includes(p.type)
+// );
 
 const faqData = [
   {
@@ -96,7 +98,7 @@ export default function Home() {
       </div>
 
       {/* Row 3 — Special Frames */}
-      <div className="container">
+      {/* <div className="container">
         <div className="row mt-5">
           <div className="col-12 mb-3">
             <h2 className="fw-bold">Special Collection</h2>
@@ -105,7 +107,7 @@ export default function Home() {
             <Products data={specialFrameProducts} limit={4} link="/product" />
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* FAQ */}
       <div className="container-fluid mt-5">

@@ -100,11 +100,11 @@ export default function ProductClient() {
   };
 
   const sizeOptions = {
-    portrait:  ["8x10", "10x12", "12x16", "16x18", "18x22", "20x24", "20x30", "23x35", "custom"],
-    landscape: ["10x8", "12x10", "16x12", "18x16", "22x18", "24x20", "30x20", "35x23", "custom"],
-    circle:    ["12x12", "15x15", "18x18", "22x22", "custom"],
-    square:    ["12x12", "15x15", "18x18", "22x22", "custom"],
-    heart:     ["12x12", "15x15", "18x18", "22x22", "custom"],
+    portrait:  ["8x10", "10x12", "12x16", "16x18", "18x22", "20x24", "20x30", "23x35"],
+    landscape: ["10x8", "12x10", "16x12", "18x16", "22x18", "24x20", "30x20", "35x23"],
+    circle:    ["12x12", "15x15", "18x18", "22x22"],
+    square:    ["12x12", "15x15", "18x18", "22x22"],
+    heart:     ["12x12", "15x15", "18x18", "22x22"],
   };
 
   const thicknessOptions = ["3mm", "5mm", "8mm"];
@@ -129,10 +129,10 @@ export default function ProductClient() {
     "30x20": { width: 300, height: 200 },
     "35x23": { width: 350, height: 230 },
     // square / circle
-    "12x12": { width: 120, height: 120 },
-    "15x15": { width: 150, height: 150 },
-    "18x18": { width: 180, height: 180 },
-    "22x22": { width: 220, height: 220 },
+    "12x12": { width: 220, height: 220 },
+    "15x15": { width: 250, height: 220 },
+    "18x18": { width: 280, height: 280 },
+    "22x22": { width: 320, height: 320 },
   };
 
   const priceMap = {
@@ -1082,7 +1082,9 @@ const renderBetterPreview = (useWall = false, attachRef = false, disableDrag = f
           left: "50%",
           transform: "translateX(-50%)",
           width: `${frameWidthPercent}%`,
-          height: `${frameHeightPercent}%`,
+          ...(isCircle || orientation === "square"
+            ? { aspectRatio: "1 / 1" }
+            : { height: `${frameHeightPercent}%` }),
           overflow: "visible",
           zIndex: 2,
         }}
