@@ -6,13 +6,14 @@ All authentication routes
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from . import views
-from .google_auth import GoogleLoginView
+from .views import RegisterView, LoginView
+from .google_auth import google_login_view
 
 urlpatterns = [
     path('register/', views.RegisterView.as_view(), name='register'),
     path('login/', views.LoginView.as_view(), name='login'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
-    path('google-login/', GoogleLoginView.as_view(), name='google-login'),
+path("google-login/", google_login_view, name="google-login"),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     path('forgot-password/', views.ForgotPasswordView.as_view(), name='forgot-password'),
