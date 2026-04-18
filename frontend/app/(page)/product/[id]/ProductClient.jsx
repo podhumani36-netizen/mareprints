@@ -37,6 +37,8 @@ export default function ProductClient() {
   const previewFrameRef = useRef(null);
   const orderSummaryRef = useRef(null);
   const [orderSummaryVisible, setOrderSummaryVisible] = useState(false);
+  const [showMobilePreview, setShowMobilePreview] = useState(true);
+  const lastScrollYRef = useRef(0);
 
   const [orientation, setOrientation] = useState("portrait");
 
@@ -85,6 +87,16 @@ export default function ProductClient() {
     observer.observe(el);
     return () => observer.disconnect();
   }, [currentStep]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      setShowMobilePreview(y < 150 || y < lastScrollYRef.current);
+      lastScrollYRef.current = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const setZoom = (val) => {
     setImageStates((prev) => {
@@ -1447,7 +1459,7 @@ const renderSummaryPreview = () => {
           <div className="row g-3 align-items-start">
 
             {/* ── LEFT: sticky live preview ── */}
-            <div className={`col-12 col-lg-4 ${styles.step2PreviewCol}${orderSummaryVisible ? " d-none d-lg-block" : ""}`}>
+            <div className={`col-12 col-lg-4 ${styles.step2PreviewCol}${!showMobilePreview ? " d-none d-lg-block" : ""}`}>
               <div style={{ ...sectionCardStyle, padding: "clamp(10px,2.5vw,20px)", maxWidth: "460px", marginLeft: "auto", marginRight: "auto" }}>
                 {sectionHeader("bi-display", "Live Preview", "Drag · pinch or slide to zoom")}
                 {renderBetterPreview(true, true)}
