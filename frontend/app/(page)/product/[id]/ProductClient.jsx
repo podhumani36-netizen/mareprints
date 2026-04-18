@@ -35,8 +35,6 @@ export default function ProductClient() {
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
   const previewFrameRef = useRef(null);
-  const orderSummaryRef = useRef(null);
-  const [orderSummaryVisible, setOrderSummaryVisible] = useState(false);
 
   const [orientation, setOrientation] = useState("portrait");
 
@@ -74,18 +72,6 @@ export default function ProductClient() {
   // Use a ref so event-listener closures always read the current index without stale closure issues
   const currentImageIndexRef = useRef(currentImageIndex);
   useEffect(() => { currentImageIndexRef.current = currentImageIndex; }, [currentImageIndex]);
-
-  useEffect(() => {
-    const el = orderSummaryRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setOrderSummaryVisible(entry.isIntersecting),
-      { threshold: 0.1 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [currentStep]);
-
 
   const setZoom = (val) => {
     setImageStates((prev) => {
@@ -1644,7 +1630,7 @@ const renderSummaryPreview = () => {
               <div className="d-flex flex-column gap-3">
 
                 {/* Order Summary card */}
-                <div ref={orderSummaryRef} style={{
+                <div style={{
                   ...sectionCardStyle,
                   background: "linear-gradient(145deg, #0f172a 0%, #1e293b 100%)",
                   border: "none",
