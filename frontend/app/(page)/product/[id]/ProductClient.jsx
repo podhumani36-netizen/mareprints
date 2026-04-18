@@ -1647,9 +1647,10 @@ const renderSummaryPreview = () => {
                         color: "#334155",
                       }}
                     >+</button>
-                     <span style={{ color: "#000", fontWeight: 600, fontSize: "13px" }}>Total Amount</span>
-                      <span style={{ color: "#000", fontWeight: 900, fontSize: "22px" }}>₹{totalAmount}</span>
+                     
                   </div>
+                  <span style={{ color: "#000", fontWeight: 600, fontSize: "13px" }}>Total Amount</span>
+                      <span style={{ color: "#000", fontWeight: 900, fontSize: "22px" }}>₹{totalAmount}</span>
                 </div>
               </div>
 

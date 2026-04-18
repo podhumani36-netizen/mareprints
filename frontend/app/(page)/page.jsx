@@ -9,7 +9,7 @@ import { shopData } from "../data/shopdata";
 
 // ── Row 1: Photo frame products (portrait, landscape, rounded variants) ──────
 const photoFrameProducts = shopData.filter((p) =>
-  ["portrait", "rounded_rect_portrait","cutout" ].includes(p.type)
+  ["portrait", "rounded_rect_portrait" ].includes(p.type)
 );
 // const photoFrameProducts = shopData.filter((p) =>
 //   ["portrait", "rounded_rect_portrait","circle_acrylic","cutout" ].includes(p.type)
