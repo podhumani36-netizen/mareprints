@@ -1005,7 +1005,7 @@ const frameHeightPercent = heightInch * scale * 0.72;
                 Print Quality Guide
               </h4>
               <img
-                src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773825342/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_u7pv7w.png"
+                src="https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776521173/Quality.jpg_zmvtat.jpg"
                 alt="Print quality guide"
                 className={styles.guideImage}
               />
