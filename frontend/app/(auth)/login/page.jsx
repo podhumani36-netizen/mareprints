@@ -121,7 +121,7 @@ useEffect(() => {
     script.onload = () => {
       if (window.google) {
         window.google.accounts.id.initialize({
-          client_id: "YOUR_GOOGLE_CLIENT_ID",
+          client_id: "541738064575-fvra4bjatdvasqrdbs0d5icpnkodhof8.apps.googleusercontent.com",
           callback: handleGoogleResponse,
         });
 
