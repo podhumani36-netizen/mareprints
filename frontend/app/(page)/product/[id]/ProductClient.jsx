@@ -1660,8 +1660,6 @@ const renderSummaryPreview = () => {
                     <span style={{ fontSize: "16px", fontWeight: 800, color: "#fff" }}>Order Summary</span>
                   </div>
 
-                  {renderSummaryPreview()}
-
                   <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
                     {[
                       { icon: "bi-hash",             label: "Order ID",    value: orderId },
