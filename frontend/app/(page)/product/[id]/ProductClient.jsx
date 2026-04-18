@@ -984,7 +984,7 @@ const validateBeforePayment = async () => {
   // Heart uses smooth SVG clipPath (defined once in the return JSX)
   const heartClip = "url(#pcHeartClip)";
 
-const renderBetterPreview = (useWall = false, attachRef = false) => {
+const renderBetterPreview = (useWall = false, attachRef = false, disableDrag = false) => {
   const isCircle = orientation === "circle";
   const isHeart = orientation === "heart";
   const shapeRadius = isCircle ? "50%" : "0px";
@@ -1061,9 +1061,9 @@ const renderBetterPreview = (useWall = false, attachRef = false) => {
       <div
         style={{
           position: "absolute",
-          top: "50%",
+          top: "5%",
           left: "50%",
-          transform: "translate(-50%, -50%)",
+          transform: "translateX(-50%)",
           width: `${frameWidthPercent}%`,
           height: `${frameHeightPercent}%`,
           overflow: "visible",
@@ -1093,14 +1093,14 @@ const renderBetterPreview = (useWall = false, attachRef = false) => {
             background: "#fff",
             overflow: "hidden",
             zIndex: 2,
-            cursor: uploadedImage ? (isImageDragging ? "grabbing" : "grab") : "default",
+            cursor: disableDrag ? "default" : uploadedImage ? (isImageDragging ? "grabbing" : "grab") : "default",
             touchAction: "none",
           }}
-          onMouseDown={uploadedImage ? handleImageMouseDown : undefined}
-          onTouchStart={uploadedImage ? handleImageTouchStart : undefined}
-          onTouchMove={uploadedImage ? handleImageTouchMove : undefined}
-          onTouchEnd={uploadedImage ? handleImageTouchEnd : undefined}
-          onTouchCancel={uploadedImage ? handleImageTouchEnd : undefined}
+          onMouseDown={(!disableDrag && uploadedImage) ? handleImageMouseDown : undefined}
+          onTouchStart={(!disableDrag && uploadedImage) ? handleImageTouchStart : undefined}
+          onTouchMove={(!disableDrag && uploadedImage) ? handleImageTouchMove : undefined}
+          onTouchEnd={(!disableDrag && uploadedImage) ? handleImageTouchEnd : undefined}
+          onTouchCancel={(!disableDrag && uploadedImage) ? handleImageTouchEnd : undefined}
         >
           {uploadedImage ? (
             <img
@@ -1164,7 +1164,7 @@ const renderSummaryPreview = () => {
   if (!uploadedImage) return null;
   return (
     <div style={{ width: "100%", marginBottom: "12px" }}>
-      {renderBetterPreview(false)}
+      {renderBetterPreview(false, false, true)}
     </div>
   );
 }; 
