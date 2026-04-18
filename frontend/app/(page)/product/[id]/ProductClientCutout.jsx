@@ -7,8 +7,8 @@ import RazorpayPayment from "../../../Components/payment/Razorpay";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
-const WALL_MOCKUP =
-  "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg";
+// const WALL_MOCKUP =
+//   "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg";
 
 const BACKGROUND_REMOVAL_API_KEY = "fbstz8JJ7hPbsmvkW8WcJogg";
 const BACKGROUND_REMOVAL_API_URL = "https://api.remove.bg/v1.0/removebg";
@@ -556,7 +556,7 @@ export default function ProductClientCutout({ product }) {
                 <div style={{
                   width: "100%", minHeight: "340px",
                   borderRadius: "16px",
-                  background: `url('${WALL_MOCKUP}') center/cover no-repeat`,
+                  // background: `url('${WALL_MOCKUP}') center/cover no-repeat`,
                   position: "relative",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   overflow: "hidden",
