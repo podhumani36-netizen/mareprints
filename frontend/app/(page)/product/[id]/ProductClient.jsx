@@ -36,7 +36,7 @@ export default function ProductClient() {
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
   const previewFrameRef = useRef(null);
-  const orderSummaryRef = useRef(null);
+  const contactDeliveryRef = useRef(null);
 
   const [orientation, setOrientation] = useState("portrait");
 
@@ -280,15 +280,11 @@ export default function ProductClient() {
 
   useEffect(() => {
     if (currentStep !== 2) return;
-    const el = orderSummaryRef.current;
+    const el = contactDeliveryRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting && entry.boundingClientRect.top < 0) {
-          setLivePreviewVisible(false);
-        } else {
-          setLivePreviewVisible(true);
-        }
+        setLivePreviewVisible(!entry.isIntersecting);
       },
       { threshold: 0 }
     );
@@ -1657,7 +1653,7 @@ const renderSummaryPreview = () => {
               <div className="d-flex flex-column gap-3">
 
                 {/* Order Summary card */}
-                <div ref={orderSummaryRef} style={{
+                <div style={{
                   ...sectionCardStyle,
                   background: "linear-gradient(145deg, #0f172a 0%, #1e293b 100%)",
                   border: "none",
@@ -1704,7 +1700,7 @@ const renderSummaryPreview = () => {
                 </div>
 
                 {/* Contact & Delivery card */}
-                <div style={sectionCardStyle}>
+                <div ref={contactDeliveryRef} style={sectionCardStyle}>
                   {sectionHeader("bi-truck", "Contact & Delivery", "We'll use this to ship your order")}
 
                   <form onSubmit={handleSubmitOrder}>
