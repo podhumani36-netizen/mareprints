@@ -1086,6 +1086,10 @@ const frameHeightPercent = heightInch * scale * 0.72;
                 {sectionHeader("bi-display", "Live Preview", "Drag · zoom to adjust")}
                 {renderBetterPreview(true)}
                 {renderEditorControls()}
+                <div className={styles.mobileTotalBar}>
+  <span>Total</span>
+  <strong>₹{calculatePrice()}</strong>
+</div>
               </div>
             </div>
 

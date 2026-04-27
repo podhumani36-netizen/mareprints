@@ -1471,6 +1471,10 @@ const renderSummaryPreview = () => {
                 {sectionHeader("bi-display", "Live Preview", "Drag · pinch or slide to zoom")}
                 {renderBetterPreview(true, true)}
                 {renderEditorControls()}
+                <div className={styles.mobileTotalBar}>
+  <span>Total</span>
+  <strong>₹{calculatePrice()}</strong>
+</div>
               </div>
             </div>
 
