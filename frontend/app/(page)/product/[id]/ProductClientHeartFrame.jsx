@@ -8,7 +8,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 const WALL_MOCKUP =
-  "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpghttps://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg";
+  "https://res.cloudinary.com/dsprfys3x/image/upload/v1777275393/ChatGPT_Image_Apr_27__2026__12_58_10_PM_guqrsv.png";
 
 // Heart SVG path in 300×280 coordinate space
 const HEART_PATH =

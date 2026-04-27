@@ -41,9 +41,9 @@ export const shopData = [
     reviews: 1245,
     inStock: true,
     backgroundImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1777275393/ChatGPT_Image_Apr_27__2026__12_58_10_PM_guqrsv.png",
     mockupBackground:
-      "https://https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1777275393/ChatGPT_Image_Apr_27__2026__12_58_10_PM_guqrsv.png",
     guideImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776521173/Quality.jpg_zmvtat.jpg",
     
@@ -91,7 +91,7 @@ export const shopData = [
     backgroundImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
     mockupBackground:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1777275393/ChatGPT_Image_Apr_27__2026__12_58_10_PM_guqrsv.png",
     guideImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776521173/Quality.jpg_zmvtat.jpg",
     
@@ -141,7 +141,7 @@ export const shopData = [
     backgroundImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
     mockupBackground:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1777275393/ChatGPT_Image_Apr_27__2026__12_58_10_PM_guqrsv.png",
     guideImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776521173/Quality.jpg_zmvtat.jpg",
     infoImage:
@@ -189,7 +189,7 @@ export const shopData = [
     backgroundImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
     mockupBackground:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpgjpg",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1777275393/ChatGPT_Image_Apr_27__2026__12_58_10_PM_guqrsv.png",
     guideImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776521173/Quality.jpg_zmvtat.jpg",
     infoImage:
@@ -242,7 +242,7 @@ export const shopData = [
     backgroundImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
     mockupBackground:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1777275393/ChatGPT_Image_Apr_27__2026__12_58_10_PM_guqrsv.png",
     guideImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776521173/Quality.jpg_zmvtat.jpg",
     infoImage:
@@ -292,7 +292,7 @@ export const shopData = [
     backgroundImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
     mockupBackground:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1777275393/ChatGPT_Image_Apr_27__2026__12_58_10_PM_guqrsv.png",
     guideImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776521173/Quality.jpg_zmvtat.jpg",
     infoImage:
@@ -342,7 +342,7 @@ export const shopData = [
     backgroundImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
     mockupBackground:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1777275393/ChatGPT_Image_Apr_27__2026__12_58_10_PM_guqrsv.png",
     guideImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776521173/Quality.jpg_zmvtat.jpg",
     infoImage:
@@ -391,7 +391,7 @@ export const shopData = [
     backgroundImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
     mockupBackground:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1777275393/ChatGPT_Image_Apr_27__2026__12_58_10_PM_guqrsv.png",
     guideImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776521173/Quality.jpg_zmvtat.jpg",
     infoImage:
@@ -441,7 +441,7 @@ export const shopData = [
     backgroundImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
     mockupBackground:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1777275393/ChatGPT_Image_Apr_27__2026__12_58_10_PM_guqrsv.png",
     guideImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776521173/Quality.jpg_zmvtat.jpg",
     infoImage:
@@ -491,7 +491,7 @@ export const shopData = [
     backgroundImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
     mockupBackground:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1777275393/ChatGPT_Image_Apr_27__2026__12_58_10_PM_guqrsv.png",
     guideImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776521173/Quality.jpg_zmvtat.jpg",
     infoImage:
@@ -534,7 +534,7 @@ export const shopData = [
     backgroundImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/v1773634493/Gemini_Generated_Image_g2ds8ig2ds8ig2ds_puojbl.png",
     mockupBackground:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg",
+      "https://res.cloudinary.com/dsprfys3x/image/upload/v1777275393/ChatGPT_Image_Apr_27__2026__12_58_10_PM_guqrsv.png",
     guideImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776521173/Quality.jpg_zmvtat.jpg",
     infoImage:

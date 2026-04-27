@@ -129,10 +129,10 @@ export default function ProductClient() {
     "30x20": { width: 300, height: 200 },
     "35x23": { width: 350, height: 230 },
     // square / circle
-    "12x12": { width: 220, height: 220 },
-    "15x15": { width: 250, height: 220 },
-    "18x18": { width: 280, height: 280 },
-    "22x22": { width: 320, height: 320 },
+    "12x12": { width: 320, height: 320 },
+    "15x15": { width: 350, height: 320 },
+    "18x18": { width: 380, height: 380 },
+    "22x22": { width: 4000, height: 400 },
   };
 
   const priceMap = {
@@ -1058,7 +1058,7 @@ const renderBetterPreview = (useWall = false, attachRef = false, disableDrag = f
       className={styles.previewBox}
       style={{
         background: useWall
-          ? `url('https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg') center/cover no-repeat`
+          ? `url('https://res.cloudinary.com/dsprfys3x/image/upload/v1777275393/ChatGPT_Image_Apr_27__2026__12_58_10_PM_guqrsv.png') center/cover no-repeat`
           : "linear-gradient(160deg,#eef2f7 0%,#dde4ee 100%)",
       }}
     >
