@@ -132,7 +132,7 @@ export default function ProductClient() {
     "12x12": { width: 320, height: 320 },
     "15x15": { width: 350, height: 320 },
     "18x18": { width: 380, height: 380 },
-    "22x22": { width: 4000, height: 400 },
+    "22x22": { width: 400, height: 400 },
   };
 
   const priceMap = {
@@ -408,7 +408,7 @@ export default function ProductClient() {
 
       const frameW  = dims.width  * S;
       const frameH  = dims.height * S;
-      const depthPx = (thickness === "3mm" ? 4 : thickness === "5mm" ? 5 : 7) * S;
+      const depthPx = (thickness === "3mm" ? 3 : thickness === "5mm" ? 4 : 5) * S;
       const PAD     = 5 * S;
 
       const canvas = document.createElement("canvas");
