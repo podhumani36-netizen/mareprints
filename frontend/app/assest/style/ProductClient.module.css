@@ -65,9 +65,15 @@
     box-shadow: 0 4px 15px rgba(44, 127, 184, 0.3);
 }
 
+.stepItem:nth-child(2) .stepButton.active {
+    background: #E11B22;
+    border-color: #E11B22;
+    box-shadow: 0 4px 15px rgba(225, 27, 34, 0.3);
+}
+
 .stepButton.completed {
-    background: #28a745;
-    border-color: #28a745;
+    background: #2C7FB8;
+    border-color: #2C7FB8;
     color: white;
 }
 
@@ -95,7 +101,7 @@
 }
 
 .stepButton.completed .stepNumber {
-    color: #28a745;
+    color: #2C7FB8;
 }
 
 .stepLabel {
@@ -113,7 +119,7 @@
 }
 
 .stepConnector.completed {
-    background: #28a745;
+    background: linear-gradient(90deg, #2C7FB8, #E11B22);
 }
 
 .stepContainer {
@@ -153,8 +159,8 @@
 }
 
 .uploadZone.dragging {
-    border-color: #28a745;
-    background: rgba(40, 167, 69, 0.05);
+    border-color: #E11B22;
+    background: rgba(225, 27, 34, 0.05);
     transform: scale(1.02);
 }
 
@@ -352,7 +358,7 @@
 }
 
 .guideList li i {
-    color: #28a745;
+    color: #2C7FB8;
     font-size: 1rem;
     margin-top: 0.1rem;
 }
@@ -1064,7 +1070,7 @@
     width: 80px;
     height: 80px;
     margin: 0 auto 1.5rem;
-    background: #d4edda;
+    background: rgba(44, 127, 184, 0.1);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1073,7 +1079,7 @@
 
 .modalIcon i {
     font-size: 3rem;
-    color: #28a745;
+    color: #2C7FB8;
 }
 
 .modalThankYou {
@@ -1153,7 +1159,7 @@
 }
 
 .toast.success {
-    border-left-color: #28a745;
+    border-left-color: #2C7FB8;
 }
 
 .toast.error {
@@ -1191,8 +1197,8 @@
 }
 
 .toast.success .toastIcon {
-    background: #d4edda;
-    color: #28a745;
+    background: rgba(44, 127, 184, 0.1);
+    color: #2C7FB8;
 }
 
 .toast.error .toastIcon {
