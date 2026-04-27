@@ -1469,11 +1469,21 @@ const renderSummaryPreview = () => {
             >
               <div style={{ ...sectionCardStyle, padding: "clamp(10px,2.5vw,20px)", maxWidth: "460px", marginLeft: "auto", marginRight: "auto" }}>
                 {sectionHeader("bi-display", "Live Preview", "Drag · pinch or slide to zoom")}
-                {renderBetterPreview(true, true)}
-                {renderEditorControls()}
-                <div className={styles.mobileTotalBar}>
-  <span>Total</span>
-  <strong>₹{calculatePrice()}</strong>
+               {renderBetterPreview(true, true)}
+{renderEditorControls()}
+
+<div className={styles.mobileTotalBar}>
+  <div>
+    <span className={styles.mobileTotalLabel}>Total Amount</span>
+    <p className={styles.mobileTotalSub}>
+      {size === "custom"
+        ? `${customSize.width || "?"}×${customSize.height || "?"} in`
+        : size}{" "}
+      • {thickness} • Qty {quantity}
+    </p>
+  </div>
+
+  <strong>₹{totalAmount}</strong>
 </div>
               </div>
             </div>
@@ -1660,10 +1670,7 @@ const renderSummaryPreview = () => {
                     >+</button>
                      
                   </div>
-                    <label style={{ ...labelStyle, marginBottom: "10px" }}>
-                    <i className="bi bi-hash me-1" style={{ color: "#2563eb" }}></i>Total Amount
-                  </label>
-                      <span style={{ color: "#000", fontWeight: 900, fontSize: "22px" }}>₹{totalAmount}</span>
+                  
                 </div>
               </div>
 
