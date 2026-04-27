@@ -183,7 +183,7 @@
 .newsletter button:hover {
     background: #E11B22;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(52, 150, 203, 0.3);
+    box-shadow: 0 5px 15px rgba(44, 127, 184, 0.3);
 }
 
 .newsletter button:active {
@@ -423,7 +423,7 @@
 .navLink:hover,
 .navLink.active {
     color: var(--primary-blue);
-    background: rgba(52, 150, 203, 0.05);
+    background: rgba(44, 127, 184, 0.05);
 }
 
 .navItem:hover .navLink i {
@@ -476,7 +476,7 @@
 
 .dropdownMenu li a:hover,
 .dropdownMenu li a.active {
-    background: rgba(52, 150, 203, 0.05);
+    background: rgba(44, 127, 184, 0.05);
     color: var(--primary-blue);
     padding-left: 30px;
 }
@@ -510,7 +510,7 @@
 }
 
 .actionBtn:hover {
-    background: rgba(52, 150, 203, 0.05);
+    background: rgba(44, 127, 184, 0.05);
     color: var(--primary-blue);
 }
 
@@ -538,7 +538,7 @@
     justify-content: center;
     padding: 0 4px;
     animation: popIn 0.3s ease;
-    box-shadow: 0 2px 5px rgba(214, 40, 57, 0.3);
+    box-shadow: 0 2px 5px rgba(225, 27, 34, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.3);
     min-width: 18px;
     height: 18px;
@@ -614,7 +614,7 @@
 
 .closeSearch:hover {
     color: var(--primary-red);
-    background: rgba(214, 40, 57, 0.1);
+    background: rgba(225, 27, 34, 0.1);
     transform: rotate(90deg);
 }
 
@@ -637,7 +637,7 @@
 
 .searchInput:focus {
     border-color: var(--primary-blue);
-    box-shadow: 0 0 0 3px rgba(52, 150, 203, 0.1);
+    box-shadow: 0 0 0 3px rgba(44, 127, 184, 0.1);
 }
 
 .searchSubmit {
@@ -658,7 +658,7 @@
 .searchSubmit:hover {
     background: #287ba8;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(52, 150, 203, 0.3);
+    box-shadow: 0 5px 15px rgba(44, 127, 184, 0.3);
 }
 
 .searchSubmit:active {
@@ -703,7 +703,7 @@
     background: var(--primary-blue);
     color: var(--white);
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(52, 150, 203, 0.3);
+    box-shadow: 0 5px 15px rgba(44, 127, 184, 0.3);
 }
 
 .mobileMenu {
@@ -761,7 +761,7 @@
 }
 
 .closeMenu:hover {
-    background: rgba(214, 40, 57, 0.1);
+    background: rgba(225, 27, 34, 0.1);
     color: var(--primary-red);
     transform: rotate(90deg);
 }
@@ -1636,7 +1636,7 @@ a:hover {
 
 .cartBtn:hover .cartCount {
     transform: scale(1.1);
-    box-shadow: 0 3px 8px rgba(214, 40, 57, 0.5);
+    box-shadow: 0 3px 8px rgba(225, 27, 34, 0.5);
 }
 /* Account Dropdown Styles */
 .accountDropdown {
@@ -1705,7 +1705,7 @@ a:hover {
 
 .dropdownLink:hover {
   background: #f3f4f6;
-  color: #667eea;
+  color: var(--primary-blue);
 }
 
 .dropdownLink i {
@@ -1780,7 +1780,7 @@ a:hover {
 
 .mobileAction:hover {
   background: #e5e7eb;
-  color: #667eea;
+  color: var(--primary-blue);
 }
 
 .mobileAction i {

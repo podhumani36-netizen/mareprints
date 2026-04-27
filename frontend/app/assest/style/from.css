@@ -52,8 +52,8 @@
 
 .custom-input:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
+    border-color: #2C7FB8;
+    box-shadow: 0 0 0 4px rgba(44, 127, 184, 0.1);
     transform: translateY(-2px);
 }
 
@@ -111,7 +111,7 @@ textarea.custom-input {
 
 .btn-submit:hover:not(:disabled) {
     transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(0, 123, 255, 0.4);
+    box-shadow: 0 10px 25px rgba(44, 127, 184, 0.4);
 }
 
 .btn-submit:hover:not(:disabled)::before {
@@ -120,7 +120,7 @@ textarea.custom-input {
 
 .btn-submit:active:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+    box-shadow: 0 5px 15px rgba(44, 127, 184, 0.3);
 }
 
 .btn-submit:disabled {
@@ -308,12 +308,12 @@ textarea.custom-input {
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+    box-shadow: 0 5px 15px rgba(44, 127, 184, 0.3);
 }
 
 .popup-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
+    box-shadow: 0 8px 25px rgba(44, 127, 184, 0.4);
 }
 
 .popup-btn:active {
@@ -328,7 +328,7 @@ textarea.custom-input {
 }
 
 .form-footer-text a {
-    color: #007bff;
+    color: #2C7FB8;
     text-decoration: none;
     transition: color 0.3s ease;
 }
@@ -476,7 +476,7 @@ textarea.custom-input {
 .btn-submit:focus-visible,
 .popup-close:focus-visible,
 .popup-btn:focus-visible {
-    outline: 2px solid #007bff;
+    outline: 2px solid #2C7FB8;
     outline-offset: 2px;
 }
 
@@ -500,7 +500,7 @@ textarea.custom-input {
     }
 
     .custom-input:focus {
-        border-color: #007bff;
+        border-color: #2C7FB8;
     }
 
     .success-box h3 {

@@ -989,13 +989,20 @@ const frameHeightPercent = heightInch * scale * 0.72;
               </div>
             </div>
 
-            <div className={`${styles.uploadCard} mt-4`}>
+              <div className={`${styles.uploadCard} mt-4`}>
               <img
-                src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png"
+                src="https://res.cloudinary.com/dsprfys3x/image/upload/v1777025061/Size_Compare.jpg_3_gkld8u.jpg"
                 alt="guide"
                 className="img-fluid"
               />
             </div>
+            <div className={`${styles.uploadCard} mt-4`}>
+              <img
+                src="https://res.cloudinary.com/dsprfys3x/image/upload/v1776521152/Acrylic_Thickness.jpg_oi0ftp.jpg"
+                alt="guide"
+                className="img-fluid"
+              />
+               </div>
           </div>
 
           <div className="col-sm-12 col-lg-4">

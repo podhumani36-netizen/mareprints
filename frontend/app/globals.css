@@ -4,11 +4,11 @@
 :root {
     --primary-blue: #2C7FB8;
     --primary-red: #E11B22;
-    --accent-red: #f01731;
-    --primary-blue-rgb: 52, 150, 203;
-    --primary-red-rgb: 214, 40, 57;
-    --accent-red-rgb: 240, 23, 49;
-    --border-light: rgba(52, 150, 203, 0.15);
+    --accent-red: #E11B22;
+    --primary-blue-rgb: 44, 127, 184;
+    --primary-red-rgb: 225, 27, 34;
+    --accent-red-rgb: 225, 27, 34;
+    --border-light: rgba(44, 127, 184, 0.15);
 }
 
 body {
@@ -192,7 +192,7 @@ a:hover {
 .custom-animated-accordion .accordion-item:hover {
     transform: translateY(-4px);
     border-color: var(--primary-blue);
-    box-shadow: 0 8px 25px rgba(52, 150, 203, 0.15);
+    box-shadow: 0 8px 25px rgba(44, 127, 184, 0.15);
 }
 
 .custom-animated-accordion .accordion-button {

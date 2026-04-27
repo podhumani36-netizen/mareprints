@@ -1291,7 +1291,7 @@ const renderSummaryPreview = () => {
                     </button>
 
                     <p className={styles.uploadHint}>
-                      Supported formats: JPG, PNG, GIF (Max 10MB each)
+                      Supported formats: JPG, PNG
                     </p>
 
                     {isProcessing && (
@@ -1329,11 +1329,18 @@ const renderSummaryPreview = () => {
 
             <div className={`${styles.uploadCard} mt-4`}>
               <img
-                src="https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png"
+                src="https://res.cloudinary.com/dsprfys3x/image/upload/v1777025061/Size_Compare.jpg_3_gkld8u.jpg"
                 alt="guide"
                 className="img-fluid"
               />
             </div>
+            <div className={`${styles.uploadCard} mt-4`}>
+              <img
+                src="https://res.cloudinary.com/dsprfys3x/image/upload/v1776521152/Acrylic_Thickness.jpg_oi0ftp.jpg"
+                alt="guide"
+                className="img-fluid"
+              />
+               </div>
           </div>
 
           <div className="col-sm-12 col-lg-4">
