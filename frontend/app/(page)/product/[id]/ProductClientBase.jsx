@@ -1100,7 +1100,7 @@ const frameHeightPercent = heightInch * scale * 0.72;
                   {/* Size */}
                   <div style={{ marginBottom: "24px" }}>
                     <label style={{ ...labelStyle, marginBottom: "10px" }}>
-                      <i className="bi bi-aspect-ratio me-1" style={{ color: "#2563eb" }} />Size (inches)
+                      <i className="bi bi-aspect-ratio me-1" style={{ color: "#d62839" }} />Size (inches)
                     </label>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                       {sizeOptions.map((opt) => {
