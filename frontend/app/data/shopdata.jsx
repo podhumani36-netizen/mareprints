@@ -46,8 +46,7 @@ export const shopData = [
       "https://https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg",
     guideImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776521173/Quality.jpg_zmvtat.jpg",
-    infoImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
+    
   },
  {
     id: 2,
@@ -95,8 +94,7 @@ export const shopData = [
       "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776247395/BackRound.jpg_kiljam.jpg",
     guideImage:
       "https://res.cloudinary.com/dsprfys3x/image/upload/q_auto/f_auto/v1776521173/Quality.jpg_zmvtat.jpg",
-    infoImage:
-      "https://res.cloudinary.com/dsprfys3x/image/upload/v1773633339/wmremove-transformed_ouhicx.png",
+    
   },
   {
     id: 3,
