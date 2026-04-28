@@ -1496,7 +1496,7 @@ const renderSummaryPreview = () => {
 </div>
               </div>
 
-              <div style={{ maxWidth: "460px", marginLeft: "auto", marginRight: "auto", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "14px 20px", boxShadow: "0 4px 16px rgba(15,23,42,0.04)", marginTop: "10px" }}>
+              <div className="d-none d-lg-block" style={{ maxWidth: "460px", marginLeft: "auto", marginRight: "auto", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "14px 20px", boxShadow: "0 4px 16px rgba(15,23,42,0.04)", marginTop: "10px" }}>
                 <div style={{ display: "flex", justifyContent: "space-around", alignItems: "center" }}>
                   {[
                     { icon: "bi-award", color: "#1d4ed8", title: "Premium Quality", desc: "Best materials" },
