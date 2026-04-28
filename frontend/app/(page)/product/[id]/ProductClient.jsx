@@ -1499,7 +1499,7 @@ const renderSummaryPreview = () => {
                 {/* Shape selector */}
                 <div style={{ marginBottom: "24px" }}>
                   <label style={{ ...labelStyle, marginBottom: "10px" }}>
-                    <i className="bi bi-grid-3x3-gap me-1" style={{ color: "#2563eb" }}></i>Shape
+                    <i className="bi bi-grid-3x3-gap me-1" style={{ color: "#E11B22" }}></i>Shape
                   </label>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
                     {shapeOptions.map((s) => {
@@ -1534,7 +1534,7 @@ const renderSummaryPreview = () => {
                 {/* Size selector */}
                 <div style={{ marginBottom: "24px" }}>
                   <label style={{ ...labelStyle, marginBottom: "10px" }}>
-                    <i className="bi bi-aspect-ratio me-1" style={{ color: "#2563eb" }}></i>Size (inches)
+                    <i className="bi bi-aspect-ratio me-1" style={{ color: "#E11B22" }}></i>Size (inches)
                   </label>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                     {(sizeOptions[orientation] || sizeOptions.portrait).map((opt) => {
@@ -1599,7 +1599,7 @@ const renderSummaryPreview = () => {
                 {/* Thickness selector */}
                 <div style={{ marginBottom: "24px" }}>
                   <label style={{ ...labelStyle, marginBottom: "10px" }}>
-                    <i className="bi bi-layers me-1" style={{ color: "#2563eb" }}></i>Thickness
+                    <i className="bi bi-layers me-1" style={{ color: "#E11B22" }}></i>Thickness
                   </label>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
                     {thicknessOptions.map((opt) => {
@@ -1637,7 +1637,7 @@ const renderSummaryPreview = () => {
                 {/* Quantity */}
                 <div>
                   <label style={{ ...labelStyle, marginBottom: "10px" }}>
-                    <i className="bi bi-hash me-1" style={{ color: "#2563eb" }}></i>Quantity
+                    <i className="bi bi-hash me-1" style={{ color: "#E11B22" }}></i>Quantity
                   </label>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", maxWidth: "200px" }}>
                     <button
