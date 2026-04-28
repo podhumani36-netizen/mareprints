@@ -37,6 +37,7 @@ export default function ProductClient() {
   const dropZoneRef = useRef(null);
   const previewFrameRef = useRef(null);
   const contactDeliveryRef = useRef(null);
+  const customiseSectionRef = useRef(null);
 
   const [orientation, setOrientation] = useState("portrait");
 
@@ -280,11 +281,11 @@ export default function ProductClient() {
 
   useEffect(() => {
     if (currentStep !== 2) return;
-    const el = contactDeliveryRef.current;
+    const el = customiseSectionRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setLivePreviewVisible(!entry.isIntersecting);
+        setLivePreviewVisible(entry.isIntersecting);
       },
       { threshold: 0 }
     );
@@ -1518,7 +1519,7 @@ const renderSummaryPreview = () => {
               <div className="d-flex flex-column gap-3">
 
               {/* Customise Options card */}
-              <div style={{ ...sectionCardStyle }}>
+              <div ref={customiseSectionRef} style={{ ...sectionCardStyle }}>
                 {sectionHeader("bi-sliders2", "Customise Your Print", "Choose shape, size, thickness and quantity", "linear-gradient(135deg, #E11B22, #b91c1c)")}
 
                 {/* Shape selector */}
