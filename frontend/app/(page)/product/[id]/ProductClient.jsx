@@ -23,7 +23,9 @@ export default function ProductClient() {
   const [quantity, setQuantity] = useState(1);
   const [isPaymentReady, setIsPaymentReady] = useState(false);
   const [mailPreviewImages, setMailPreviewImages] = useState([]);
-  const [livePreviewVisible, setLivePreviewVisible] = useState(true);
+  const [customiseInView, setCustomiseInView] = useState(true);
+  const [contactInView, setContactInView] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(false);
 
   const [showToast, setShowToast] = useState({
     visible: false,
@@ -279,19 +281,42 @@ export default function ProductClient() {
     };
   }, [isImageDragging, dragStart]);
 
+  // Track mobile breakpoint reactively
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 991px)");
+    setIsMobileView(mq.matches);
+    const handler = (e) => setIsMobileView(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // Desktop: hide when Customise section scrolls out of view
   useEffect(() => {
     if (currentStep !== 2) return;
     const el = customiseSectionRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        setLivePreviewVisible(entry.isIntersecting);
-      },
+      ([entry]) => setCustomiseInView(entry.isIntersecting),
       { threshold: 0 }
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, [currentStep]);
+
+  // Mobile: hide when Contact & Delivery section comes into view
+  useEffect(() => {
+    if (currentStep !== 2) return;
+    const el = contactDeliveryRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setContactInView(entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [currentStep]);
+
+  const livePreviewVisible = isMobileView ? !contactInView : customiseInView;
 
   const showNotification = (message, type = "info", title = "") => {
     let notificationTitle = title;
