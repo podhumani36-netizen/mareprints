@@ -1866,6 +1866,20 @@
     z-index: 40;
 }
 
+/* On mobile: fully collapse the column when hidden so it doesn't block content */
+@media (max-width: 991px) {
+    .step2PreviewColHidden {
+        position: static !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
 /* Mobile: compact sticky preview */
 @media (max-width: 991px) {
     .step2PreviewCol {

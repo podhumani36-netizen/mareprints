@@ -1461,7 +1461,7 @@ const renderSummaryPreview = () => {
 
             {/* ── LEFT: sticky live preview ── */}
             <div
-              className={`col-12 col-lg-4 ${styles.step2PreviewCol}`}
+              className={`col-12 col-lg-4 ${styles.step2PreviewCol} ${!livePreviewVisible ? styles.step2PreviewColHidden : ""}`}
               style={{
                 opacity: livePreviewVisible ? 1 : 0,
                 pointerEvents: livePreviewVisible ? "auto" : "none",
