@@ -1404,16 +1404,16 @@ const renderSummaryPreview = () => {
     ];
 
     const thicknessInfo = {
-      "3mm": { label: "3mm",  desc: "Slim",    icon: "bi-layers",     color: "#10b981" },
-      "5mm": { label: "5mm",  desc: "Standard",icon: "bi-layers-fill",color: "#2563eb" },
-      "8mm": { label: "8mm",  desc: "Premium", icon: "bi-stack",      color: "#7c3aed" },
+      "3mm": { label: "3mm",  desc: "Slim",    icon: "bi-layers",     color: "#2563eb" },
+      "5mm": { label: "5mm",  desc: "Standard",icon: "bi-layers-fill",color: "#64748b" },
+      "8mm": { label: "8mm",  desc: "Premium", icon: "bi-stack",      color: "#E11B22" },
     };
 
-    const sectionHeader = (icon, title, subtitle) => (
+    const sectionHeader = (icon, title, subtitle, iconBg = "linear-gradient(135deg, #2563eb, #1d4ed8)") => (
       <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
         <div style={{
           width: "40px", height: "40px", borderRadius: "12px",
-          background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
+          background: iconBg,
           display: "flex", alignItems: "center", justifyContent: "center",
           color: "#fff", fontSize: "18px", flexShrink: 0,
         }}>
@@ -1478,13 +1478,38 @@ const renderSummaryPreview = () => {
     <p className={styles.mobileTotalSub}>
       {size === "custom"
         ? `${customSize.width || "?"}×${customSize.height || "?"} in`
-        : size}{" "}
+        : size.replace("x", "×")}{" "}
       • {thickness} • Qty {quantity}
     </p>
   </div>
 
   <strong>₹{totalAmount}</strong>
 </div>
+<div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", marginTop: "10px", fontSize: "12px", color: "#94a3b8" }}>
+  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+    <i className="bi bi-shield-check" style={{ color: "#2563eb" }}></i>Secure Checkout
+  </span>
+  <span>|</span>
+  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+    <i className="bi bi-lock-fill" style={{ color: "#dc2626" }}></i>SSL Encrypted
+  </span>
+</div>
+              </div>
+
+              <div style={{ maxWidth: "460px", marginLeft: "auto", marginRight: "auto", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "14px 20px", boxShadow: "0 4px 16px rgba(15,23,42,0.04)", marginTop: "10px" }}>
+                <div style={{ display: "flex", justifyContent: "space-around", alignItems: "center" }}>
+                  {[
+                    { icon: "bi-award", color: "#1d4ed8", title: "Premium Quality", desc: "Best materials" },
+                    { icon: "bi-shield-check", color: "#dc2626", title: "Secure Packaging", desc: "Safe delivery" },
+                    { icon: "bi-truck", color: "#1d4ed8", title: "Fast Delivery", desc: "3–5 business days" },
+                  ].map(({ icon, color, title, desc }) => (
+                    <div key={title} style={{ textAlign: "center", padding: "4px 8px" }}>
+                      <i className={`bi ${icon}`} style={{ fontSize: "20px", color }}></i>
+                      <div style={{ fontSize: "11px", fontWeight: 700, color: "#1e293b", marginTop: "4px" }}>{title}</div>
+                      <div style={{ fontSize: "10px", color: "#64748b" }}>{desc}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -1494,7 +1519,7 @@ const renderSummaryPreview = () => {
 
               {/* Customise Options card */}
               <div style={{ ...sectionCardStyle }}>
-                {sectionHeader("bi-sliders", "Customise Your Print", "Choose shape, size, thickness and quantity")}
+                {sectionHeader("bi-sliders2", "Customise Your Print", "Choose shape, size, thickness and quantity", "linear-gradient(135deg, #E11B22, #b91c1c)")}
 
                 {/* Shape selector */}
                 <div style={{ marginBottom: "24px" }}>
@@ -1513,14 +1538,14 @@ const renderSummaryPreview = () => {
                             display: "flex", alignItems: "center", gap: "7px",
                             padding: "9px 18px",
                             borderRadius: "999px",
-                            border: active ? "2px solid #2563eb" : "1.5px solid #e2e8f0",
-                            background: active ? "linear-gradient(135deg,#eff6ff,#dbeafe)" : "#f8fafc",
-                            color: active ? "#1d4ed8" : "#475569",
+                            border: active ? "2px solid #E11B22" : "1.5px solid #e2e8f0",
+                            background: active ? "linear-gradient(135deg,#fff1f2,#fee2e2)" : "#f8fafc",
+                            color: active ? "#E11B22" : "#475569",
                             fontWeight: active ? 700 : 500,
                             fontSize: "clamp(12px,2.5vw,14px)",
                             cursor: "pointer",
                             transition: "all 0.18s",
-                            boxShadow: active ? "0 0 0 3px rgba(37,99,235,0.12)" : "none",
+                            boxShadow: active ? "0 0 0 3px rgba(225,27,34,0.12)" : "none",
                           }}
                         >
                           <i className={`bi ${s.icon}`} style={{ fontSize: "15px" }}></i>
@@ -1547,17 +1572,17 @@ const renderSummaryPreview = () => {
                           style={{
                             padding: "8px 16px",
                             borderRadius: "10px",
-                            border: active ? "2px solid #2563eb" : "1.5px solid #e2e8f0",
-                            background: active ? "#2563eb" : "#f8fafc",
+                            border: active ? "2px solid #E11B22" : "1.5px solid #e2e8f0",
+                            background: active ? "#E11B22" : "#f8fafc",
                             color: active ? "#fff" : "#334155",
                             fontWeight: active ? 700 : 500,
                             fontSize: "clamp(12px,2.5vw,13px)",
                             cursor: "pointer",
                             transition: "all 0.18s",
-                            boxShadow: active ? "0 4px 12px rgba(37,99,235,0.25)" : "none",
+                            boxShadow: active ? "0 4px 12px rgba(225,27,34,0.25)" : "none",
                           }}
                         >
-                          {opt === "custom" ? <><i className="bi bi-pencil-square me-1"></i>Custom</> : opt}
+                          {opt === "custom" ? <><i className="bi bi-pencil-square me-1"></i>Custom</> : opt.replace("x", "×")}
                         </button>
                       );
                     })}
@@ -1680,7 +1705,7 @@ const renderSummaryPreview = () => {
                 {/* Order Summary card */}
                 <div style={{
                   ...sectionCardStyle,
-                  background: "linear-gradient(145deg, #0f172a 0%, #1e293b 100%)",
+                  background: "linear-gradient(135deg, #0f172a 0%, #dc2626 100%)",
                   border: "none",
                 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
@@ -1699,7 +1724,7 @@ const renderSummaryPreview = () => {
                     {[
                       { icon: "bi-hash",             label: "Order ID",    value: orderId },
                       { icon: "bi-aspect-ratio",     label: "Shape",       value: orientation.charAt(0).toUpperCase() + orientation.slice(1) },
-                      { icon: "bi-rulers",           label: "Size",        value: size === "custom" ? `${customSize.width||"?"}×${customSize.height||"?"} in` : size },
+                      { icon: "bi-rulers",           label: "Size",        value: size === "custom" ? `${customSize.width||"?"}×${customSize.height||"?"} in` : `${size.replace("x","×")} inches` },
                       { icon: "bi-layers",           label: "Thickness",   value: thickness },
                       { icon: "bi-bag",              label: "Quantity",    value: quantity },
 
@@ -1714,12 +1739,8 @@ const renderSummaryPreview = () => {
 
                     <div style={{ margin: "6px 0", borderTop: "1px solid rgba(255,255,255,0.1)" }} />
 
-                    <div style={{
-                      display: "flex", justifyContent: "space-between", alignItems: "center",
-                      padding: "12px 16px", borderRadius: "14px",
-                      background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
-                    }}>
-                      <span style={{ color: "#bfdbfe", fontWeight: 600, fontSize: "13px" }}>Total Amount</span>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0" }}>
+                      <span style={{ color: "#fff", fontWeight: 700, fontSize: "15px" }}>Total Amount</span>
                       <span style={{ color: "#fff", fontWeight: 900, fontSize: "22px" }}>₹{totalAmount}</span>
                     </div>
                   </div>

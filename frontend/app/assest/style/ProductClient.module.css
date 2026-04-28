@@ -111,15 +111,16 @@
 
 .stepConnector {
     flex: 1;
-    height: 2px;
-    background: #e9ecef;
+    height: 0;
+    border-top: 2px dashed #cbd5e1;
     margin: 0 0.5rem;
     position: relative;
     z-index: 1;
+    align-self: center;
 }
 
 .stepConnector.completed {
-    background: linear-gradient(90deg, #2C7FB8, #E11B22);
+    border-top-color: #2C7FB8;
 }
 
 .stepContainer {
